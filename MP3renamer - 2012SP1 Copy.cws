@@ -1,0 +1,678 @@
+[Workspace Header]
+Version = 1300
+Pathname Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/MP3rename"
+Pathname Line0002 = "r.cws"
+CVI Dir = "/Y/2013/CVI"
+CVI Shared Dir = "/Y/2013/CVI/SharedDir"
+CVI Pub Local Dir = "/Y/2013/CVI/PubAppDataDir/CVI_WithVersion"
+CVI Pub Global Dir = "/Y/2013/CVI/PubAppDataDir"
+IVI Standard Root Dir = "/C/Program Files (x86)/IVI Foundation/IVI"
+IVI Standard Root 64-bit Dir = "/C/Program Files/IVI Foundation/IVI"
+VXIplug&play Framework Dir = "/C/Program Files (x86)/IVI Foundation/VISA/winnt"
+VXIplug&play Framework 64-bit Dir = "/C/Program Files/IVI Foundation/VISA/win64"
+Number of Projects = 1
+Active Project = 1
+Project 0001 = "mp3renamer.prj"
+Drag Bar Left = 168
+Window Top = 124
+Window Left = 2023
+Window Bottom = 912
+Window Right = 3351
+Maximized = False
+Maximized Children = True
+Max32 Number Of Errors = 20
+Track Include File Dependencies = True
+Prompt For Missing Includes = True
+Stop On First Error File = False
+Bring Up Err Win At Start = True
+Bring Up Err Win For Errors = False
+Save Changes Before Running = "Always"
+Save Changes Before Compiling = "Always"
+Hide Windows = False
+Break At First Statement = False
+Sort Type = "File Name"
+Number of Opened Files = 15
+Window Confinement Region Enabled = True
+MainColumnWidth = 151
+FileDateColumnWidth = 70
+FileSizeColumnWidth = 70
+
+[Project Header 0001]
+Version = 1300
+Don't Update DistKit = True
+Platform Code = 4
+Build Configuration = "Release"
+Warn User If Debugging Release = 1
+Batch Build Release = False
+Batch Build Debug = False
+
+[File 0001]
+Path = "/Y/2013/CVI/toolslib/custctrl/combobox.fp"
+File Type = "Function Panel"
+Disk Date = 3427714621
+In Projects = "1,"
+
+[File 0002]
+Path = "/Y/2013/CVI/toolslib/toolbox/cvixml.fp"
+File Type = "Function Panel"
+Disk Date = 3427714623
+In Projects = "1,"
+
+[File 0003]
+Path = "/Y/2013/CVI/toolslib/custctrl/hyperlinkctrl.fp"
+File Type = "Function Panel"
+Disk Date = 3427714621
+In Projects = "1,"
+
+[File 0004]
+Path = "/Y/2013/CVI/toolslib/toolbox/inifile.fp"
+File Type = "Function Panel"
+Disk Date = 3427714623
+In Projects = "1,"
+
+[File 0005]
+Path = "/Y/2013/CVI/toolslib/custctrl/pathctrl.fp"
+File Type = "Function Panel"
+Disk Date = 3427714622
+In Projects = "1,"
+
+[File 0006]
+Path = "/Y/2013/CVI/toolslib/custctrl/progressbar.fp"
+File Type = "Function Panel"
+Disk Date = 3441042834
+In Projects = "1,"
+
+[File 0007]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/mp3rename"
+Path Line0002 = "r.c"
+File Type = "CSource"
+Disk Date = 3440180521
+In Projects = "1,"
+Window Top = 62
+Window Left = 18
+Window Z-Order = 6
+Source Window State = "1,427,427,427,33,40,40,0,0,80,0,325,74,0,0,25,410,0,446,50,349,683,1,11,"
+Line Tags = "1058,2088,"
+
+[File 0008]
+Path = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/ID3v2.c"
+File Type = "CSource"
+Disk Date = 3440180615
+In Projects = "1,"
+Window Top = 52
+Window Left = 10
+Window Z-Order = 3
+Source Window State = "1,774,774,774,74,79,79,0,0,81,0,532,0,0,0,20,741,0,761,45,284,687,1,14,"
+Line Tags = "393,"
+
+[File 0009]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/file.c"
+File Type = "CSource"
+Disk Date = 3416246641
+In Projects = "1,"
+Window Top = 152
+Window Left = 70
+Window Z-Order = 14
+Source Window State = "1,666,667,666,0,0,0,0,0,81,0,627,0,0,0,25,582,0,594,0,349,687,1,20,"
+Line Tags = "595,"
+
+[File 0010]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/frame.c"
+File Type = "CSource"
+Disk Date = 3398706437
+In Projects = "1,"
+Window Top = 92
+Window Left = 1264
+Source Window State = "1,403,403,403,5,8,8,0,0,0,0,170,0,0,0,0,379,0,415,165,349,687,1,15,"
+Line Tags = "119,"
+
+[File 0011]
+Path = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/config.c"
+File Type = "CSource"
+Disk Date = 3440016437
+In Projects = "1,"
+Window Top = 32
+Window Left = 10
+Window Z-Order = 12
+Source Window State = "1,347,353,347,0,0,0,0,0,80,0,0,0,0,0,25,282,0,287,145,349,683,1,0,"
+
+[File 0012]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/musicbrai"
+Path Line0002 = "nz.c"
+File Type = "CSource"
+Disk Date = 3440170677
+In Projects = "1,"
+Window Top = 469
+Window Left = 253
+Window Z-Order = 10
+Source Window State = "1,630,630,630,8,22,22,0,3,80,0,50,0,2,0,25,591,0,630,8,349,683,1,17,"
+Line Tags = "645,714,"
+
+[File 0013]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/mp3rename"
+Path Line0002 = "rUI.c"
+File Type = "CSource"
+Disk Date = 3440179822
+In Projects = "1,"
+Window Top = 32
+Window Left = 10
+Window Z-Order = 4
+Source Window State = "1,610,610,610,8,10,8,0,0,80,0,388,0,417,8,25,840,0,864,52,349,683,1,0,"
+
+[File 0014]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/util.c"
+File Type = "CSource"
+Disk Date = 3398706821
+In Projects = "1,"
+Window Top = 122
+Window Left = 54
+Source Window State = "1,105,105,105,103,113,103,0,0,0,0,0,0,0,0,0,91,0,105,0,349,687,1,0,"
+Line Tags = "106,"
+
+[File 0015]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/titleform"
+Path Line0002 = "atting.c"
+File Type = "CSource"
+Disk Date = 3406577783
+In Projects = "1,"
+Window Top = 77
+Window Left = 32
+Window Z-Order = 15
+Source Window State = "1,14,14,14,50,58,58,0,0,80,0,29,0,353,0,25,29,0,41,0,349,683,1,19,"
+Breakpoint 0001 = "71,0,enabled,"
+
+[File 0016]
+Path = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/ID3v2.h"
+File Type = "Include"
+Disk Date = 3440180438
+In Projects = "1,"
+Window Top = 62
+Window Left = 22
+Window Z-Order = 7
+Source Window State = "1,68,68,68,4,12,12,0,0,81,0,20,0,0,0,23,51,0,79,30,323,687,1,20,"
+
+[File 0017]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/tag.c"
+File Type = "CSource"
+Disk Date = 3418142646
+In Projects = "1,"
+Window Top = 302
+Window Left = 150
+Window Z-Order = 13
+Source Window State = "1,609,612,609,48,51,48,0,0,81,0,53,0,0,0,25,657,0,670,67,349,687,1,13,"
+
+[File 0018]
+Path = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/config.h"
+File Type = "Include"
+Disk Date = 3440180355
+In Projects = "1,"
+Window Top = 152
+Window Left = 62
+Window Z-Order = 8
+Source Window State = "1,105,105,105,8,24,24,0,3,81,0,63,0,99,0,18,96,0,105,8,258,687,1,11,"
+
+[File 0019]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/mp3rename"
+Path Line0002 = "r.uir"
+File Type = "User Interface Resource"
+Disk Date = 3440170614
+In Projects = "1,"
+Window Top = 30
+Window Left = 6
+Window Height = 349
+Window Width = 683
+Window Z-Order = 5
+
+[File 0020]
+Path = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/fanart.c"
+File Type = "CSource"
+Disk Date = 3440166621
+In Projects = "1,"
+Window Top = 62
+Window Left = 26
+Window Z-Order = 11
+Source Window State = "1,104,107,104,0,0,0,0,0,80,0,1,0,1,0,25,119,0,131,0,349,683,1,0,"
+Line Tags = "132,"
+
+[File 0021]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/xmlHelper"
+Path Line0002 = ".c"
+File Type = "CSource"
+Disk Date = 3436199632
+In Projects = "1,"
+Window Top = 182
+Window Left = 90
+Window Z-Order = 1
+Source Window State = "1,52,52,52,5,21,21,0,0,140,0,79,0,79,0,51,55,0,59,61,349,683,1,0,"
+Breakpoint 0001 = "75,0,enabled,"
+
+[File 0022]
+Path = "/y/2013/CVI/toolslib/custctrl/hyperlinkctrl.c"
+File Type = "CSource"
+Disk Date = 3434454483
+In Projects = ""
+Window Top = 662
+Window Left = 346
+Window Z-Order = 2
+Source Window State = "1,74,74,74,12,28,28,0,3,87,0,0,0,0,0,25,89,0,74,12,349,739,1,0,"
+
+[File 0023]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/mp3rename"
+Path Line0002 = "r.h"
+File Type = "Include"
+Disk Date = 3440170515
+In Projects = "1,"
+Window Top = 527
+Window Left = 266
+Window Z-Order = 9
+Source Window State = "1,266,266,266,9,26,26,0,0,80,0,0,0,0,0,25,214,0,226,9,349,683,1,0,"
+
+[File 0024]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/compat.c"
+File Type = "CSource"
+Disk Date = 3325000322
+In Projects = "1,"
+Window Top = 182
+Window Left = 86
+Source Window State = "1,362,362,362,6,21,21,0,0,0,0,0,0,0,0,0,306,0,341,0,349,687,1,0,"
+
+[File 0025]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/compat.h"
+File Type = "Include"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 92
+Window Left = 38
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,21,21,349,687,1,0,"
+
+[File 0026]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/crc.c"
+File Type = "CSource"
+Disk Date = 3159824650
+In Projects = "1,"
+Window Top = 77
+Window Left = 32
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,23,349,687,1,0,"
+
+[File 0027]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/crc.h"
+File Type = "Include"
+Disk Date = 3159824650
+In Projects = "1,"
+Window Top = 212
+Window Left = 106
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,683,1,0,"
+
+[File 0028]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/field.c"
+File Type = "CSource"
+Disk Date = 3398705825
+In Projects = "1,"
+Window Top = 62
+Window Left = 22
+Source Window State = "1,382,382,382,21,51,21,0,0,0,0,26,0,0,0,0,261,0,278,13,349,687,1,15,"
+
+[File 0029]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/field.h"
+File Type = "Include"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 182
+Window Left = 90
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,683,1,0,"
+
+[File 0030]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/file.h"
+File Type = "Include"
+Disk Date = 3398706070
+In Projects = "1,"
+Window Top = 32
+Window Left = 6
+Source Window State = "1,24,47,24,0,1,0,0,0,0,0,0,0,0,0,0,0,0,24,0,349,687,1,0,"
+
+[File 0031]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/frame.h"
+File Type = "Include"
+Disk Date = 3333988308
+In Projects = "1,"
+Window Top = 102
+Window Left = 45
+Source Window State = "1,30,31,30,0,0,0,0,0,0,0,0,0,0,0,0,12,0,30,0,349,687,1,0,"
+
+[File 0032]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/frametype.c"
+File Type = "CSource"
+Disk Date = 3398706514
+In Projects = "1,"
+Window Top = 272
+Window Left = 134
+Source Window State = "1,436,436,436,48,56,56,0,3,0,0,57,0,0,0,0,414,0,436,48,349,687,1,11,"
+
+[File 0033]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/frametype.h"
+File Type = "Include"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 32
+Window Left = 10
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,28,6,349,683,1,0,"
+
+[File 0034]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/genre.c"
+File Type = "CSource"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 92
+Window Left = 38
+Source Window State = "1,48,48,48,18,32,32,0,0,0,0,0,0,0,0,0,101,0,69,20,323,687,1,0,"
+
+[File 0035]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/genre.h"
+File Type = "Include"
+Disk Date = 3157692092
+In Projects = "1,"
+Source Window State = "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"
+
+[File 0036]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/global.h"
+File Type = "Include"
+Disk Date = 3418233668
+In Projects = "1,"
+Window Top = 212
+Window Left = 102
+Source Window State = "1,39,39,39,10,17,17,0,0,0,0,0,0,0,0,0,5,0,25,129,349,687,1,0,"
+
+[File 0037]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/id3tag.h"
+File Type = "Include"
+Disk Date = 3416241014
+In Projects = "1,"
+Window Top = 242
+Window Left = 118
+Source Window State = "1,179,179,179,4,30,30,0,0,0,0,243,0,0,0,0,239,0,143,4,349,687,1,14,"
+
+[File 0038]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/latin1.c"
+File Type = "CSource"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 92
+Window Left = 38
+Source Window State = "1,87,87,87,2,12,12,0,0,0,0,0,0,0,0,0,77,0,89,17,349,687,1,0,"
+
+[File 0039]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/latin1.h"
+File Type = "Include"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 242
+Window Left = 122
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,683,0,0,"
+
+[File 0040]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/parse.c"
+File Type = "CSource"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 92
+Window Left = 42
+Source Window State = "1,112,112,112,55,67,67,0,0,0,0,0,0,0,0,0,143,0,165,11,349,683,1,0,"
+
+[File 0041]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/parse.h"
+File Type = "Include"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 122
+Window Left = 54
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,0,18,9,349,687,1,0,"
+
+[File 0042]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/render.c"
+File Type = "CSource"
+Disk Date = 3416247748
+In Projects = "1,"
+Window Top = 152
+Window Left = 74
+Source Window State = "1,160,161,160,68,68,68,0,0,0,0,0,0,0,0,0,143,0,155,0,349,683,1,0,"
+
+[File 0043]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/render.h"
+File Type = "Include"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 182
+Window Left = 86
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,687,1,0,"
+
+[File 0044]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/replaygai"
+Path Line0002 = "n.c"
+File Type = "CSource"
+Disk Date = 3409681182
+In Projects = "1,"
+Window Top = 32
+Window Left = 10
+Source Window State = "1,0,0,0,3,59,3,0,0,0,0,185,0,185,0,0,0,0,33,45,349,683,1,0,"
+
+[File 0045]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/tag.h"
+File Type = "Include"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 52
+Window Left = 19
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,30,18,349,687,1,0,"
+
+[File 0046]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/titleform"
+Path Line0002 = "atting.h"
+File Type = "Include"
+Disk Date = 3401798987
+In Projects = "1,"
+Window Top = 127
+Window Left = 58
+Source Window State = "1,6,6,6,29,30,30,0,0,0,0,0,0,4,0,0,0,0,26,95,349,683,1,15,"
+
+[File 0047]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/ucs4.c"
+File Type = "CSource"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 62
+Window Left = 22
+Source Window State = "1,123,123,123,14,38,38,0,3,0,0,0,0,0,0,0,174,0,123,14,349,687,0,0,"
+
+[File 0048]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/ucs4.h"
+File Type = "Include"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 332
+Window Left = 170
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,683,1,0,"
+
+[File 0049]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/utf16.c"
+File Type = "CSource"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 177
+Window Left = 84
+Source Window State = "1,168,168,168,6,15,6,0,0,0,0,0,0,0,0,0,204,0,238,0,349,683,1,0,"
+
+[File 0050]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/utf16.h"
+File Type = "Include"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 32
+Window Left = 10
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,349,683,1,0,"
+
+[File 0051]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/utf8.c"
+File Type = "CSource"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 202
+Window Left = 97
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,331,0,351,37,349,683,1,0,"
+
+[File 0052]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/utf8.h"
+File Type = "Include"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 62
+Window Left = 26
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,683,1,0,"
+
+[File 0053]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/libid3tag"
+Path Line0002 = "/util.h"
+File Type = "Include"
+Disk Date = 3157692092
+In Projects = "1,"
+Window Top = 212
+Window Left = 102
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,349,687,1,0,"
+
+[File 0054]
+Path = "/c/program files (x86)/national instruments/cvi2012/sdk/lib/msvc/WinInet.Lib"
+File Type = "Library"
+Disk Date = 3422613600
+In Projects = "1,"
+
+[File 0055]
+Path Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/zlibDll/m"
+Path Line0002 = "svc/zlib1.lib"
+File Type = "Library"
+Disk Date = 3204566744
+In Projects = "1,"
+
+[Default Build Config 0001 Debug]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Batch Build = False
+Profile = "Disabled"
+Debugging Level = "Extended"
+Execution Trace = "Disabled"
+Command Line Args = ""
+Working Directory = ""
+Environment Options = ""
+External Process Path = ""
+
+[Default Build Config 0001 Release]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Batch Build = False
+Profile = "Disabled"
+Debugging Level = "Extended"
+Execution Trace = "Disabled"
+Command Line Args = ""
+Working Directory = ""
+Environment Options = ""
+External Process Path = ""
+
+[Default Build Config 0001 Debug64]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Batch Build = False
+Profile = "Disabled"
+Debugging Level = "Extended"
+Execution Trace = "Disabled"
+Command Line Args = ""
+Working Directory = ""
+Environment Options = ""
+External Process Path = ""
+
+[Default Build Config 0001 Release64]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Batch Build = False
+Profile = "Disabled"
+Debugging Level = "Extended"
+Execution Trace = "Disabled"
+Command Line Args = ""
+Working Directory = ""
+Environment Options = ""
+External Process Path = ""
+
+[Build Dependencies 0001]
+Number of Dependencies = 0
+
+[Build Options 0001]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Execution Trace = "Disabled"
+Profile = "Disabled"
+Debugging Level = "Extended"
+Break On Library Errors = True
+Break On First Chance Exceptions = False
+
+[Execution Target 0001]
+Execution Target Address = "Local desktop computer"
+Execution Target Port = 0
+Execution Target Type = 0
+
+[SCC Options 0001]
+Use global settings = True
+SCC Provider = "PushOk SVNSCC"
+SCC Project = "trunk"
+Local Path = "c:\\Program Files (x86)\\National Instruments\\CVI2010\\testing\\MP3Renamer"
+Auxiliary Path = "https://mp3renamer.googlecode.com/svn|user:|rev:HEAD"
+Perform Same Action For .h File As For .uir File = "Ask"
+Perform Same Action For .cds File As For .prj File = "Ask"
+Username = ""
+Comment = ""
+Use Default Username = False
+Use Default Comment = False
+Suppress CVI Error Messages = False
+Always show confirmation dialog = True
+
+[DLL Debugging Support 0001]
+External Process Path = ""
+
+[Command Line Args 0001]
+Command Line Args = ""
+Working Directory = ""
+Environment Options = ""
+
+[Distributions]
+Active Index = 1
+AbsCDSPath 0001 Line0001 = "/c/Program Files (x86)/National Instruments/CVI2012/testing/MP3Renamer/MP3Rename"
+AbsCDSPath 0001 Line0002 = "r.cds"
+RelCDSPath 0001 = "MP3Renamer.cds"
+
