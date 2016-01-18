@@ -563,6 +563,14 @@ int CVICALLBACK ValChangeCB (int panel, int control, int event,
 	return 0;
 }
 
+void SelectAllText (int panel, int control)
+{
+	int len;
+	
+	GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
+	SetCtrlAttribute(panel, control, ATTR_TEXT_SELECTION_START, 0);
+	SetCtrlAttribute(panel, control, ATTR_TEXT_SELECTION_LENGTH, len);
+}
 
 int CVICALLBACK TagCB (int panel, int control, int event,
 		void *callbackData, int eventData1, int eventData2)
@@ -572,6 +580,19 @@ int CVICALLBACK TagCB (int panel, int control, int event,
 	switch (event)
 		{
 		case EVENT_RIGHT_CLICK:
+			break;
+		case EVENT_GOT_FOCUS:
+			if (panel == tab1Handle && control == TAB1_COMMENT) {
+				SelectAllText(panel, control);
+			}
+			if (panel == tab3Handle) {
+				switch (control) {
+					case TAB3_ARTISTMBID:
+					case TAB3_REID:
+						SelectAllText(panel, control);
+						break;
+				}
+			}
 			break;
 		case EVENT_KEYPRESS:
 			if (panel == tab1Handle) 
@@ -624,9 +645,7 @@ int CVICALLBACK TagCB (int panel, int control, int event,
 			if (led)
 				SetCtrlVal(panel, led, 0);
 			if (eventData1 == (VAL_MENUKEY_MODIFIER | 'a') || eventData1 == (VAL_MENUKEY_MODIFIER | 'A')) {
-				GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
-				SetCtrlAttribute(panel, control, ATTR_TEXT_SELECTION_START, 0);
-				SetCtrlAttribute(panel, control, ATTR_TEXT_SELECTION_LENGTH, len);
+				SelectAllText(panel, control);
 			}
 			break;
 		}

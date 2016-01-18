@@ -298,15 +298,12 @@ void DownloadFileIfNotExists(char *url, char *filename)
 	}
 }
 
-/* We store XML files in tempFanart\ and we assume that any XML file older than 1 day is out of date and so we want to delete them */
+/* We store files in tempFanart\ and we assume that any file older than 1 day is out of date and so we want to delete them */
 void DeleteOldXMLandJSONFiles (int removeAll)
 {
 	int 	res, mon, day, year, hour, min, sec;
 	char 	path[MAX_FILENAME_LEN], fileName[MAX_FILENAME_LEN];
-	const 	char * fileTypes[] = {
-				    "xml",
-				    "json"
-				};
+	const 	char * fileTypes[] = {"xml", "json"};
 	double	time, fileTime;
 	
 	GetCurrentDateTime(&time);
@@ -315,10 +312,10 @@ void DeleteOldXMLandJSONFiles (int removeAll)
 		res = GetFirstFile(path, 1, 0, 0, 0, 0, 0, fileName);
 		while (res == 0) {
 			sprintf(path, "tempFanart\\%s", fileName);
-			GetFileDate(path, &mon, &day, &year);		// we want to deleteXML files that weren't created today
+			GetFileDate(path, &mon, &day, &year);
 			GetFileTime(path, &hour, &min, &sec);
 			MakeDateTime(hour, min, sec, mon, day, year, &fileTime);
-			if (time - fileTime > 24 * 60 * 60) {
+			if (time - fileTime > 24 * 60 * 60) {		// we want to delete files that weren't created in the last 24 hours
 				DeleteFile("");										   
 			}
 			res = GetNextFile(fileName);
