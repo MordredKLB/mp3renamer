@@ -682,17 +682,22 @@ void GetMetaTrackData(int panel, int albumIndex)
 					SetCountryName(val);
 					GetParentElement(&curElem);
 				} else {
-					GetChildElementByTag(&curElem, "area");
-					if (!GetChildElementByTag(&curElem, "iso-3166-1-code-list") || !GetChildElementByTag(&curElem, "iso-3166-2-code-list")) {
-						GetChildElementByTag(&curElem, "iso-3166-1-code");
-						GetChildElementByTag(&curElem, "iso-3166-2-code");	// both won't exist, so this should be safe because the first won't advance the pointer if it doesn't exist
-						hrChk(CVIXMLGetElementValue(curElem, val));			// 2 character country value
-						val[2] = '\0';	// iso-3166-2 tags are of the form GB-NET, and we don't care about the exact area so lop off everything after the first two chars
-						SetCountryName(val);
-						GetParentElement(&curElem);	// iso-3166-1/2-code
-						GetParentElement(&curElem);	// iso-3166-1/2-code-list
+					const char * tags[] = {"area", "begin-area"};
+					for (int i=0; i < (sizeof (tags) / sizeof (const char *)); i++) {
+						if (!GetChildElementByTag(&curElem, tags[i])) {
+							if (!GetChildElementByTag(&curElem, "iso-3166-1-code-list") || !GetChildElementByTag(&curElem, "iso-3166-2-code-list")) {
+								GetChildElementByTag(&curElem, "iso-3166-1-code");
+								GetChildElementByTag(&curElem, "iso-3166-2-code");	// both won't exist, so this should be safe because the first won't advance the pointer if it doesn't exist
+								hrChk(CVIXMLGetElementValue(curElem, val));			// 2 character country value
+								val[2] = '\0';	// iso-3166-2 tags are of the form GB-NET, and we don't care about the exact area so lop off everything after the first two chars
+								SetCountryName(val);
+								GetParentElement(&curElem);	// iso-3166-1/2-code
+								GetParentElement(&curElem);	// iso-3166-1/2-code-list
+								break;
+							}
+							GetParentElement(&curElem);	// area
+						}
 					}
-					GetParentElement(&curElem);
 				}
 				GetParentElement(&curElem);
 			}
