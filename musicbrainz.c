@@ -663,6 +663,7 @@ void GetMetaTrackData(int panel, int albumIndex)
 		SetCtrlVal(tab3Handle, TAB3_ARTISTMBID, reid);
 		SetCtrlAttribute(panelHandle, PANEL_FANART, ATTR_DIMMED, 0);
 		SetCtrlAttribute(tab1Handle, TAB1_COUNTRYERROR, ATTR_VISIBLE, FALSE);
+		SetCountryName("--");	// clear country
 		
 		
 		sprintf(queryBuf, kArtistQuery, reid);	// artist
@@ -682,13 +683,15 @@ void GetMetaTrackData(int panel, int albumIndex)
 					GetParentElement(&curElem);
 				} else {
 					GetChildElementByTag(&curElem, "area");
-					GetChildElementByTag(&curElem, "iso-3166-2-code-list");
-					GetChildElementByTag(&curElem, "iso-3166-2-code");
-					hrChk(CVIXMLGetElementValue(curElem, val));	// 2 character country value
-					val[2] = '\0';	// iso-3166-2 tags are of the form GB-NET, and we don't care about the exact area so lop off everything after the first two chars
-					SetCountryName(val);
-					GetParentElement(&curElem);
-					GetParentElement(&curElem);
+					if (!GetChildElementByTag(&curElem, "iso-3166-1-code-list") || !GetChildElementByTag(&curElem, "iso-3166-2-code-list")) {
+						GetChildElementByTag(&curElem, "iso-3166-1-code");
+						GetChildElementByTag(&curElem, "iso-3166-2-code");	// both won't exist, so this should be safe because the first won't advance the pointer if it doesn't exist
+						hrChk(CVIXMLGetElementValue(curElem, val));			// 2 character country value
+						val[2] = '\0';	// iso-3166-2 tags are of the form GB-NET, and we don't care about the exact area so lop off everything after the first two chars
+						SetCountryName(val);
+						GetParentElement(&curElem);	// iso-3166-1/2-code
+						GetParentElement(&curElem);	// iso-3166-1/2-code-list
+					}
 					GetParentElement(&curElem);
 				}
 				GetParentElement(&curElem);

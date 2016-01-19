@@ -575,7 +575,7 @@ void SelectAllText (int panel, int control)
 int CVICALLBACK TagCB (int panel, int control, int event,
 		void *callbackData, int eventData1, int eventData2)
 {
-	int led = 0, len;
+	int led = 0;
 	
 	switch (event)
 		{
@@ -674,7 +674,7 @@ int CVICALLBACK AutoAlbumArtistCB (int panel, int control, int event,
 }
 
 
-#define kNumCountryCodes	241
+#define kNumCountryCodes	242
 
 countryEntry countryCodeTable[kNumCountryCodes] = {
 	{"US", "United States"},
@@ -694,6 +694,7 @@ countryEntry countryCodeTable[kNumCountryCodes] = {
 	{"GR", "Greece"},
 	{"IS", "Iceland"},
 	{"IN", "India"},
+	{"--", ""},
 	{"AD", "Andorra"},
 	{"AE", "United Arab Emirates"},
 	{"AF", "Afghanistan"},
