@@ -36,7 +36,8 @@ Artist:  http://www.musicbrainz.org/ws/2/artist/?query=arid:65f4f0c5-ef9e-490c-a
 
 #define kTrackQuery		"http://musicbrainz.org/ws/2/recording/?limit=100&query=reid:%s"
 
-#define kArtistQuery	"http://musicbrainz.org/ws/2/artist/?query=arid:%s"
+// kArtistQuery is used to retrieve the country code
+#define kArtistQuery	"http://musicbrainz.org/ws/2/artist/%s"
 
 #define kRelQueryBase	"http://musicbrainz.org/ws/2/release/?limit=100&offset=%d&query="
 #define kRelArtist		"artist:\"%s\""
@@ -356,17 +357,30 @@ void BuildQueryString(int panel, char **queryBuf, char *fileName)
 
 void BuildFileNameFromQuery(char *query, char *fileName) {
 	int 	i, j=0;
-	char 	*ptr;
+	char 	*ptr, *temp;
 	
 	strcpy(fileName, "tempFanart\\");
 	j=strlen(fileName);
 	ptr = strstr(query, "query=");
-	for (i=strlen("query=")-1;i<strlen(ptr);i++) {
-		if (isalnum(ptr[i]) || ptr[i] == '-') {
-			fileName[j++] = ptr[i];
+	if (ptr) {
+		for (i=strlen("query=")-1;i<strlen(ptr);i++) {
+			if (isalnum(ptr[i]) || ptr[i] == '-') {
+				fileName[j++] = ptr[i];
+			}
 		}
+		fileName[j] ='\0';
+	} else {
+		// direct search, not using a query:
+		temp = calloc(strlen(query) + 1, sizeof(char));
+		strcpy(temp, query);
+		ptr = strrchr(temp, '/');
+		if (ptr) {
+			ptr[0] = '-';
+		}
+		ptr = strrchr(temp, '/');	// find 2nd to last '/'
+		strcat(fileName, ptr + 1);
+		free(temp);
 	}
-	fileName[j] ='\0';
 	strcat(fileName, ".xml");
 }
 
@@ -661,13 +675,22 @@ void GetMetaTrackData(int panel, int albumIndex)
 			if (!strcmp(val, "error")) {
 				loadError = S_FALSE;
 			} else {
-				GetChildElementByIndex(&curElem, 0);	// artist-list
 				GetChildElementByIndex(&curElem, 0);	// artist
-				GetChildElementByTag(&curElem, "country");
-				hrChk(CVIXMLGetElementValue(curElem, val));	// 2 character country value
-				SetCountryName(val);
-				GetParentElement(&curElem);
-				GetParentElement(&curElem);
+				if (!GetChildElementByTag(&curElem, "country")) {	// does "country" exist?
+					hrChk(CVIXMLGetElementValue(curElem, val));	// 2 character country value
+					SetCountryName(val);
+					GetParentElement(&curElem);
+				} else {
+					GetChildElementByTag(&curElem, "area");
+					GetChildElementByTag(&curElem, "iso-3166-2-code-list");
+					GetChildElementByTag(&curElem, "iso-3166-2-code");
+					hrChk(CVIXMLGetElementValue(curElem, val));	// 2 character country value
+					val[2] = '\0';	// iso-3166-2 tags are of the form GB-NET, and we don't care about the exact area so lop off everything after the first two chars
+					SetCountryName(val);
+					GetParentElement(&curElem);
+					GetParentElement(&curElem);
+					GetParentElement(&curElem);
+				}
 				GetParentElement(&curElem);
 			}
 		}
