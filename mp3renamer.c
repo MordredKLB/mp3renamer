@@ -988,10 +988,23 @@ void ReplaceAmpersands(char *str)
 void ReplaceUnicodeApostrophe(char *str)
 {
 	char *ptr = NULL;
+	char tempStr[strlen(str)*3 + 1];	// make enough space for ... to replace the unicode ellipses if all the characters are unicode ellipses
+	int  i, j;
 	
 	while (ptr = strstr(str, "’")) {
 		ptr[0] = '\'';
 	}
+	for (i=0, j=0; i<strlen(str); i++) {
+		if (str[i] == '\205') {		// ... unicode char
+			tempStr[j++]='.';
+			tempStr[j++]='.';
+			tempStr[j++]='.';
+		} else {
+			tempStr[j++]=str[i];
+		}
+	}
+	tempStr[j] = '\0';
+	strcpy(str, tempStr);
 }
 
 /*** This function streamlines the MusicBrainz search by removing those "[Deluxe Edition]" strings from the album title ***/
