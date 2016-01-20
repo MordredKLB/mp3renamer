@@ -430,34 +430,45 @@ void GetMetaData(int panel, int control)
 	delta = Timer() - time;
 	if (error==S_OK) {
 		hrChk (CVIXMLGetRootElement (doc, &curElem));
-		CVIXMLGetNumChildElements(curElem, &count);
-		if (count > 0) {
-			GetChildElementByIndex(&curElem, 0);	// release-list
-			hrChk (CVIXMLGetAttributeByName(curElem, kAttrCountStr, &curAttr));
-			hrChk (CVIXMLGetAttributeValue(curAttr, val));
-			CVIXMLDiscardAttribute(curAttr);
-			totalCount = strtol(val, NULL, 10);
-			if (totalCount-offset > 100)
-				count = 100;
+		CVIXMLGetElementTag(curElem, val);
+		if (!strcmp(val, "error")) {
+			if (!GetChildElementByTag(&curElem, "text")) {
+				CVIXMLGetElementValue(curElem, val);
+				SetCtrlAttribute(panel, ALBUMPANEL_ERROR_ICON, ATTR_LABEL_TEXT, val);
+			}
+			SetCtrlAttribute(panel, ALBUMPANEL_ERROR_ICON, ATTR_VISIBLE, 1);
+			DeleteFile(fileName);
+		} else {
+			CVIXMLGetNumChildElements(curElem, &count);
+			if (count > 0) {
+				GetChildElementByIndex(&curElem, 0);	// release-list
+				hrChk (CVIXMLGetAttributeByName(curElem, kAttrCountStr, &curAttr));
+				hrChk (CVIXMLGetAttributeValue(curAttr, val));
+				CVIXMLDiscardAttribute(curAttr);
+				totalCount = strtol(val, NULL, 10);
+				if (totalCount-offset > 100)
+					count = 100;
+				else
+					count = totalCount-offset;
+			}
+			if (totalCount > 100)
+				sprintf(val, "Displaying recordings %d-%d of %d results\0", offset, offset+100, totalCount);
 			else
-				count = totalCount-offset;
+				sprintf(val, "%d results\0", count);
+
+			if (offset > 0)
+				SetCtrlAttribute(panel, ALBUMPANEL_PREV, ATTR_DIMMED, 0);
+			else
+				SetCtrlAttribute(panel, ALBUMPANEL_PREV, ATTR_DIMMED, 1);
+			if (totalCount-offset < 100)
+				SetCtrlAttribute(panel, ALBUMPANEL_NEXT, ATTR_DIMMED, 1);
+			else
+				SetCtrlAttribute(panel, ALBUMPANEL_NEXT, ATTR_DIMMED, 0);
+
+			SetCtrlVal(panel, ALBUMPANEL_TEXTMSG, val);
 		}
-		if (totalCount > 100)
-			sprintf(val, "Displaying recordings %d-%d of %d results\0", offset, offset+100, totalCount);
-		else
-			sprintf(val, "%d results\0", count);
-
-		if (offset > 0)
-			SetCtrlAttribute(panel, ALBUMPANEL_PREV, ATTR_DIMMED, 0);
-		else
-			SetCtrlAttribute(panel, ALBUMPANEL_PREV, ATTR_DIMMED, 1);
-		if (totalCount-offset < 100)
-			SetCtrlAttribute(panel, ALBUMPANEL_NEXT, ATTR_DIMMED, 1);
-		else
-			SetCtrlAttribute(panel, ALBUMPANEL_NEXT, ATTR_DIMMED, 0);
-
-		SetCtrlVal(panel, ALBUMPANEL_TEXTMSG, val);
 	} else {
+		SetCtrlAttribute(panel, ALBUMPANEL_ERROR_ICON, ATTR_LABEL_TEXT, "An error occurred");
 		SetCtrlAttribute(panel, ALBUMPANEL_ERROR_ICON, ATTR_VISIBLE, 1);
 		DeleteFile(fileName);	// an error occurred so don't save file
 	}
