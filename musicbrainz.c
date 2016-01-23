@@ -789,19 +789,22 @@ int GetAlbumTrackListing(int panel, int albumTree, int trackTree, int albumIndex
 		if (!gAlbumInfo[albumIndex].tracks) {
 			hrChk(GetXMLAndPopulateTrackTree(panel, albumTree, trackTree, albumIndex));
 			
-			// store information from tree in gAlbumInfo
-			gAlbumInfo[albumIndex].numTracks = releaseTracks;
-			gAlbumInfo[albumIndex].tracks = calloc(releaseTracks, sizeof(TrackInfoStruct));
-			for (i=0;i<releaseTracks;i++) {
-				GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackNum, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].trackNum);
-				GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackDisc, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].discNum);
-				GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackLength, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].time);
-				GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackName, ATTR_LABEL_TEXT_LENGTH, &len);
-				gAlbumInfo[albumIndex].tracks[i].title = malloc(sizeof(char) * (len + 1));
-				GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackName, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].title);
+			if (error == S_OK) {
+				// store information from tree in gAlbumInfo
+				gAlbumInfo[albumIndex].numTracks = releaseTracks;
+				gAlbumInfo[albumIndex].tracks = calloc(releaseTracks, sizeof(TrackInfoStruct));
+				for (i=0;i<releaseTracks;i++) {
+					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackNum, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].trackNum);
+					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackDisc, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].discNum);
+					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackLength, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].time);
+					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackName, ATTR_LABEL_TEXT_LENGTH, &len);
+					gAlbumInfo[albumIndex].tracks[i].title = malloc(sizeof(char) * (len + 1));
+					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackName, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].title);
+				}
 			}
 		}
 		else {	// we've already saved everything, so load it up into the tree
+			SetCtrlAttribute(panel, ALBUMPANEL_ERROR_ICON, ATTR_VISIBLE, FALSE);
 			for (i=0;i<gAlbumInfo[albumIndex].numTracks;i++) {
 				InsertTreeItem(panel, trackTree, VAL_SIBLING, i-1, VAL_LAST, gAlbumInfo[albumIndex].tracks[i].discNum, NULL, NULL, i);
 				SetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackNum, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].trackNum);
@@ -822,10 +825,11 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 	HRESULT error = S_OK;
 	char	val[512], title[512], reid[40], queryBuf[512], offset[4], discStr[4], time[8], fileName[MAX_PATHNAME_LEN];
 	int		i, j, releaseTracks, numTracks, numChild, num, mins, secs, checkDoubles=0, dupTrackCount, insertOffset, replaceUnicodeApostrophe=0;
-	CVIXMLDocument	curDoc = 0;
+	CVIXMLDocument	doc = 0;
 	CVIXMLElement 	curElem = 0;
 	CVIXMLAttribute curAttr = 0;
 
+	SetCtrlAttribute(panel, ALBUMPANEL_ERROR_ICON, ATTR_VISIBLE, FALSE);
 	GetCtrlVal(configHandle, OPTIONS_REPLACEAPOSTROPHE, &replaceUnicodeApostrophe);
 	GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColNumTracks, ATTR_LABEL_TEXT, val);
 	releaseTracks = strtol(val, NULL, 10);
@@ -834,107 +838,124 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 	BuildFileNameFromQuery(queryBuf, fileName);	// create filename to save XML in
 	DownloadFileIfNotExists(queryBuf, fileName);
 
-	hrChk (CVIXMLLoadDocument(fileName, &curDoc));
-	hrChk (CVIXMLGetRootElement (curDoc, &curElem));
-	hrChk (GetChildElementByIndex(&curElem, 0));
-	hrChk (CVIXMLGetAttributeByName(curElem, kAttrCountStr, &curAttr));
-	hrChk (CVIXMLGetAttributeValue(curAttr, val));
-	CVIXMLDiscardAttribute(curAttr);
-	numTracks = strtol(val, NULL, 10);	
-	GetChildElementByIndex(&curElem, 0);	// recording-list
-	if (numTracks != releaseTracks)
-		checkDoubles = 1;	 // checkDoubles handles the case where there are two songs on the same release with the same name
-	insertOffset = 0;
-	for (i=0;i<numTracks;i++) {
-		InsertTreeItem(panel, trackTree, VAL_SIBLING, i+insertOffset-1, VAL_LAST, "", NULL, NULL, i+insertOffset);
-		offset[0] = '\0';
-		GetChildElementByIndex(&curElem, i);
-
-		GetChildElementByTag(&curElem, kElemTitleStr);
-		hrChk(CVIXMLGetElementValue(curElem, title));				// title
-		if (replaceUnicodeApostrophe)
-			ReplaceUnicodeApostrophe(title);
-		GetParentElement(&curElem);	/* title */
-		mins = secs = 0;
-		if (!GetChildElementByTag(&curElem, "length")) {
-			hrChk(CVIXMLGetElementValue(curElem, val));
-			GetParentElement(&curElem); /* length */
-			secs = (strtol(val, NULL, 10) + 500) / 1000;
-			mins = secs/60;
-			secs = secs%60;
-		}
-
-		GetChildElementByTag(&curElem, "release-list");
-		CVIXMLGetNumChildElements(curElem, &numChild);
-		dupTrackCount = 0;
-		for (j=0;j<numChild;j++) {
-			GetChildElementByIndex(&curElem, j);	// release
-			CVIXMLGetAttributeByName(curElem, "id", &curAttr);
-			hrChk(CVIXMLGetAttributeValue(curAttr, val));
+	error = CVIXMLLoadDocument(fileName, &doc);
+	if (error == S_OK) {
+		hrChk (CVIXMLGetRootElement (doc, &curElem));
+		CVIXMLGetElementTag(curElem, val);
+		if (!strcmp(val, "error")) {
+			if (!GetChildElementByTag(&curElem, "text")) {
+				CVIXMLGetElementValue(curElem, val);
+				SetCtrlAttribute(panel, ALBUMPANEL_ERROR_ICON, ATTR_LABEL_TEXT, val);
+			}
+			SetCtrlAttribute(panel, ALBUMPANEL_ERROR_ICON, ATTR_VISIBLE, TRUE);
+			error = S_FALSE;
+			DeleteFile(fileName);
+		} else {
+			hrChk (GetChildElementByIndex(&curElem, 0));
+			hrChk (CVIXMLGetAttributeByName(curElem, kAttrCountStr, &curAttr));
+			hrChk (CVIXMLGetAttributeValue(curAttr, val));
 			CVIXMLDiscardAttribute(curAttr);
-			if (!strcmp(val, reid)) {
-				dupTrackCount++;
-				if (dupTrackCount > 1) {	// we have the same track on the same release multiple times
-					insertOffset++;
-					InsertTreeItem(panel, trackTree, VAL_SIBLING, i+insertOffset-1, VAL_LAST, "", NULL, NULL, i+insertOffset);
+			numTracks = strtol(val, NULL, 10);	
+			GetChildElementByIndex(&curElem, 0);	// recording-list
+			if (numTracks != releaseTracks)
+				checkDoubles = 1;	 // checkDoubles handles the case where there are two songs on the same release with the same name
+			insertOffset = 0;
+			for (i=0;i<numTracks;i++) {
+				InsertTreeItem(panel, trackTree, VAL_SIBLING, i+insertOffset-1, VAL_LAST, "", NULL, NULL, i+insertOffset);
+				offset[0] = '\0';
+				GetChildElementByIndex(&curElem, i);
+
+				GetChildElementByTag(&curElem, kElemTitleStr);
+				hrChk(CVIXMLGetElementValue(curElem, title));				// title
+				if (replaceUnicodeApostrophe)
+					ReplaceUnicodeApostrophe(title);
+				GetParentElement(&curElem);	/* title */
+				mins = secs = 0;
+				if (!GetChildElementByTag(&curElem, "length")) {
+					hrChk(CVIXMLGetElementValue(curElem, val));
+					GetParentElement(&curElem); /* length */
+					secs = (strtol(val, NULL, 10) + 500) / 1000;
+					mins = secs/60;
+					secs = secs%60;
 				}
-				GetChildElementByTag(&curElem, "medium-list");
-				GetChildElementByTag(&curElem, "medium");
-				GetChildElementByTag(&curElem, "position");
-				CVIXMLGetElementValue(curElem, discStr);			// get the disc #
-				GetParentElement(&curElem);	/* position */
-				GetChildElementByTag(&curElem, "track-list");
-				hrChk(CVIXMLGetAttributeByName(curElem, "offset", &curAttr));
-				hrChk(CVIXMLGetAttributeValue(curAttr, offset));	// track #
-				CVIXMLDiscardAttribute(curAttr);
-				GetChildElementByTag(&curElem, "track");
-				if (!GetChildElementByTag(&curElem, "title")) {
-					hrChk(CVIXMLGetElementValue(curElem, title));	// we got the title above, but typically this title supersedes the one above
-					if (replaceUnicodeApostrophe)
-						ReplaceUnicodeApostrophe(title);
-					GetParentElement(&curElem); /* title */
-				}
-				if (!mins && !secs) {
-					if (!GetChildElementByTag(&curElem, "length")) {
-						hrChk(CVIXMLGetElementValue(curElem, val));
-						GetParentElement(&curElem); /* length */
-						secs = (strtol(val, NULL, 10) + 500) / 1000;
-						mins = secs/60;
-						secs = secs%60;
+
+				GetChildElementByTag(&curElem, "release-list");
+				CVIXMLGetNumChildElements(curElem, &numChild);
+				dupTrackCount = 0;
+				for (j=0;j<numChild;j++) {
+					GetChildElementByIndex(&curElem, j);	// release
+					CVIXMLGetAttributeByName(curElem, "id", &curAttr);
+					hrChk(CVIXMLGetAttributeValue(curAttr, val));
+					CVIXMLDiscardAttribute(curAttr);
+					if (!strcmp(val, reid)) {
+						dupTrackCount++;
+						if (dupTrackCount > 1) {	// we have the same track on the same release multiple times
+							insertOffset++;
+							InsertTreeItem(panel, trackTree, VAL_SIBLING, i+insertOffset-1, VAL_LAST, "", NULL, NULL, i+insertOffset);
+						}
+						GetChildElementByTag(&curElem, "medium-list");
+						GetChildElementByTag(&curElem, "medium");
+						GetChildElementByTag(&curElem, "position");
+						CVIXMLGetElementValue(curElem, discStr);			// get the disc #
+						GetParentElement(&curElem);	/* position */
+						GetChildElementByTag(&curElem, "track-list");
+						hrChk(CVIXMLGetAttributeByName(curElem, "offset", &curAttr));
+						hrChk(CVIXMLGetAttributeValue(curAttr, offset));	// track #
+						CVIXMLDiscardAttribute(curAttr);
+						GetChildElementByTag(&curElem, "track");
+						if (!GetChildElementByTag(&curElem, "title")) {
+							hrChk(CVIXMLGetElementValue(curElem, title));	// we got the title above, but typically this title supersedes the one above
+							if (replaceUnicodeApostrophe)
+								ReplaceUnicodeApostrophe(title);
+							GetParentElement(&curElem); /* title */
+						}
+						if (!mins && !secs) {
+							if (!GetChildElementByTag(&curElem, "length")) {
+								hrChk(CVIXMLGetElementValue(curElem, val));
+								GetParentElement(&curElem); /* length */
+								secs = (strtol(val, NULL, 10) + 500) / 1000;
+								mins = secs/60;
+								secs = secs%60;
+							}
+						}
+						GetParentElement(&curElem); /* track */
+						GetParentElement(&curElem);	/* track-list */
+						GetParentElement(&curElem);	/* medium */
+						GetParentElement(&curElem);	/* medium-list */
+						GetParentElement(&curElem);	/* release */
+			
+						num = strtol(offset, NULL, 10);
+						sprintf(offset, "%d\0", num+1);
+						SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackNum, ATTR_LABEL_TEXT, offset);
+						SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackDisc, ATTR_LABEL_TEXT, discStr);
+						SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackName, ATTR_LABEL_TEXT, title);
+						sprintf(time, "%d:%02d\0", mins, secs);
+						SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackLength,ATTR_LABEL_TEXT, time);	// reusing title string
+						if (!checkDoubles || j+1==numChild) {	// if there are doubles we want to keep searching
+							break;
+						} 
+					}
+					else {
+						GetParentElement(&curElem);	/* release */
 					}
 				}
-				GetParentElement(&curElem); /* track */
-				GetParentElement(&curElem);	/* track-list */
-				GetParentElement(&curElem);	/* medium */
-				GetParentElement(&curElem);	/* medium-list */
-				GetParentElement(&curElem);	/* release */
-			
-				num = strtol(offset, NULL, 10);
-				sprintf(offset, "%d\0", num+1);
-				SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackNum, ATTR_LABEL_TEXT, offset);
-				SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackDisc, ATTR_LABEL_TEXT, discStr);
-				SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackName, ATTR_LABEL_TEXT, title);
-				sprintf(time, "%d:%02d\0", mins, secs);
-				SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackLength,ATTR_LABEL_TEXT, time);	// reusing title string
-				if (!checkDoubles || j+1==numChild) {	// if there are doubles we want to keep searching
-					break;
-				} 
+				GetParentElement(&curElem);	/* release-list */
+				GetParentElement(&curElem); /* recording */
 			}
-			else {
-				GetParentElement(&curElem);	/* release */
-			}
+			SortTreeItems(panel, trackTree, 0, 0, 0, 0, TrackTreeSortCI, NULL);
+			SetCtrlIndex(panel, trackTree, 0);
 		}
-		GetParentElement(&curElem);	/* release-list */
-		GetParentElement(&curElem); /* recording */
+	} else {
+		SetCtrlAttribute(panel, ALBUMPANEL_ERROR_ICON, ATTR_LABEL_TEXT, "An error occurred");
+		SetCtrlAttribute(panel, ALBUMPANEL_ERROR_ICON, ATTR_VISIBLE, 1);
+		DeleteFile(fileName);	// an error occurred so don't save file
 	}
-	SortTreeItems(panel, trackTree, 0, 0, 0, 0, TrackTreeSortCI, NULL);
-	SetCtrlIndex(panel, trackTree, 0);
 
 Error:
 	if (curElem)
 		CVIXMLDiscardElement (curElem);
-	if (curDoc)
-    	CVIXMLDiscardDocument (curDoc);
+	if (doc)
+    	CVIXMLDiscardDocument (doc);
 	return error;
 }
 
