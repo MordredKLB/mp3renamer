@@ -17,7 +17,6 @@
 #define kMaxGenreEntryLength	128
 #define kNumWinampGenres		148
 #define kNoGenre				255
-#define kMaxNumGenres			147
 
 #define kBlankStr				"<blank line>"
 #define kPictureSizeStr			"Image Size %d x %d"

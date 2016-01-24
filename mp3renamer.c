@@ -1355,7 +1355,7 @@ int GetID3v1Tag (int panel, char *filename)
 		}
 		GetTableCellValLength(tab1Handle, TAB1_GENRE, tagCell, &len); 
 		if (!len) {
-			if (buf[127] < 0 || buf[127] > kMaxNumGenres) {
+			if (buf[127] < 0 || buf[127] > (kNumWinampGenres - 1)) {
 				genreID = 0;
 				SetTableCellVal(tab1Handle, TAB1_GENRE, tagCell, "");
 				}

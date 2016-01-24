@@ -149,7 +149,7 @@ static char *genreList[kNumWinampGenres] = {
 	"Thrash Metal",			// 144
 	"Anime",
 	"Jpop",
-	"Synthpop"				// 147 = kMaxNumGenres
+	"Synthpop"				// 147 = kNumWinampGenres - 1
 };
 
 #endif /* _GENRELIST_H_ */
