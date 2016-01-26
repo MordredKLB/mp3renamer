@@ -7,6 +7,7 @@
 #include <userint.h>
 #include "mp3renamer.h"
 #include "ID3v2.h"
+#include "apev2.h"
 #include "genreList.h"
 #include "titleformatting.h"
 #include "progressbar.h"
@@ -920,6 +921,10 @@ int GetAudioFileType(char *filename)
 				isAudio=kFileMP3;
 			else if (!stricmp(ext, "flac"))
 				isAudio=kFileFLAC;
+			else if (!stricmp(ext, "ac3"))
+				isAudio=kFileAC3;
+			else if (!stricmp(ext, "dts"))
+				isAudio=kFileDTS;
 			else if (!stricmp(ext, "ape"))
 				isAudio=kFileAPE;
 			else if (!stricmp(ext, "aac"))
@@ -930,8 +935,8 @@ int GetAudioFileType(char *filename)
 				isAudio=kFileWMA;
 			else if (!stricmp(ext, "wv"))
 				isAudio=kFileWV;
-			}
 		}
+	}
 	
 	return isAudio;
 }
@@ -1050,7 +1055,6 @@ char* FindTrackNum(char *filename, int index, int *numLen, char *trackNum)
 	if (GetAudioFileType(filename)) {
 		GetTreeCellAttribute (panelHandle, PANEL_TREE, index, kTreeColID, ATTR_LABEL_TEXT, indexStr);
 		idx = atoi(indexStr);
-		//idx = index;
 		if (dataHandle.trackNumPtr && dataHandle.trackNumPtr[idx] && strlen(dataHandle.trackNumPtr[idx])>0 && 
 				isalnum(dataHandle.trackNumPtr[idx][0]) && !isalpha(dataHandle.trackNumPtr[idx][0])) {
 			string = strchr(dataHandle.trackNumPtr[idx], '/');
@@ -1091,10 +1095,9 @@ char* FindTrackNum(char *filename, int index, int *numLen, char *trackNum)
 			if (string) {
 				if (numLen) *numLen=(int)strlen(trackStr);
 				return string + strlen(trackStr);
-				}
-		
 			}
-		else {	// ID3 tag didn't have trackNum, so attempt to find one
+	
+		} else {	// ID3 tag didn't have trackNum, so attempt to find one
 			origFilename = filename + strlen(filename)-1;
 
 			for (i=48;i<=57;i++) {	// search for numbers 0-9
@@ -1107,11 +1110,11 @@ char* FindTrackNum(char *filename, int index, int *numLen, char *trackNum)
 						if (trackNum)
 							snprintf(trackNum, 3, "%s", string);
 						return string + 2;
-						}
-					else
+					} else {
 						string = NULL;
 					}
 				}
+			}
 	
 			if (found) {
 				if (numLen)
@@ -1121,15 +1124,16 @@ char* FindTrackNum(char *filename, int index, int *numLen, char *trackNum)
 					string = strchr (filename, i);
 					if (string && strcmp(string, origFilename)) {
 						if (!isalpha (string[1])) {
-							if (trackNum)
+							if (trackNum) {
 								snprintf(trackNum, 3, "0%s", string);
-							return string + 1;
 							}
+							return string + 1;
 						}
 					}
 				}
 			}
 		}
+	}
 
 	if (numLen)
 		*numLen = 0;
@@ -1280,36 +1284,44 @@ int CVICALLBACK GetID3Tag (int panel, int control, int event,
 	char buf[100];
 	char indexStr[3];
 	
-	switch (event)
-		{
+	switch (event) {
 		case EVENT_COMMIT:
 			ClearLEDs();
 			initID3DataStruct(numFiles);
 			ClearID3Fields();
-			SetCtrlAttribute(tab2Handle, TAB2_IMAGECORRUPTEDMSG, ATTR_VISIBLE, 0);
-			SetCtrlAttribute(tab2Handle, TAB2_CLEARARTWORK, ATTR_VISIBLE, 0);
-			SetCtrlAttribute(tab2Handle, TAB2_ARTWORK, ATTR_DIMMED, 0);
-			SetCtrlVal(tab2Handle, TAB2_CLEARARTWORK, 0);
+			SetCtrlAttribute(tab2Handle, TAB2_IMAGECORRUPTEDMSG, ATTR_VISIBLE, FALSE);
+			SetCtrlAttribute(tab2Handle, TAB2_CLEARARTWORK, ATTR_VISIBLE, FALSE);
+			SetCtrlAttribute(tab2Handle, TAB2_ARTWORK, ATTR_DIMMED, FALSE);
+			SetCtrlVal(tab2Handle, TAB2_CLEARARTWORK, FALSE);
 			sprintf(buf, kPictureSizeStr, 0, 0);
 			SetCtrlVal(tab2Handle, TAB2_IMAGESIZEMSG, buf);
-			SetCtrlAttribute(panel, PANEL_RENAMEFOLDER, ATTR_DIMMED, 0);
+			SetCtrlAttribute(panel, PANEL_RENAMEFOLDER, ATTR_DIMMED, FALSE);
 			DeleteListItem (tab3Handle, TAB3_EXTENDEDTAGS, 0, -1);	// clear extended tags tree
-			firstFile = 1;
+			firstFile = TRUE;
 			for (i=0;i<numFiles;i++) {
-				if (IsItemChecked(i) && GetAudioFileType(fileStruct[i].origName)==kFileMP3) {
-					GetID3v2Tag(panel, fileStruct[i].origName, i);
-					GetID3v1Tag(panel, fileStruct[i].origName);
-					firstFile = 0;	// clear firstFile flag after the first checked file
+				if (IsItemChecked(i)) {
+					switch (GetAudioFileType(fileStruct[i].origName)) {
+						case kFileMP3:
+							GetID3v2Tag(panel, fileStruct[i].origName, i);
+							GetID3v1Tag(panel, fileStruct[i].origName);
+							firstFile = FALSE;	// clear firstFile flag after the first checked file
+							break;
+						case kFileAC3:
+						case kFileDTS:
+							LoadAPEv2Tag(panel, fileStruct[i].origName, i);
+							firstFile = FALSE;	// clear firstFile flag after the first checked file
+							break;
 					}
+				}
 				sprintf(indexStr, "%d\0", i);
 				SetTreeCellAttribute (panelHandle, PANEL_TREE, i, kTreeColID, ATTR_LABEL_TEXT, indexStr);
-				}
+			}
 			PopulateTrackData();
 			SetMetaDataButtonDimming(panel, 0);
 			SetConflictTooltips(panel);
 			ClearRedundantFieldsIfNeeded(panel);
 			break;
-		}
+	}
 	return 0;
 }
 

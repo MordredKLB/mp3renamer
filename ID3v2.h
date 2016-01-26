@@ -21,13 +21,17 @@
 #define kBlankStr				"<blank line>"
 #define kPictureSizeStr			"Image Size %d x %d"
 
-#define kFileMP3				1
-#define kFileFLAC				2
-#define kFileWAV				3
-#define kFileAAC				4
-#define kFileAPE				5
-#define kFileWV					6	/* WavPack */
-#define kFileWMA				7
+enum {
+	kFileMP3 = 1,
+	kFileFLAC,
+	kFileAC3,
+	kFileDTS,
+	kFileWAV,
+	kFileAAC,
+	kFileAPE,
+	kFileWV,	/* WavPack */
+	kFileWMA
+};
 
 struct {
 /* When new data fields are added to this struct, changes must be made in the following functions: 
