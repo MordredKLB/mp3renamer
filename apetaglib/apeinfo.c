@@ -10,23 +10,6 @@ void ApeTag_print(struct ApeTag *tag);
 void ApeItem_print(struct ApeItem *item);
 
 /* Process all files on the command line */
-int main(int argc, char *argv[]) {
-    int ret = 0;
-    int i;
-    
-    if (argc > 1) {
-        for (i=1; i<argc; i++) {
-            if (ApeInfo_process(argv[i]) != 0) {
-                ret = 1;
-            }
-        }
-    }
-    else {
-        printf("usage: %s file [...]\n", argv[0]);
-    }
-    
-    return ret;
-}
 
 /* Print out the items in the file */
 int ApeInfo_process(char *filename) {
@@ -36,46 +19,47 @@ int ApeInfo_process(char *filename) {
 	struct ApeTag *tag = NULL;
 
 	if ((file = fopen(filename, "r")) == NULL) {
-	    DebugPrintf("%s", filename);
+		ErrorPrintf("%s", filename);
 	    ret = 1;
 	    goto apeinfo_process_error;
 	}
 
 	if ((tag = ApeTag_new(file, 0)) == NULL) {
-	    //DebugPrintf(NULL);
+	    ErrorPrintf(NULL);
 	    ret = 1;
 	    goto apeinfo_process_error;
 	}
 
 	status = ApeTag_parse(tag);
 	if (status == -1) {
-	    DebugPrintf("%s: %s", filename, ApeTag_error(tag));
+	    ErrorPrintf("%s: %s", filename, ApeTag_error(tag));
 	    ret = 1;
 	    goto apeinfo_process_error;
 	}
 
 	if (ApeTag_exists(tag)) {
-	    printf("%s (%i items):\n", filename, ApeTag_item_count(tag));
+	    ErrorPrintf("%s (%i items):\n", filename, ApeTag_item_count(tag));
 	    ApeTag_print(tag);
 	} else {
-	    printf("%s: no ape tag\n\n", filename);
+		ErrorPrintf("%s: no ape tag\n\n", filename);
 	}
-
+	
 	ret = 0;
     
 apeinfo_process_error:
 	ApeTag_free(tag);
 	if (file != NULL) {
 	    if (fclose(file) != 0) {
-	        DebugPrintf("%s", filename);
+	        ErrorPrintf("%s", filename);
 	    }
 	}
     
     return ret;
 }
 
-void ApeTag_iter_print(struct ApeTag *tag, struct ApeItem *item, void *data) {
-    ApeItem_print(item);
+int ApeTag_iter_print(struct ApeTag *tag, struct ApeItem *item, void *data) {
+	ApeItem_print(item);
+	return 0;	// ApeItem_print does not return an error code
 }
 
 /* Prints all items in the tag, one per line. */
@@ -83,10 +67,8 @@ void ApeTag_print(struct ApeTag *tag) {
     assert(tag != NULL);
 
     if (ApeTag_iter_items(tag, ApeTag_iter_print, NULL) < 0) {
-       printf("Error getting items: %s", ApeTag_error(tag));
+       ErrorPrintf("Error getting items: %s", ApeTag_error(tag));
     }
-
-    printf("\n");
 }
 
 /* 

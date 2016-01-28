@@ -282,7 +282,7 @@ int CVICALLBACK BrowseCB (int panel, int control, int event,
 				status = MultiFileSelectPopup (startFolder, "*.mp3", "*.mp3;",
 						   "Select Files to Rename", 0, 0, 1, &numFiles, &fileList);
 #else
-				status = MultiFileSelectPopupEx (startFolder, "*.mp3", "*.mp3;*.*",
+				status = MultiFileSelectPopupEx (startFolder, "*.mp3", "Audio Files (*.mp3;*.ac3;*.dts);*.*",
 						   "Select Files to Rename", 0, 0, &numFiles, &fileList);
 #endif
 			if (status == VAL_EXISTING_FILE_SELECTED) {

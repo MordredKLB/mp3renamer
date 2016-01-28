@@ -35,7 +35,9 @@
 int LoadAPEv2Tag (int panel, char *fileName, int index)
 {
 	int error;
-	
+	struct ApeTag *tag = NULL;
+
 	error = ApeInfo_process(fileName);
+	
 	return 0;
 }

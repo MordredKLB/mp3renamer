@@ -235,7 +235,7 @@ struct __db_dbt {
 	void *app_data;
 
 #define	DB_DBT_APPMALLOC	0x001	/* Callback allocated memory. */
-#define	DB_DBT_BULK		0x002	/* Internal: Insert if duplicate. */
+#define	DB_DBT_BULK			0x002	/* Internal: Insert if duplicate. */
 #define	DB_DBT_DUPOK		0x004	/* Internal: Insert if duplicate. */
 #define	DB_DBT_ISSET		0x008	/* Lower level calls set value. */
 #define	DB_DBT_MALLOC		0x010	/* Return in malloc'd memory. */
