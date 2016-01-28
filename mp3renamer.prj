@@ -1,16 +1,16 @@
 [Project Header]
-Version = 1302
+Version = 1500
 Pathname = "/d/Source/MP3Renamer/mp3renamer.prj"
 Project Label = "MP3Renamer"
-CVI Dir = "/c/program files (x86)/national instruments/cvi2013"
+CVI Dir = "/c/program files (x86)/national instruments/cvi2015"
 CVI Shared Dir = "/C/Program Files (x86)/National Instruments/Shared/CVI"
-CVI Pub Local Dir = "/C/ProgramData/National Instruments/CVI2013"
+CVI Pub Local Dir = "/C/ProgramData/National Instruments/CVI2015"
 CVI Pub Global Dir = "/C/ProgramData/National Instruments/CVI"
 IVI Standard Root Dir = "/C/Program Files (x86)/IVI Foundation/IVI"
 VXIplug&play Framework Dir = "/C/Program Files (x86)/IVI Foundation/VISA/winnt"
 IVI Standard Root 64-bit Dir = "/C/Program Files/IVI Foundation/IVI"
 VXIplug&play Framework 64-bit Dir = "/C/Program Files/IVI Foundation/VISA/win64"
-Number of Files = 83
+Number of Files = 65
 Target Type = "Executable"
 Flags = 2064
 Copied From Locked InstrDrv Directory = False
@@ -39,18 +39,12 @@ FolderEx 6 = "Include Files"
 Folder 7 = "Include Files/apetaglib"
 FolderEx 7 = "apetaglib"
 FolderEx 7 Parent = 6
-Folder 8 = "Include Files/curl"
-FolderEx 8 = "curl"
+Folder 8 = "Include Files/json"
+FolderEx 8 = "json"
 FolderEx 8 Parent = 6
-Folder 9 = "Include Files/json"
-FolderEx 9 = "json"
+Folder 9 = "Include Files/libid3tag"
+FolderEx 9 = "libid3tag"
 FolderEx 9 Parent = 6
-Folder 10 = "Include Files/libid3tag"
-FolderEx 10 = "libid3tag"
-FolderEx 10 Parent = 6
-Folder 11 = "Include Files/crt"
-FolderEx 11 = "crt"
-FolderEx 11 Parent = 6
 
 [File 0001]
 File Type = "CSource"
@@ -83,9 +77,9 @@ File Type = "CSource"
 Res Id = 3
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "apetaglib/db185.c"
-Path = "/d/Source/MP3Renamer/apetaglib/db185.c"
-Exclude = True
+Path Rel Path = "apev2.c"
+Path = "/d/Source/MP3Renamer/apev2.c"
+Exclude = False
 Compile Into Object File = False
 Project Flags = 0
 Folder = "Source Files/apetaglib"
@@ -96,32 +90,6 @@ File Type = "CSource"
 Res Id = 4
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "apetaglib/db_185.c"
-Path = "/d/Source/MP3Renamer/apetaglib/db_185.c"
-Exclude = True
-Compile Into Object File = False
-Project Flags = 0
-Folder = "Source Files/apetaglib"
-Folder Id = 1
-
-[File 0005]
-File Type = "CSource"
-Res Id = 5
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "apetaglib/openflags.c"
-Path = "/d/Source/MP3Renamer/apetaglib/openflags.c"
-Exclude = False
-Compile Into Object File = False
-Project Flags = 0
-Folder = "Source Files/apetaglib"
-Folder Id = 1
-
-[File 0006]
-File Type = "CSource"
-Res Id = 6
-Path Is Rel = True
-Path Rel To = "Project"
 Path Rel Path = "jsmn.c"
 Path = "/d/Source/MP3Renamer/jsmn.c"
 Exclude = False
@@ -130,9 +98,9 @@ Project Flags = 0
 Folder = "Source Files/json"
 Folder Id = 2
 
-[File 0007]
+[File 0005]
 File Type = "CSource"
-Res Id = 7
+Res Id = 5
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "json.c"
@@ -143,13 +111,39 @@ Project Flags = 0
 Folder = "Source Files/json"
 Folder Id = 2
 
+[File 0006]
+File Type = "CSource"
+Res Id = 6
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "libid3tag/compat.c"
+Path = "/d/Source/MP3Renamer/libid3tag/compat.c"
+Exclude = False
+Compile Into Object File = False
+Project Flags = 0
+Folder = "Source Files/libid3tag"
+Folder Id = 3
+
+[File 0007]
+File Type = "CSource"
+Res Id = 7
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "libid3tag/crc.c"
+Path = "/d/Source/MP3Renamer/libid3tag/crc.c"
+Exclude = False
+Compile Into Object File = False
+Project Flags = 0
+Folder = "Source Files/libid3tag"
+Folder Id = 3
+
 [File 0008]
 File Type = "CSource"
 Res Id = 8
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/compat.c"
-Path = "/d/Source/MP3Renamer/libid3tag/compat.c"
+Path Rel Path = "libid3tag/field.c"
+Path = "/d/Source/MP3Renamer/libid3tag/field.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -161,8 +155,8 @@ File Type = "CSource"
 Res Id = 9
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/crc.c"
-Path = "/d/Source/MP3Renamer/libid3tag/crc.c"
+Path Rel Path = "libid3tag/file.c"
+Path = "/d/Source/MP3Renamer/libid3tag/file.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -174,8 +168,8 @@ File Type = "CSource"
 Res Id = 10
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/field.c"
-Path = "/d/Source/MP3Renamer/libid3tag/field.c"
+Path Rel Path = "libid3tag/frame.c"
+Path = "/d/Source/MP3Renamer/libid3tag/frame.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -187,8 +181,8 @@ File Type = "CSource"
 Res Id = 11
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/file.c"
-Path = "/d/Source/MP3Renamer/libid3tag/file.c"
+Path Rel Path = "libid3tag/frametype.c"
+Path = "/d/Source/MP3Renamer/libid3tag/frametype.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -200,8 +194,8 @@ File Type = "CSource"
 Res Id = 12
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/frame.c"
-Path = "/d/Source/MP3Renamer/libid3tag/frame.c"
+Path Rel Path = "libid3tag/genre.c"
+Path = "/d/Source/MP3Renamer/libid3tag/genre.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -213,8 +207,8 @@ File Type = "CSource"
 Res Id = 13
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/frametype.c"
-Path = "/d/Source/MP3Renamer/libid3tag/frametype.c"
+Path Rel Path = "libid3tag/latin1.c"
+Path = "/d/Source/MP3Renamer/libid3tag/latin1.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -226,8 +220,8 @@ File Type = "CSource"
 Res Id = 14
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/genre.c"
-Path = "/d/Source/MP3Renamer/libid3tag/genre.c"
+Path Rel Path = "libid3tag/parse.c"
+Path = "/d/Source/MP3Renamer/libid3tag/parse.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -239,8 +233,8 @@ File Type = "CSource"
 Res Id = 15
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/latin1.c"
-Path = "/d/Source/MP3Renamer/libid3tag/latin1.c"
+Path Rel Path = "libid3tag/render.c"
+Path = "/d/Source/MP3Renamer/libid3tag/render.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -252,8 +246,8 @@ File Type = "CSource"
 Res Id = 16
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/parse.c"
-Path = "/d/Source/MP3Renamer/libid3tag/parse.c"
+Path Rel Path = "libid3tag/tag.c"
+Path = "/d/Source/MP3Renamer/libid3tag/tag.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -265,8 +259,8 @@ File Type = "CSource"
 Res Id = 17
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/render.c"
-Path = "/d/Source/MP3Renamer/libid3tag/render.c"
+Path Rel Path = "libid3tag/ucs4.c"
+Path = "/d/Source/MP3Renamer/libid3tag/ucs4.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -278,8 +272,8 @@ File Type = "CSource"
 Res Id = 18
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/tag.c"
-Path = "/d/Source/MP3Renamer/libid3tag/tag.c"
+Path Rel Path = "libid3tag/utf16.c"
+Path = "/d/Source/MP3Renamer/libid3tag/utf16.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -291,8 +285,8 @@ File Type = "CSource"
 Res Id = 19
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/ucs4.c"
-Path = "/d/Source/MP3Renamer/libid3tag/ucs4.c"
+Path Rel Path = "libid3tag/utf8.c"
+Path = "/d/Source/MP3Renamer/libid3tag/utf8.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -304,8 +298,8 @@ File Type = "CSource"
 Res Id = 20
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/utf16.c"
-Path = "/d/Source/MP3Renamer/libid3tag/utf16.c"
+Path Rel Path = "libid3tag/util.c"
+Path = "/d/Source/MP3Renamer/libid3tag/util.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -317,34 +311,34 @@ File Type = "CSource"
 Res Id = 21
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/utf8.c"
-Path = "/d/Source/MP3Renamer/libid3tag/utf8.c"
+Path Rel Path = "config.c"
+Path = "/d/Source/MP3Renamer/config.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
-Folder = "Source Files/libid3tag"
-Folder Id = 3
+Folder = "Source Files"
+Folder Id = 0
 
 [File 0022]
 File Type = "CSource"
 Res Id = 22
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "libid3tag/util.c"
-Path = "/d/Source/MP3Renamer/libid3tag/util.c"
+Path Rel Path = "fanart.c"
+Path = "/d/Source/MP3Renamer/fanart.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
-Folder = "Source Files/libid3tag"
-Folder Id = 3
+Folder = "Source Files"
+Folder Id = 0
 
 [File 0023]
 File Type = "CSource"
 Res Id = 23
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "apev2.c"
-Path = "/d/Source/MP3Renamer/apev2.c"
+Path Rel Path = "ID3v2.c"
+Path = "/d/Source/MP3Renamer/ID3v2.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -356,8 +350,8 @@ File Type = "CSource"
 Res Id = 24
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "config.c"
-Path = "/d/Source/MP3Renamer/config.c"
+Path Rel Path = "mp3renamer.c"
+Path = "/d/Source/MP3Renamer/mp3renamer.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -369,8 +363,8 @@ File Type = "CSource"
 Res Id = 25
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "fanart.c"
-Path = "/d/Source/MP3Renamer/fanart.c"
+Path Rel Path = "mp3renamerUI.c"
+Path = "/d/Source/MP3Renamer/mp3renamerUI.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -382,8 +376,8 @@ File Type = "CSource"
 Res Id = 26
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "ID3v2.c"
-Path = "/d/Source/MP3Renamer/ID3v2.c"
+Path Rel Path = "musicbrainz.c"
+Path = "/d/Source/MP3Renamer/musicbrainz.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -395,9 +389,9 @@ File Type = "CSource"
 Res Id = 27
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "mp3renamer.c"
-Path = "/d/Source/MP3Renamer/mp3renamer.c"
-Exclude = False
+Path Rel Path = "replaygain.c"
+Path = "/d/Source/MP3Renamer/replaygain.c"
+Exclude = True
 Compile Into Object File = False
 Project Flags = 0
 Folder = "Source Files"
@@ -408,8 +402,8 @@ File Type = "CSource"
 Res Id = 28
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "mp3renamerUI.c"
-Path = "/d/Source/MP3Renamer/mp3renamerUI.c"
+Path Rel Path = "titleformatting.c"
+Path = "/d/Source/MP3Renamer/titleformatting.c"
 Exclude = False
 Compile Into Object File = False
 Project Flags = 0
@@ -421,45 +415,6 @@ File Type = "CSource"
 Res Id = 29
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "musicbrainz.c"
-Path = "/d/Source/MP3Renamer/musicbrainz.c"
-Exclude = False
-Compile Into Object File = False
-Project Flags = 0
-Folder = "Source Files"
-Folder Id = 0
-
-[File 0030]
-File Type = "CSource"
-Res Id = 30
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "replaygain.c"
-Path = "/d/Source/MP3Renamer/replaygain.c"
-Exclude = True
-Compile Into Object File = False
-Project Flags = 0
-Folder = "Source Files"
-Folder Id = 0
-
-[File 0031]
-File Type = "CSource"
-Res Id = 31
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "titleformatting.c"
-Path = "/d/Source/MP3Renamer/titleformatting.c"
-Exclude = False
-Compile Into Object File = False
-Project Flags = 0
-Folder = "Source Files"
-Folder Id = 0
-
-[File 0032]
-File Type = "CSource"
-Res Id = 32
-Path Is Rel = True
-Path Rel To = "Project"
 Path Rel Path = "xmlHelper.c"
 Path = "/d/Source/MP3Renamer/xmlHelper.c"
 Exclude = False
@@ -468,9 +423,9 @@ Project Flags = 0
 Folder = "Source Files"
 Folder Id = 0
 
-[File 0033]
+[File 0030]
 File Type = "User Interface Resource"
-Res Id = 33
+Res Id = 30
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "mp3renamer.uir"
@@ -480,15 +435,55 @@ Project Flags = 0
 Folder = "User Interface Files"
 Folder Id = 4
 
+[File 0031]
+File Type = "Function Panel"
+Res Id = 31
+Path Is Rel = True
+Path Rel To = "CVI"
+Path Rel To Override = "CVI"
+Path Rel Path = "toolslib/custctrl/combobox.fp"
+Path Line0001 = "/c/program files (x86)/national instruments/cvi2015/toolslib/custctrl/combobox.f"
+Path Line0002 = "p"
+Exclude = False
+Project Flags = 0
+Folder = "Instrument Files"
+Folder Id = 5
+
+[File 0032]
+File Type = "Function Panel"
+Res Id = 32
+Path Is Rel = True
+Path Rel To = "CVI"
+Path Rel To Override = "CVI"
+Path Rel Path = "toolslib/toolbox/cvixml.fp"
+Path = "/c/program files (x86)/national instruments/cvi2015/toolslib/toolbox/cvixml.fp"
+Exclude = False
+Project Flags = 0
+Folder = "Instrument Files"
+Folder Id = 5
+
+[File 0033]
+File Type = "Function Panel"
+Res Id = 33
+Path Is Rel = True
+Path Rel To = "CVI"
+Path Rel To Override = "CVI"
+Path Rel Path = "toolslib/custctrl/hyperlinkctrl.fp"
+Path Line0001 = "/c/program files (x86)/national instruments/cvi2015/toolslib/custctrl/hyperlinkc"
+Path Line0002 = "trl.fp"
+Exclude = False
+Project Flags = 0
+Folder = "Instrument Files"
+Folder Id = 5
+
 [File 0034]
 File Type = "Function Panel"
 Res Id = 34
 Path Is Rel = True
 Path Rel To = "CVI"
 Path Rel To Override = "CVI"
-Path Rel Path = "toolslib/custctrl/combobox.fp"
-Path Line0001 = "/c/program files (x86)/national instruments/cvi2013/toolslib/custctrl/combobox.f"
-Path Line0002 = "p"
+Path Rel Path = "toolslib/toolbox/inifile.fp"
+Path = "/c/program files (x86)/national instruments/cvi2015/toolslib/toolbox/inifile.fp"
 Exclude = False
 Project Flags = 0
 Folder = "Instrument Files"
@@ -500,8 +495,9 @@ Res Id = 35
 Path Is Rel = True
 Path Rel To = "CVI"
 Path Rel To Override = "CVI"
-Path Rel Path = "toolslib/toolbox/cvixml.fp"
-Path = "/c/program files (x86)/national instruments/cvi2013/toolslib/toolbox/cvixml.fp"
+Path Rel Path = "toolslib/custctrl/pathctrl.fp"
+Path Line0001 = "/c/program files (x86)/national instruments/cvi2015/toolslib/custctrl/pathctrl.f"
+Path Line0002 = "p"
 Exclude = False
 Project Flags = 0
 Folder = "Instrument Files"
@@ -513,58 +509,17 @@ Res Id = 36
 Path Is Rel = True
 Path Rel To = "CVI"
 Path Rel To Override = "CVI"
-Path Rel Path = "toolslib/custctrl/hyperlinkctrl.fp"
-Path Line0001 = "/c/program files (x86)/national instruments/cvi2013/toolslib/custctrl/hyperlinkc"
-Path Line0002 = "trl.fp"
-Exclude = False
-Project Flags = 0
-Folder = "Instrument Files"
-Folder Id = 5
-
-[File 0037]
-File Type = "Function Panel"
-Res Id = 37
-Path Is Rel = True
-Path Rel To = "CVI"
-Path Rel To Override = "CVI"
-Path Rel Path = "toolslib/toolbox/inifile.fp"
-Path = "/c/program files (x86)/national instruments/cvi2013/toolslib/toolbox/inifile.fp"
-Exclude = False
-Project Flags = 0
-Folder = "Instrument Files"
-Folder Id = 5
-
-[File 0038]
-File Type = "Function Panel"
-Res Id = 38
-Path Is Rel = True
-Path Rel To = "CVI"
-Path Rel To Override = "CVI"
-Path Rel Path = "toolslib/custctrl/pathctrl.fp"
-Path Line0001 = "/c/program files (x86)/national instruments/cvi2013/toolslib/custctrl/pathctrl.f"
-Path Line0002 = "p"
-Exclude = False
-Project Flags = 0
-Folder = "Instrument Files"
-Folder Id = 5
-
-[File 0039]
-File Type = "Function Panel"
-Res Id = 39
-Path Is Rel = True
-Path Rel To = "CVI"
-Path Rel To Override = "CVI"
 Path Rel Path = "toolslib/custctrl/progressbar.fp"
-Path Line0001 = "/c/program files (x86)/national instruments/cvi2013/toolslib/custctrl/progressba"
+Path Line0001 = "/c/program files (x86)/national instruments/cvi2015/toolslib/custctrl/progressba"
 Path Line0002 = "r.fp"
 Exclude = False
 Project Flags = 0
 Folder = "Instrument Files"
 Folder Id = 5
 
-[File 0040]
+[File 0037]
 File Type = "Include"
-Res Id = 40
+Res Id = 37
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "apetaglib/apetag.h"
@@ -574,45 +529,21 @@ Project Flags = 0
 Folder = "Include Files/apetaglib"
 Folder Id = 7
 
-[File 0041]
+[File 0038]
 File Type = "Include"
-Res Id = 41
+Res Id = 38
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "apetaglib/db.h"
-Path = "/d/Source/MP3Renamer/apetaglib/db.h"
+Path Rel Path = "apev2.h"
+Path = "/d/Source/MP3Renamer/apev2.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/apetaglib"
 Folder Id = 7
 
-[File 0042]
+[File 0039]
 File Type = "Include"
-Res Id = 42
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "apetaglib/types.h"
-Path = "/d/Source/MP3Renamer/apetaglib/types.h"
-Exclude = False
-Project Flags = 0
-Folder = "Include Files/apetaglib"
-Folder Id = 7
-
-[File 0043]
-File Type = "Include"
-Res Id = 43
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "curl/curl.h"
-Path = "/d/Source/MP3Renamer/curl/curl.h"
-Exclude = False
-Project Flags = 0
-Folder = "Include Files/curl"
-Folder Id = 8
-
-[File 0044]
-File Type = "Include"
-Res Id = 44
+Res Id = 39
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "jsmn.h"
@@ -620,11 +551,11 @@ Path = "/d/Source/MP3Renamer/jsmn.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/json"
-Folder Id = 9
+Folder Id = 8
 
-[File 0045]
+[File 0040]
 File Type = "Include"
-Res Id = 45
+Res Id = 40
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "json.h"
@@ -632,11 +563,11 @@ Path = "/d/Source/MP3Renamer/json.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/json"
-Folder Id = 9
+Folder Id = 8
 
-[File 0046]
+[File 0041]
 File Type = "Include"
-Res Id = 46
+Res Id = 41
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/compat.h"
@@ -644,11 +575,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/compat.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0047]
+[File 0042]
 File Type = "Include"
-Res Id = 47
+Res Id = 42
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/crc.h"
@@ -656,11 +587,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/crc.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0048]
+[File 0043]
 File Type = "Include"
-Res Id = 48
+Res Id = 43
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/field.h"
@@ -668,11 +599,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/field.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0049]
+[File 0044]
 File Type = "Include"
-Res Id = 49
+Res Id = 44
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/file.h"
@@ -680,11 +611,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/file.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0050]
+[File 0045]
 File Type = "Include"
-Res Id = 50
+Res Id = 45
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/frame.h"
@@ -692,11 +623,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/frame.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0051]
+[File 0046]
 File Type = "Include"
-Res Id = 51
+Res Id = 46
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/frametype.h"
@@ -704,11 +635,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/frametype.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0052]
+[File 0047]
 File Type = "Include"
-Res Id = 52
+Res Id = 47
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/genre.h"
@@ -716,11 +647,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/genre.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0053]
+[File 0048]
 File Type = "Include"
-Res Id = 53
+Res Id = 48
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/global.h"
@@ -728,11 +659,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/global.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0054]
+[File 0049]
 File Type = "Include"
-Res Id = 54
+Res Id = 49
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/id3tag.h"
@@ -740,11 +671,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/id3tag.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0055]
+[File 0050]
 File Type = "Include"
-Res Id = 55
+Res Id = 50
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/latin1.h"
@@ -752,11 +683,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/latin1.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0056]
+[File 0051]
 File Type = "Include"
-Res Id = 56
+Res Id = 51
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/parse.h"
@@ -764,11 +695,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/parse.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0057]
+[File 0052]
 File Type = "Include"
-Res Id = 57
+Res Id = 52
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/render.h"
@@ -776,11 +707,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/render.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0058]
+[File 0053]
 File Type = "Include"
-Res Id = 58
+Res Id = 53
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/tag.h"
@@ -788,11 +719,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/tag.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0059]
+[File 0054]
 File Type = "Include"
-Res Id = 59
+Res Id = 54
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/ucs4.h"
@@ -800,11 +731,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/ucs4.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0060]
+[File 0055]
 File Type = "Include"
-Res Id = 60
+Res Id = 55
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/utf16.h"
@@ -812,11 +743,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/utf16.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0061]
+[File 0056]
 File Type = "Include"
-Res Id = 61
+Res Id = 56
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/utf8.h"
@@ -824,11 +755,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/utf8.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0062]
+[File 0057]
 File Type = "Include"
-Res Id = 62
+Res Id = 57
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "libid3tag/util.h"
@@ -836,83 +767,11 @@ Path = "/d/Source/MP3Renamer/libid3tag/util.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files/libid3tag"
-Folder Id = 10
+Folder Id = 9
 
-[File 0063]
+[File 0058]
 File Type = "Include"
-Res Id = 63
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "crt/crtdefs.h"
-Path = "/d/Source/MP3Renamer/crt/crtdefs.h"
-Exclude = False
-Project Flags = 0
-Folder = "Include Files/crt"
-Folder Id = 11
-
-[File 0064]
-File Type = "Include"
-Res Id = 64
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "crt/fcntl.h"
-Path = "/d/Source/MP3Renamer/crt/fcntl.h"
-Exclude = False
-Project Flags = 0
-Folder = "Include Files/crt"
-Folder Id = 11
-
-[File 0065]
-File Type = "Include"
-Res Id = 65
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "crt/io.h"
-Path = "/d/Source/MP3Renamer/crt/io.h"
-Exclude = False
-Project Flags = 0
-Folder = "Include Files/crt"
-Folder Id = 11
-
-[File 0066]
-File Type = "Include"
-Res Id = 66
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "crt/sal.h"
-Path = "/d/Source/MP3Renamer/crt/sal.h"
-Exclude = False
-Project Flags = 0
-Folder = "Include Files/crt"
-Folder Id = 11
-
-[File 0067]
-File Type = "Include"
-Res Id = 67
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "crt/vadefs.h"
-Path = "/d/Source/MP3Renamer/crt/vadefs.h"
-Exclude = False
-Project Flags = 0
-Folder = "Include Files/crt"
-Folder Id = 11
-
-[File 0068]
-File Type = "Include"
-Res Id = 68
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "apev2.h"
-Path = "/d/Source/MP3Renamer/apev2.h"
-Exclude = False
-Project Flags = 0
-Folder = "Include Files"
-Folder Id = 6
-
-[File 0069]
-File Type = "Include"
-Res Id = 69
+Res Id = 58
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "config.h"
@@ -922,9 +781,9 @@ Project Flags = 0
 Folder = "Include Files"
 Folder Id = 6
 
-[File 0070]
+[File 0059]
 File Type = "Include"
-Res Id = 70
+Res Id = 59
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "genreList.h"
@@ -934,9 +793,9 @@ Project Flags = 0
 Folder = "Include Files"
 Folder Id = 6
 
-[File 0071]
+[File 0060]
 File Type = "Include"
-Res Id = 71
+Res Id = 60
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "ID3v2.h"
@@ -946,9 +805,9 @@ Project Flags = 0
 Folder = "Include Files"
 Folder Id = 6
 
-[File 0072]
+[File 0061]
 File Type = "Include"
-Res Id = 72
+Res Id = 61
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "mp3renamer.h"
@@ -958,21 +817,9 @@ Project Flags = 0
 Folder = "Include Files"
 Folder Id = 6
 
-[File 0073]
+[File 0062]
 File Type = "Include"
-Res Id = 73
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "apetaglib/dbinc/mutex_int.h"
-Path = "/d/Source/MP3Renamer/apetaglib/dbinc/mutex_int.h"
-Exclude = False
-Project Flags = 0
-Folder = "Include Files"
-Folder Id = 6
-
-[File 0074]
-File Type = "Include"
-Res Id = 74
+Res Id = 62
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "titleformatting.h"
@@ -982,99 +829,33 @@ Project Flags = 0
 Folder = "Include Files"
 Folder Id = 6
 
-[File 0075]
+[File 0063]
 File Type = "Include"
-Res Id = 75
+Res Id = 63
 Path Is Rel = True
 Path Rel To = "CVI"
-Path Rel To Override = "CVI"
 Path Rel Path = "sdk/include/WinInet.h"
-Path = "/c/program files (x86)/national instruments/cvi2013/sdk/include/WinInet.h"
+Path Line0001 = "/C/Program Files (x86)/National Instruments/Shared/MSDTRedistributables/SDKHeade"
+Path Line0002 = "rFiles/8.1/WinInet.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files"
 Folder Id = 6
 
-[File 0076]
+[File 0064]
 File Type = "Library"
-Res Id = 76
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "apetaglib/db.lib"
-Path = "/d/Source/MP3Renamer/apetaglib/db.lib"
-Exclude = True
-Project Flags = 0
-Folder = "Not In A Folder"
-
-[File 0077]
-File Type = "Library"
-Res Id = 77
-Path Is Rel = False
-Path Line0001 = "/c/Program Files (x86)/Microsoft Visual Studio 9.0/VC/crt/src/build/intel/libcmt"
-Path Line0002 = ".lib"
-Exclude = True
-Project Flags = 0
-Folder = "Not In A Folder"
-
-[File 0078]
-File Type = "Library"
-Res Id = 78
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "apetaglib/libdb48.lib"
-Path = "/d/Source/MP3Renamer/apetaglib/libdb48.lib"
-Exclude = True
-Project Flags = 0
-Folder = "Not In A Folder"
-
-[File 0079]
-File Type = "Library"
-Res Id = 79
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "apetaglib/libdb48s.lib"
-Path = "/d/Source/MP3Renamer/apetaglib/libdb48s.lib"
-Exclude = True
-Project Flags = 0
-Folder = "Not In A Folder"
-
-[File 0080]
-File Type = "Library"
-Res Id = 80
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "apetaglib/libdb_small48s.lib"
-Path = "/d/Source/MP3Renamer/apetaglib/libdb_small48s.lib"
-Exclude = True
-Project Flags = 0
-Folder = "Not In A Folder"
-
-[File 0081]
-File Type = "Library"
-Res Id = 81
-Path Is Rel = True
-Path Rel To = "Project"
-Path Rel Path = "apetaglib/libdb_stl48s.lib"
-Path = "/d/Source/MP3Renamer/apetaglib/libdb_stl48s.lib"
-Exclude = True
-Project Flags = 0
-Folder = "Not In A Folder"
-
-[File 0082]
-File Type = "Library"
-Res Id = 82
+Res Id = 64
 Path Is Rel = True
 Path Rel To = "CVI"
-Path Rel To Override = "CVI"
 Path Rel Path = "sdk/lib/msvc/WinInet.Lib"
-Path = "/c/program files (x86)/national instruments/cvi2013/sdk/lib/msvc/WinInet.Lib"
+Path = "/C/Program Files (x86)/Windows Kits/8.1/Lib/winv6.3/um/x86/WinInet.Lib"
 Exclude = False
 Project Flags = 0
 Folder = "Not In A Folder"
 
-[File 0083]
+[File 0065]
 File Type = "Library"
-Res Id = 83
+Res Id = 65
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "zlibDll/msvc/zlib1.lib"
