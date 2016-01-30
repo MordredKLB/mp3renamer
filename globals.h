@@ -1,15 +1,15 @@
 //==============================================================================
 //
-// Title:		apev2.h
+// Title:		globals.h
 // Purpose:		A short description of the interface.
 //
-// Created on:	1/23/2016 at 6:50:09 PM by Kevin.
+// Created on:	1/28/2016 at 6:22:37 PM by Kevin.
 // Copyright:	Subversive Software. All Rights Reserved.
 //
 //==============================================================================
 
-#ifndef __apev2_H__
-#define __apev2_H__
+#ifndef __globals_H__
+#define __globals_H__
 
 #ifdef __cplusplus
     extern "C" {
@@ -29,16 +29,23 @@
 //==============================================================================
 // External variables
 
+extern const Point tagCell;	// combobox cell of the genre table
+
+extern int panelHandle;
+extern int tab1Handle;
+extern int tab2Handle;
+extern int tab3Handle;
+extern int numFiles;
+extern int firstFile;
+
+
 //==============================================================================
 // Global functions
 
-int LoadAPEv2Tag (int panel, char *fileName, int index);
-int ApeInfo_process(char *, struct ApeTag **tag);
-void ApeTag_print(struct ApeTag *tag);
-void ApeTag_close(struct ApeTag *tag);
+//int Declare_Your_Functions_Here (int x);
 
 #ifdef __cplusplus
     }
 #endif
 
-#endif  /* ndef __apev2_H__ */
+#endif  /* ndef __globals_H__ */

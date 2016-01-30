@@ -9,11 +9,12 @@
 
 #include "id3tag.h"
 #include "file.h"
+#include "globals.h"
 
 /*** Globals ***/
 
 char PADDING[3] = {0,0,0};
-Point tagCell = {1,1};	// combobox cell of the genre table
+const Point tagCell = {1,1};
 char gFilename[MAX_FILENAME_LEN];	// needed to get filename from file.c
 
 
@@ -49,12 +50,6 @@ void AllocAndCopyStr(char **string, char *val);
 
 /*** Code ***/
 
-extern int panelHandle;
-extern int tab1Handle;
-extern int tab2Handle;
-extern int tab3Handle;
-extern int numFiles;
-extern int firstFile;
 
 int GetID3v2Tag(int panel, char *filename, int index)
 {
@@ -152,7 +147,6 @@ Error:
 int GetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index)
 {
 	int			i, len, error, nStrings, found = 0;
-	size_t		size;
 	char 		*data = NULL, *origData = NULL, *string = NULL, *tmpStr = NULL;
 	id3frame 	*frame;
 	union id3_field	*field;
@@ -213,85 +207,7 @@ int GetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int co
 	else
 		errChk(SetCtrlVal(panel, control, string));
 
-	size = strlen(string)+1;
-	if (panel == panelHandle) {
-		switch (control) {
-			case PANEL_ARTIST:
-				dataHandle.artistPtr[index] = calloc(size + 2, sizeof(char));	// we need a fudge factor for TPE2 field
-				strcpy(dataHandle.artistPtr[index], string);
-				break;
-			case PANEL_ALBUM:
-				dataHandle.albumPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.albumPtr[index], string);
-				break;
-			case PANEL_TRACKNUM:	/* hidden behind the tree control */
-				dataHandle.trackNumPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.trackNumPtr[index], string);
-				break;
-			}
-		}
-	else if (panel == tab1Handle) {
-		switch (control) {
-			case TAB1_COMPOSER:
-				dataHandle.composerPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.composerPtr[index], string);
-				break;
-			case TAB1_YEAR:
-				dataHandle.yearPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.yearPtr[index], string);
-				break;
-			case TAB1_DISCNUM:
-				dataHandle.discPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.discPtr[index], string);
-				gUseMetaDataDiscVal = 1;
-				break;
-			case TAB1_ARTISTFILTER:
-				dataHandle.artistFilterPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.artistFilterPtr[index], string);
-				break;
-			case TAB1_PUBLISHER:
-				dataHandle.publisherPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.publisherPtr[index], string);
-				break;
-			case TAB1_ENCODED:
-				dataHandle.encodedPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.encodedPtr[index], string);
-				break;
-			case TAB1_COUNTRY:
-				dataHandle.countryPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.countryPtr[index], string);
-				break;
-			case TAB1_ALBUMARTIST:
-				dataHandle.albumArtistPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.albumArtistPtr[index], string);
-				break;
-			case TAB1_PERFORMERSORTORDER:
-				dataHandle.perfSortOrderPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.perfSortOrderPtr[index], string);
-				break;
-			case TAB1_ALBUMSORTORDER:
-				dataHandle.albSortOrderPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.albSortOrderPtr[index], string);
-				break;
-			}
-		}
-	else {
-		switch (control) {
-			case TAB2_COPYRIGHT:
-				dataHandle.copyrightPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.copyrightPtr[index], string);
-				break;
-			case TAB2_ORIGARTIST:
-				dataHandle.origArtistPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.origArtistPtr[index], string);
-				break;
-			case TAB2_URL:
-				dataHandle.urlPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.urlPtr[index], string);
-				break;
-			}
-		SetCtrlVal(panelHandle, PANEL_TABVALS, 1);	// always set this
-		}
+	StoreDataVals(panel, control, string, index);
 	found = 1;
 	
 Error:
@@ -355,17 +271,16 @@ int GetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, in
 		if (length) {
 			origData = malloc(length+1);
 			GetCtrlVal(panel, control, origData); 
-			}
+		}
 
 		if (string) {
-			dataHandle.commentPtr[index] = calloc(strlen(string)+1, sizeof(char));
-			strcpy(dataHandle.commentPtr[index], string);
-			}
+			StoreDataVals(panel, control, string, index);
+		}
 		if (len && (len!=strlen(string) || memcmp(origData, string, len)))
 			SetCtrlVal(panel, conflict, 1);
 		else
 			errChk(ResetTextBox(panel, control, string));
-		}
+	}
 	
 Error:
 	if (origData)
@@ -439,30 +354,9 @@ int GetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control
 				errChk(SetCtrlVal(panel, control, string));
 		}
 
-		switch (control) {
-			case TAB1_ALBUMGAIN:
-				dataHandle.albumGainPtr[index] = calloc(strlen(string)+1, sizeof(char));
-				strcpy(dataHandle.albumGainPtr[index], string);
-				break;
-			case TAB1_ALBUMARTIST:
-				dataHandle.albumArtistPtr[index] = calloc(strlen(string)+1, sizeof(char));
-				strcpy(dataHandle.albumArtistPtr[index], string);
-				break;
-			case TAB1_RELTYPE:
-				dataHandle.relTypePtr[index] = calloc(strlen(string)+1, sizeof(char));
-				strcpy(dataHandle.relTypePtr[index], string);
-				break;
-			case TAB1_ARTISTFILTER:
-				dataHandle.artistFilterPtr[index] = calloc(strlen(string)+1, sizeof(char));
-				strcpy(dataHandle.artistFilterPtr[index], string);
-				break;
-			case TAB1_COUNTRY:
-				dataHandle.countryPtr[index] = calloc(strlen(string)+1, sizeof(char));
-				strcpy(dataHandle.countryPtr[index], string);
-				break;
-			}
-		}
-	
+		StoreDataVals(panel, control, string, index);
+	}
+		
 Error:
 	if (data)
 		free(data);
@@ -604,9 +498,8 @@ int GetGenreData(id3_Tag *id3tag, int panel, int control, int conflict, int inde
 	else
 		SetTableCellVal(panel, control, tagCell, genreString);
 
-	dataHandle.genrePtr[index] = calloc(strlen(genreString)+1, sizeof(char));
-	strcpy(dataHandle.genrePtr[index], genreString);
-
+	StoreDataVals(panel, control, genreString, index);
+	
 Error:
 	if (genreVal)
 		free(genreVal);
@@ -723,6 +616,108 @@ Error:
 	if (bitmap)
 		DiscardBitmap(bitmap);
 	return 1;
+}
+
+
+void StoreDataVals(int panel, int control, char *string, int index)
+{
+	size_t size;
+	
+	size = strlen(string)+1;
+	if (panel == panelHandle) {
+		switch (control) {
+			case PANEL_ARTIST:
+				dataHandle.artistPtr[index] = calloc(size + 2, sizeof(char));	// we need a fudge factor for TPE2 field
+				strcpy(dataHandle.artistPtr[index], string);
+				break;
+			case PANEL_ALBUM:
+				dataHandle.albumPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.albumPtr[index], string);
+				break;
+			case PANEL_TRACKNUM:	/* hidden behind the tree control */
+				dataHandle.trackNumPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.trackNumPtr[index], string);
+				break;
+			}
+		}
+	else if (panel == tab1Handle) {
+		switch (control) {
+			case TAB1_GENRE:
+				dataHandle.genrePtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.genrePtr[index], string);
+				break;
+			case TAB1_COMPOSER:
+				dataHandle.composerPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.composerPtr[index], string);
+				break;
+			case TAB1_YEAR:
+				dataHandle.yearPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.yearPtr[index], string);
+				break;
+			case TAB1_DISCNUM:
+				dataHandle.discPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.discPtr[index], string);
+				gUseMetaDataDiscVal = 1;
+				break;
+			case TAB1_ARTISTFILTER:
+				dataHandle.artistFilterPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.artistFilterPtr[index], string);
+				break;
+			case TAB1_PUBLISHER:
+				dataHandle.publisherPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.publisherPtr[index], string);
+				break;
+			case TAB1_ENCODED:
+				dataHandle.encodedPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.encodedPtr[index], string);
+				break;
+			case TAB1_COUNTRY:
+				dataHandle.countryPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.countryPtr[index], string);
+				break;
+			case TAB1_ALBUMARTIST:
+				dataHandle.albumArtistPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.albumArtistPtr[index], string);
+				break;
+			case TAB1_PERFORMERSORTORDER:
+				dataHandle.perfSortOrderPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.perfSortOrderPtr[index], string);
+				break;
+			case TAB1_ALBUMSORTORDER:
+				dataHandle.albSortOrderPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.albSortOrderPtr[index], string);
+				break;
+			case TAB1_COMMENT:
+				dataHandle.commentPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.commentPtr[index], string);
+				break;
+			case TAB1_ALBUMGAIN:
+				dataHandle.albumGainPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.albumGainPtr[index], string);
+				break;
+			case TAB1_RELTYPE:
+				dataHandle.relTypePtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.relTypePtr[index], string);
+				break;
+			}
+		}
+	else {
+		switch (control) {
+			case TAB2_COPYRIGHT:
+				dataHandle.copyrightPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.copyrightPtr[index], string);
+				break;
+			case TAB2_ORIGARTIST:
+				dataHandle.origArtistPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.origArtistPtr[index], string);
+				break;
+			case TAB2_URL:
+				dataHandle.urlPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.urlPtr[index], string);
+				break;
+		}
+		SetCtrlVal(panelHandle, PANEL_TABVALS, 1);	// always set this
+	}
 }
 
 /**************************************************/

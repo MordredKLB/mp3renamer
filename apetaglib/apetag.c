@@ -1,28 +1,5 @@
 #include "apetag.h"
-#include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <limits.h>
-#include <stdlib.h>
-#include <string.h>
 #include <toolbox.h>
-//#include <unistd.h>
-
-#ifdef USE_DB_185
-#define DB	DB185
-#include "db_185.h"
-//#include "db185_int.h"
-
-DB185 * __db185_open(const char *file, int oflags, int mode, DBTYPE type, const void *openinfo);
-
-#else
-#include "db.h"
-
-#define R_FIRST		DB_FIRST
-#define R_NEXT		DB_NEXT
-#define R_NOOVERWRITE	DB_NOOVERWRITE
-#define dbopen		__db_open
-#endif
 
 /* Macros */
 
@@ -79,7 +56,7 @@ DB185 * __db185_open(const char *file, int oflags, int mode, DBTYPE type, const 
 
 /* Global Variables */
 
-static DB *ID3_GENRES = NULL;
+//static DB *ID3_GENRES = NULL;
 static uint32_t APE_MAXIMUM_TAG_SIZE = 8192;
 static uint32_t APE_MAXIMUM_ITEM_COUNT = 64;
 
@@ -123,7 +100,7 @@ static const unsigned char charmap[] = {
 struct ApeTag {
 	FILE *file;                  /* file containing tag */
 	HashTableType items;
-	DB *items;                   /* DB_HASH format database */
+//	DB *items;                   /* DB_HASH format database */
 	                             /* Keys are NULL-terminated */
 	                             /* Values are ApeItem** */
 
@@ -328,81 +305,81 @@ int ApeTag_update(struct ApeTag *tag) {
 }
 
 int ApeTag_add_item(struct ApeTag *tag, struct ApeItem *item) {
-    int ret = 0;
-    //DBT key_dbt, value_dbt;
+	char *keyLower = NULL;
+	int ret = 0;
 
-    if (ApeTag__get_tag_information(tag) != 0) {
-        return -1;
-    }
+	if (ApeTag__get_tag_information(tag) != 0) {
+	    return -1;
+	}
 
-    //value_dbt.size = sizeof(struct ApeItem **);
-    //value_dbt.data = &item; 
-    //key_dbt.size = strlen(item->key)+1;
-    
-    if (item == NULL) {
-        tag->errcode = APETAG_INVALIDITEM;
-        tag->error = "item pointer is NULL";
-        return -1;
-    }
-    if (item->key == NULL) {
-        tag->errcode = APETAG_INVALIDITEM;
-        tag->error = "item key is NULL";
-        return -1;
-    }
-    if (item->value == NULL) {
-        tag->errcode = APETAG_INVALIDITEM;
-        tag->error = "item value is NULL";
-        return -1;
-    }
-    
-    /* Don't add invalid items to the database */
-    if (ApeItem__check_validity(tag, item) != 0) {
-        return -1;
-    }
-    
-    /* Don't exceed the maximum number of items allowed */
-    if (tag->item_count == APE_MAXIMUM_ITEM_COUNT) {
-        tag->errcode = APETAG_LIMITEXCEEDED;
-        tag->error = "maximum item count exceeded";
-        return -1;
-    }
-    
-    /* Create the database if it doesn't already exist */
-    if (tag->items == NULL) {
-//        if ((tag->items = dbopen(NULL, O_RDWR|O_CREAT, 0777, DB_HASH, NULL)) == NULL) {
+	//value_dbt.size = sizeof(struct ApeItem **);
+	//value_dbt.data = &item; 
+	//key_dbt.size = strlen(item->key)+1;
+
+	if (item == NULL) {
+	    tag->errcode = APETAG_INVALIDITEM;
+	    tag->error = "item pointer is NULL";
+	    return -1;
+	}
+	if (item->key == NULL) {
+	    tag->errcode = APETAG_INVALIDITEM;
+	    tag->error = "item key is NULL";
+	    return -1;
+	}
+	if (item->value == NULL) {
+	    tag->errcode = APETAG_INVALIDITEM;
+	    tag->error = "item value is NULL";
+	    return -1;
+	}
+
+	/* Don't add invalid items to the database */
+	if (ApeItem__check_validity(tag, item) != 0) {
+	    return -1;
+	}
+
+	/* Don't exceed the maximum number of items allowed */
+	if (tag->item_count == APE_MAXIMUM_ITEM_COUNT) {
+	    tag->errcode = APETAG_LIMITEXCEEDED;
+	    tag->error = "maximum item count exceeded";
+	    return -1;
+	}
+
+	/* Create the database if it doesn't already exist */
+	if (tag->items == NULL) {
+	//        if ((tag->items = dbopen(NULL, O_RDWR|O_CREAT, 0777, DB_HASH, NULL)) == NULL) {
 		if (HashTableCreate(10, C_STRING_KEY, NULL, sizeof(struct ApeItem **), &tag->items)) {
-            tag->errcode = APETAG_INTERNALERR;
-            tag->error = "HashTableCreate";
-            return -1;
-        }
-    }
-    
-    /* Apetag keys are case insensitive but case preserving */
-    if ((key_dbt.data = ApeTag__strcasecpy(item->key, strlen(item->key)+1)) == NULL) {
-        tag->errcode = APETAG_MEMERR;
-        tag->error = "malloc";
-        goto add_item_error;
-    }
-    
-    /* Add to the database */
-    //ret = tag->items->put(tag->items, &key_dbt, &value_dbt, R_NOOVERWRITE);
-    ret = HashTableInsertItem(tag->items, item->key, &item);
-	if (ret == -1) {
-        tag->errcode = APETAG_INTERNALERR;
-        tag->error = "db->put";
-        goto add_item_error;
-    } else if (ret == 1) {
-        tag->errcode = APETAG_DUPLICATEITEM;
-        tag->error = "duplicate item in tag";
-        goto add_item_error;
-    }
+	        tag->errcode = APETAG_INTERNALERR;
+	        tag->error = "HashTableCreate";
+	        return -1;
+	    }
+	}
 
-    tag->item_count++;
-//    free(key_dbt.data);
-    return 0;
+    /* Apetag keys are case insensitive but case preserving */
+	if ((keyLower = ApeTag__strcasecpy(item->key, strlen(item->key)+1)) == NULL) {
+	    tag->errcode = APETAG_MEMERR;
+	    tag->error = "malloc";
+	    goto add_item_error;
+	}
+
+	/* Add to the database */
+	//ret = tag->items->put(tag->items, &key_dbt, &value_dbt, R_NOOVERWRITE);
+	ret = HashTableInsertItem(tag->items, keyLower, &item);
+	if (ret == -1) {
+	    tag->errcode = APETAG_INTERNALERR;
+	    tag->error = "db->put";
+	    goto add_item_error;
+	} else if (ret == 1) {
+	    tag->errcode = APETAG_DUPLICATEITEM;
+	    tag->error = "duplicate item in tag";
+	    goto add_item_error;
+	}
+
+	tag->item_count++;
+	free(keyLower);
+	return 0;
     
 add_item_error:
-//    free(key_dbt.data);
+	free(keyLower);
     return -1;
 }
 
@@ -428,52 +405,50 @@ int ApeTag_replace_item(struct ApeTag *tag, struct ApeItem *item) {
 }
 
 int ApeTag_remove_item(struct ApeTag *tag, const char *key) {
-    int ret;
-    DBT key_dbt;
-    struct ApeItem *item;
+	int ret;
+	char *keyLower = NULL;
+	struct ApeItem *item;
 
-    if (ApeTag__get_tag_information(tag) != 0) {
-        return -1;
-    }
+	if (ApeTag__get_tag_information(tag) != 0) {
+	    return -1;
+	}
 
-    if ((item = ApeTag__get_item(tag, key)) == NULL) {
-        if (tag->errcode == APETAG_NOTPRESENT) {
-          return 1;
-        }
-        return -1;
-    }
+	if ((item = ApeTag__get_item(tag, key)) == NULL) {
+	    if (tag->errcode == APETAG_NOTPRESENT) {
+	      return 1;
+	    }
+	    return -1;
+	}
 
-    key_dbt.size = strlen(key) + 1;
-    /* APE item keys are case insensitive but case preserving */
-    if ((key_dbt.data = ApeTag__strcasecpy(key, key_dbt.size)) == NULL)  {
-        tag->errcode = APETAG_MEMERR;
-        tag->error = "malloc";
-        return -1;
-    }
-    
-    /* Free the item and remove it from the database  */
-    ApeItem__free(&item);
-    //ret = tag->items->del(tag->items, &key_dbt, 0);
-	ret = HashTableRemoveItem(tag->items, key, NULL, 0);
-    free(key_dbt.data);
-    if (ret != 0) {
-        if (ret == -1) {
-            tag->errcode = APETAG_INTERNALERR;
-            tag->error = "db->del";
-        } else if (ret == 1) {
-            tag->errcode = APETAG_INTERNALERR;
-            tag->error = "database modified between get and del";
-        }
-        return -1;
-    }
-    
-    tag->item_count--;
-    return ret;
+	/* APE item keys are case insensitive but case preserving */
+	if ((keyLower = ApeTag__strcasecpy(key, strlen(key)+1)) == NULL) {
+	    tag->errcode = APETAG_MEMERR;
+	    tag->error = "malloc";
+	    return -1;
+	}
+
+	/* Free the item and remove it from the database  */
+	ret = HashTableRemoveItem(tag->items, keyLower, NULL, 0);
+	ApeItem__free(&item);
+
+	if (ret != 0) {
+	    if (ret == -1) {
+	        tag->errcode = APETAG_INTERNALERR;
+	        tag->error = "db->del";
+	    } else if (ret == 1) {
+	        tag->errcode = APETAG_INTERNALERR;
+	        tag->error = "database modified between get and del";
+	    }
+	    return -1;
+	}
+
+	tag->item_count--;
+	free(keyLower);
+	return ret;
 }
 
 int ApeTag_clear_items(struct ApeTag *tag) {
     int ret = 0, status=0;
-    DBT key_dbt, value_dbt;
 	char key[256];
 	struct ApeItem *item;
 	HashTableIterator iter;
@@ -488,7 +463,7 @@ int ApeTag_clear_items(struct ApeTag *tag) {
         /* Free all items in the HashTable and then close it */
 		for (status = HashTableIteratorCreate(tag->items, &iter); status >= 0 && status != HASH_TABLE_END; status = HashTableIteratorAdvance(tag->items, iter)) {
 			status = HashTableIteratorGetItem(tag->items, iter, key, 256, &item, sizeof(struct ApeItem **)); 
-			HashTableRemoveItem(tag->items, key, &item, sizeof(struct ApeItem **));
+			// HashTableRemoveItem(tag->items, key, &item, sizeof(struct ApeItem **));
 			ApeItem__free((struct ApeItem **)&item);
 		}
 		HashTableIteratorDispose(tag->items, iter);
@@ -1396,27 +1371,27 @@ database are not terminated.
 Returns 0 on success, -1 on error;
 */
 static int ApeTag__lookup_genre(struct ApeTag *tag, struct ApeItem *item, unsigned char *genre_id) {
-    int ret = 0;
-    DBT key_dbt, value_dbt;
-
-    key_dbt.size = item->size;
-    key_dbt.data = item->value;
-    
-    if (ApeTag__load_ID3_GENRES(tag) != 0) {
-        return -1;
-    }
-    
-    ret = ID3_GENRES->get(ID3_GENRES, &key_dbt, &value_dbt, 0);
-    if (ret != 0) {
-        if (ret == -1) {
-            tag->errcode = APETAG_INTERNALERR;
-            tag->error = "db->get";
-            return -1;
-        }
-        *genre_id = '\377';
-    } else {
-        *genre_id = *(unsigned char *)(value_dbt.data);
-    }
+//    int ret = 0;
+//    DBT key_dbt, value_dbt;
+//
+//    key_dbt.size = item->size;
+//    key_dbt.data = item->value;
+//    
+//    if (ApeTag__load_ID3_GENRES(tag) != 0) {
+//        return -1;
+//    }
+//    
+//    ret = ID3_GENRES->get(ID3_GENRES, &key_dbt, &value_dbt, 0);
+//    if (ret != 0) {
+//        if (ret == -1) {
+//            tag->errcode = APETAG_INTERNALERR;
+//            tag->error = "db->get";
+//            return -1;
+//        }
+//        *genre_id = '\377';
+//    } else {
+//        *genre_id = *(unsigned char *)(value_dbt.data);
+//    }
     
     return 0;
 }
@@ -1644,8 +1619,8 @@ Returns NULL on error.
 */
 static struct ApeItem * ApeTag__get_item(struct ApeTag *tag, const char *key) {
     int ret = 0;
+	char *keyLower = NULL;
 	struct ApeItem *item;
-    DBT key_dbt, value_dbt;
 
 	if (tag->items == NULL) {
 	    tag->errcode = APETAG_NOTPRESENT;
@@ -1659,15 +1634,16 @@ static struct ApeItem * ApeTag__get_item(struct ApeTag *tag, const char *key) {
 	    tag->error = "key is greater than 255 characters";
 	    return NULL;
 	}
-	if ((key_dbt.data = ApeTag__strcasecpy(key, (unsigned char)key_dbt.size)) == NULL) {
+	
+	if ((keyLower = ApeTag__strcasecpy(key, strlen(key)+1)) == NULL) {
 	    tag->errcode = APETAG_MEMERR;
 	    tag->error = "malloc";
 	    return NULL;
 	}
 
-	//ret = tag->items->get(tag->items, &key_dbt, &value_dbt, 0);
-	ret = HashTableGetItem(tag->items, key, &item, sizeof(struct ApeItem **));
-	//free(key_dbt.data);
+	ret = HashTableGetItem(tag->items, keyLower, &item, sizeof(struct ApeItem **));
+	free(keyLower);
+
 	if (ret == -1) { 
 	    tag->errcode = APETAG_INTERNALERR;
 	    tag->error = "db->get"; 
@@ -1678,7 +1654,7 @@ static struct ApeItem * ApeTag__get_item(struct ApeTag *tag, const char *key) {
 	    return NULL; 
 	} else {
 	    // return *(struct ApeItem **)(value_dbt.data);
-		return *(struct ApeItem **)(item);
+		return *(struct ApeItem **)(&item);
 	} 
 }
 
@@ -1689,9 +1665,10 @@ which the caller is responsible for freeing.
 Returns NULL on error.
 */
 static struct ApeItem ** ApeTag__get_items(struct ApeTag *tag, uint32_t *num_items) {
-    uint32_t nitems = tag->item_count;
+//    uint32_t nitems = tag->item_count;
     struct ApeItem **is = NULL;
 
+#if 0    /* formerly excluded lines */
     if (num_items) {
         *num_items = 0;
     }
@@ -1737,6 +1714,7 @@ static struct ApeItem ** ApeTag__get_items(struct ApeTag *tag, uint32_t *num_ite
     if (num_items) {
         *num_items = nitems;
     }
+#endif   /* formerly excluded lines */
 
     return is;
 }
@@ -1750,7 +1728,7 @@ early, -1 on error.
 */
 static int ApeTag__iter_items(struct ApeTag *tag, int iterator(struct ApeTag *tag, struct ApeItem *item, void *data), void *data) {
     if (tag->item_count > 0) {
-        DBT key_dbt, value_dbt;
+//        DBT key_dbt, value_dbt;
 		HashTableIterator iter;
 		char key[256];
 		struct ApeItem *item;
@@ -1772,17 +1750,17 @@ static int ApeTag__iter_items(struct ApeTag *tag, int iterator(struct ApeTag *ta
 		HashTableIteratorDispose(tag->items, iter);
 
 		
-        /* Call iterator with each item in the database */
-        if (tag->items->seq(tag->items, &key_dbt, &value_dbt, R_FIRST) == 0) {
-            if (iterator(tag, *(struct ApeItem **)(value_dbt.data), data) != 0) {
-                return 1;
-            }
-            while (tag->items->seq(tag->items, &key_dbt, &value_dbt, R_NEXT) == 0) {
-                if (iterator(tag, *(struct ApeItem **)(value_dbt.data), data) != 0) {
-                    return 1;
-                }
-            }
-        }
+//        /* Call iterator with each item in the database */
+//        if (tag->items->seq(tag->items, &key_dbt, &value_dbt, R_FIRST) == 0) {
+//            if (iterator(tag, *(struct ApeItem **)(value_dbt.data), data) != 0) {
+//                return 1;
+//            }
+//            while (tag->items->seq(tag->items, &key_dbt, &value_dbt, R_NEXT) == 0) {
+//                if (iterator(tag, *(struct ApeItem **)(value_dbt.data), data) != 0) {
+//                    return 1;
+//                }
+//            }
+//        }
     }
 
     return 0;

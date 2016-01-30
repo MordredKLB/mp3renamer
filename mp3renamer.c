@@ -1547,9 +1547,11 @@ void PopulateTrackData(void)
 	char buf[10];
 	
 	GetCtrlVal(panelHandle, PANEL_FIXNUMCHECKBOX, &fixNums);
+	strcpy(track,"");
 
-	for (i=0;i<numFiles;i++)
+	for (i=0;i<numFiles;i++) {
 		SetTreeCellAttribute(panelHandle, PANEL_TREE, i, kTreeColTrackNum, ATTR_LABEL_TEXT, "");
+	}
 	for (i=0;i<numFiles;i++) {
 		if (dataHandle.trackNumPtr[i]) {
 			strcpy(buf, dataHandle.trackNumPtr[i]);
@@ -1559,19 +1561,18 @@ void PopulateTrackData(void)
 				if (isdigit(buf[j])) {
 					track[k]=buf[j];
 					k++;
-					}
-				else {
+				} else {
 					break;
-					}
+				}
 			track[k] = '\0';
 			if (fixNums && strlen(track) == 1) {
 				track[2] = track[1];
 				track[1] = track[0];
 				track[0] = '0';
-				}
-			SetTreeCellAttribute (panelHandle, PANEL_TREE, i, kTreeColTrackNum, ATTR_LABEL_TEXT, track);
 			}
+			SetTreeCellAttribute (panelHandle, PANEL_TREE, i, kTreeColTrackNum, ATTR_LABEL_TEXT, track);
 		}
+	}
 	
 }
 

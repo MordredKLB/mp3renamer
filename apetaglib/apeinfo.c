@@ -5,18 +5,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int ApeInfo_process(char *);
-void ApeTag_print(struct ApeTag *tag);
+int ApeInfo_process(char *, struct ApeTag **tag);
 void ApeItem_print(struct ApeItem *item);
 
 /* Process all files on the command line */
 
 /* Print out the items in the file */
-int ApeInfo_process(char *filename) {
+int ApeInfo_process(char *filename, struct ApeTag **tag) {
 	int ret;
 	int status;
 	FILE *file;
-	struct ApeTag *tag = NULL;
+	
+	*tag = NULL;
 
 	if ((file = fopen(filename, "r")) == NULL) {
 		ErrorPrintf("%s", filename);
@@ -24,22 +24,22 @@ int ApeInfo_process(char *filename) {
 	    goto apeinfo_process_error;
 	}
 
-	if ((tag = ApeTag_new(file, 0)) == NULL) {
+	if ((*tag = ApeTag_new(file, 0)) == NULL) {
 	    ErrorPrintf(NULL);
 	    ret = 1;
 	    goto apeinfo_process_error;
 	}
 
-	status = ApeTag_parse(tag);
+	status = ApeTag_parse(*tag);
 	if (status == -1) {
-	    ErrorPrintf("%s: %s", filename, ApeTag_error(tag));
+	    ErrorPrintf("%s: %s", filename, ApeTag_error(*tag));
 	    ret = 1;
 	    goto apeinfo_process_error;
 	}
 
-	if (ApeTag_exists(tag)) {
-	    ErrorPrintf("%s (%i items):\n", filename, ApeTag_item_count(tag));
-	    ApeTag_print(tag);
+	if (ApeTag_exists(*tag)) {
+	//    ErrorPrintf("%s (%i items):\n", filename, ApeTag_item_count(*tag));
+	//    ApeTag_print(*tag);
 	} else {
 		ErrorPrintf("%s: no ape tag\n\n", filename);
 	}
@@ -47,14 +47,17 @@ int ApeInfo_process(char *filename) {
 	ret = 0;
     
 apeinfo_process_error:
-	ApeTag_free(tag);
 	if (file != NULL) {
 	    if (fclose(file) != 0) {
 	        ErrorPrintf("%s", filename);
-	    }
+	    }					
 	}
     
     return ret;
+}
+
+void ApeTag_close(struct ApeTag *tag) {
+	ApeTag_free(tag);
 }
 
 int ApeTag_iter_print(struct ApeTag *tag, struct ApeItem *item, void *data) {

@@ -109,6 +109,7 @@ void PopulateGenreComboBox(int panel, int control);
 void DoSmartCaps(char *fileName);
 void RemoveSpecifiedString(char *filename, char *string);
 int	 IsItemChecked(int itemNum);
+void StoreDataVals(int panel, int control, char *string, int index);
 
 char* stristr(const char *String, const char *Pattern);
 

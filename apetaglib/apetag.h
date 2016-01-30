@@ -1,7 +1,7 @@
 #ifndef _APETAG_H_
 #define _APETAG_H_
 
-#include "types.h"
+//#include "types.h"
 #include <stdint.h>
 #include <stdio.h>
 

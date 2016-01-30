@@ -10,7 +10,7 @@ IVI Standard Root Dir = "/C/Program Files (x86)/IVI Foundation/IVI"
 VXIplug&play Framework Dir = "/C/Program Files (x86)/IVI Foundation/VISA/winnt"
 IVI Standard Root 64-bit Dir = "/C/Program Files/IVI Foundation/IVI"
 VXIplug&play Framework 64-bit Dir = "/C/Program Files/IVI Foundation/VISA/win64"
-Number of Files = 65
+Number of Files = 66
 Target Type = "Executable"
 Flags = 2064
 Copied From Locked InstrDrv Directory = False
@@ -798,8 +798,8 @@ File Type = "Include"
 Res Id = 60
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "ID3v2.h"
-Path = "/d/Source/MP3Renamer/ID3v2.h"
+Path Rel Path = "globals.h"
+Path = "/d/Source/MP3Renamer/globals.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files"
@@ -810,8 +810,8 @@ File Type = "Include"
 Res Id = 61
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "mp3renamer.h"
-Path = "/d/Source/MP3Renamer/mp3renamer.h"
+Path Rel Path = "ID3v2.h"
+Path = "/d/Source/MP3Renamer/ID3v2.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files"
@@ -822,8 +822,8 @@ File Type = "Include"
 Res Id = 62
 Path Is Rel = True
 Path Rel To = "Project"
-Path Rel Path = "titleformatting.h"
-Path = "/d/Source/MP3Renamer/titleformatting.h"
+Path Rel Path = "mp3renamer.h"
+Path = "/d/Source/MP3Renamer/mp3renamer.h"
 Exclude = False
 Project Flags = 0
 Folder = "Include Files"
@@ -832,6 +832,18 @@ Folder Id = 6
 [File 0063]
 File Type = "Include"
 Res Id = 63
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "titleformatting.h"
+Path = "/d/Source/MP3Renamer/titleformatting.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+Folder Id = 6
+
+[File 0064]
+File Type = "Include"
+Res Id = 64
 Path Is Rel = True
 Path Rel To = "CVI"
 Path Rel Path = "sdk/include/WinInet.h"
@@ -842,9 +854,9 @@ Project Flags = 0
 Folder = "Include Files"
 Folder Id = 6
 
-[File 0064]
+[File 0065]
 File Type = "Library"
-Res Id = 64
+Res Id = 65
 Path Is Rel = True
 Path Rel To = "CVI"
 Path Rel Path = "sdk/lib/msvc/WinInet.Lib"
@@ -853,9 +865,9 @@ Exclude = False
 Project Flags = 0
 Folder = "Not In A Folder"
 
-[File 0065]
+[File 0066]
 File Type = "Library"
-Res Id = 65
+Res Id = 66
 Path Is Rel = True
 Path Rel To = "Project"
 Path Rel Path = "zlibDll/msvc/zlib1.lib"
