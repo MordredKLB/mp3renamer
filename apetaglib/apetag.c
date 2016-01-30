@@ -1,4 +1,7 @@
 #include "apetag.h"
+#include <fileapi.h>
+#include <Windows.h>
+#include <WinBase.h>
 #include <toolbox.h>
 
 /* Macros */
@@ -203,29 +206,46 @@ int ApeTag_exists_id3(struct ApeTag *tag) {
 }
 
 int ApeTag_remove(struct ApeTag *tag) {
-    if (ApeTag__get_tag_information(tag) != 0) {
-        return -1;
-    }
-    
-    if (!(tag->flags & (APE_HAS_APE|APE_HAS_ID3))) {
-        return 1;
-    }
+	HANDLE fHandle = NULL;
+	int error;
+	
+	if (ApeTag__get_tag_information(tag) != 0) {
+	    return -1;
+	}
 
-    if (fflush(tag->file) != 0) {
-        tag->errcode = APETAG_FILEERR;
-        tag->error = "fflush";
-        return -1;
-    }
+	if (!(tag->flags & (APE_HAS_APE|APE_HAS_ID3))) {
+	    return 1;
+	}
 
-    /*if (ftruncate(fileno(tag->file), tag->offset) != 0) {
-        tag->errcode = APETAG_FILEERR;
-        tag->error = "ftruncate";
-        return -1;
-    }*/
-    
-    tag->flags &= ~(APE_HAS_APE|APE_HAS_ID3);
+	if (fflush(tag->file) != 0) {
+	    tag->errcode = APETAG_FILEERR;
+	    tag->error = "fflush";
+	    return -1;
+	}
 
-    return 0;
+	if (fclose(tag->file) != 0) {
+		tag->errcode = APETAG_FILEERR;
+		tag->error = "fclose";
+		return -1;
+	}
+	
+	fHandle = CreateFile (tag->file, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (fHandle == INVALID_HANDLE_VALUE) {
+		//DWORD GetLastError (VOID);
+		error = GetLastError ();
+		return error;
+	}
+//	if (ftruncate(fileno(tag->file), tag->offset) != 0) {
+//	if (_chsize(_fileno(tag->file), tag->offset) != 0) {
+	if (SetEndOfFile(fHandle) != 0) {
+		tag->errcode = APETAG_FILEERR;
+	    tag->error = "ftruncate";
+	    return -1;
+	}
+
+	tag->flags &= ~(APE_HAS_APE|APE_HAS_ID3);
+
+	return 0;
 }
 
 int ApeTag_raw(struct ApeTag *tag, char **raw, uint32_t *raw_size) {    
