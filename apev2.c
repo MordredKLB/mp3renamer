@@ -188,3 +188,63 @@ Error:
 	free(string);
 	return;
 }
+
+
+/****************************************************************/
+
+int UpdateAPETagItem(struct ApeTag *tag, char *key, int panel, int control, int updateCtrl, char **dataPtr, int index)
+{
+	int update, len, error;
+	char *data = NULL;
+    struct ApeItem *item = NULL;
+    
+	GetCtrlVal(panel, updateCtrl, &update);
+	if (update == TRUE) {
+		GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
+		nullChk(data = calloc(len+1, sizeof(char)));
+		nullChk(tmpStr = calloc(len+3, sizeof(char)));
+		errChk(GetCtrlVal(panel, control, data));
+	
+		nullChk(item = malloc(sizeof(struct ApeItem)));
+		item->size = strlen(data);
+		item->flags = 0;
+		item->key = NULL;
+		item->value = NULL;
+		
+		nullChk(item->key = malloc(strlen(key)+1));
+		nullChk(item->value = malloc(item->size));
+		strcpy(item->key, key);
+		memcpy(item->value, data, item->size);
+		
+		ErrorPrintf("%s - %s", dataPtr[index], data);
+		ApeTag_replace_item(tag, item);
+	
+	}
+	
+Error:
+	if (data) {
+		free(data);
+	}
+	
+	return 0;
+}
+
+
+int SetAPEv2Tag(int panel, char *filename, char *newname, int index)
+{
+	int error;
+	struct ApeTag *tag = NULL;
+	
+	error = ApeInfo_open_tag(filename, &tag, "rb+");
+	
+//	ApeTag_remove(tag);
+
+	UpdateAPETagItem(tag, "album", panel, PANEL_ALBUM, PANEL_UPDATEALBUM, dataHandle.albumPtr, index);
+	
+	ApeTag_update(tag);
+	
+	ApeTag_close(tag);
+	
+	return 0;
+}
+

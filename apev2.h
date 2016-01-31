@@ -33,7 +33,9 @@
 // Global functions
 
 int LoadAPEv2Tag (int panel, char *fileName, int index);
-int ApeInfo_process(char *, struct ApeTag **tag);
+int SetAPEv2Tag(int panel, char *filename, char *newname, int index);
+int ApeInfo_process(char *filename, struct ApeTag **tag);
+int ApeInfo_open_tag(char *filename, struct ApeTag **tag, char *mode);
 void ApeTag_print(struct ApeTag *tag);
 void ApeTag_close(struct ApeTag *tag);
 

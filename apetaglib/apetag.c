@@ -1,8 +1,7 @@
 #include "apetag.h"
-#include <fileapi.h>
 #include <Windows.h>
-#include <WinBase.h>
 #include <toolbox.h>
+#include <fileapi.h>
 
 /* Macros */
 
@@ -102,6 +101,7 @@ static const unsigned char charmap[] = {
 
 struct ApeTag {
 	FILE *file;                  /* file containing tag */
+	char filename[MAX_FILENAME_LEN];
 	HashTableType items;
 //	DB *items;                   /* DB_HASH format database */
 	                             /* Keys are NULL-terminated */
@@ -207,7 +207,7 @@ int ApeTag_exists_id3(struct ApeTag *tag) {
 
 int ApeTag_remove(struct ApeTag *tag) {
 	HANDLE fHandle = NULL;
-	int error;
+	DWORD error = 0;
 	
 	if (ApeTag__get_tag_information(tag) != 0) {
 	    return -1;
@@ -229,23 +229,29 @@ int ApeTag_remove(struct ApeTag *tag) {
 		return -1;
 	}
 	
-	fHandle = CreateFile (tag->file, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	fHandle = CreateFile (tag->filename, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (fHandle == INVALID_HANDLE_VALUE) {
 		//DWORD GetLastError (VOID);
 		error = GetLastError ();
-		return error;
+		goto Error;
 	}
+	
+	if (SetFilePointer (fHandle, tag->offset, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
+		error = GetLastError ();
+		goto Error;
+	}
+	
 //	if (ftruncate(fileno(tag->file), tag->offset) != 0) {
-//	if (_chsize(_fileno(tag->file), tag->offset) != 0) {
-	if (SetEndOfFile(fHandle) != 0) {
+	if (SetEndOfFile(fHandle) == 0) {
 		tag->errcode = APETAG_FILEERR;
-	    tag->error = "ftruncate";
+	    tag->error = "SetEndOfFile";
 	    return -1;
 	}
 
 	tag->flags &= ~(APE_HAS_APE|APE_HAS_ID3);
 
-	return 0;
+Error:
+	return error;
 }
 
 int ApeTag_raw(struct ApeTag *tag, char **raw, uint32_t *raw_size) {    
@@ -291,6 +297,12 @@ int ApeTag_raw(struct ApeTag *tag, char **raw, uint32_t *raw_size) {
     *raw_size = r_size;
     
     return 0;
+}
+
+int ApeTag_set_filename(struct ApeTag *tag, char *filename) {
+	strcpy(tag->filename, filename);
+	
+	return 0;
 }
 
 int ApeTag_parse(struct ApeTag *tag) {
@@ -658,6 +670,7 @@ static int ApeTag__get_tag_information(struct ApeTag *tag) {
         tag->error = "fseek";
         return -1;
     }
+	
     free(tag->tag_footer);
     if ((tag->tag_footer = malloc(32)) == NULL) {
         tag->errcode = APETAG_MEMERR;
@@ -734,7 +747,7 @@ static int ApeTag__get_tag_information(struct ApeTag *tag) {
         tag->error = "malloc";
         return -1;
     }
-    if (fread(tag->tag_header, 1, 32, tag->file) < 32) {
+	if (fread(tag->tag_header, 1, 32, tag->file) < 32) {
         tag->errcode = APETAG_FILEERR;
         tag->error = "fread";
         return -1;
@@ -745,7 +758,7 @@ static int ApeTag__get_tag_information(struct ApeTag *tag) {
         tag->error = "malloc";
         return -1;
     }
-    if (fread(tag->tag_data, 1, tag->size-64, tag->file) < tag->size-64) {
+	if (fread(tag->tag_data, 1, tag->size-64, tag->file) < tag->size-64) {
         tag->errcode = APETAG_FILEERR;
         tag->error = "fread";
         return -1;
@@ -1114,54 +1127,95 @@ Writes the tag to the file using the internal tag strings.
 Returns 0 on success, <0 on error.
 */
 static int ApeTag__write_tag(struct ApeTag *tag) {
-    assert(tag->tag_header != NULL);
-    assert(tag->tag_data != NULL);
-    assert(tag->tag_footer != NULL);
-    
-    if (fseek(tag->file, tag->offset, SEEK_SET) == -1) {
-        tag->errcode = APETAG_FILEERR;
-        tag->error = "fseek";
-        return -1;
-    }
-    
-    if (fwrite(tag->tag_header, 1, 32, tag->file) != 32) {
-        tag->errcode = APETAG_FILEERR;
-        tag->error = "fwrite";
-        return -1;
-    }
-    if (fwrite(tag->tag_data, 1, tag->size-64, tag->file) != tag->size-64) {
-        tag->errcode = APETAG_FILEERR;
-        tag->error = "fwrite";
-        return -1;
-    }
-    if (fwrite(tag->tag_footer, 1, 32, tag->file) != 32) {
-        tag->errcode = APETAG_FILEERR;
-        tag->error = "fwrite";
-        return -1;
-    }
-    if (tag->id3 != NULL && !(tag->flags & APE_NO_ID3)) {
-        if (fwrite(tag->id3, 1, 128, tag->file) != 128) {
-            tag->errcode = APETAG_FILEERR;
-            tag->error = "fwrite";
-            return -1;
-        }
-        tag->flags |= APE_HAS_ID3;
-    }
+	HANDLE fHandle = NULL;
+	DWORD error = 0;
 
-    if (fflush(tag->file) != 0) {
-        tag->errcode = APETAG_FILEERR;
-        tag->error = "fflush";
-        return -1;
-    }
-    /*if (ftruncate(fileno(tag->file), (tag->offset + ApeTag__tag_length(tag))) == -1) {
-        tag->errcode = APETAG_FILEERR;
-        tag->error = "ftruncate";
-        return -1;
-    }*/
-    tag->file_item_count = tag->item_count;
-    tag->flags |= APE_HAS_APE;
-    
-    return 0;
+	assert(tag->tag_header != NULL);
+	assert(tag->tag_data != NULL);
+	assert(tag->tag_footer != NULL);
+
+	if (fseek(tag->file, tag->offset, SEEK_SET) == -1) {
+	    tag->errcode = APETAG_FILEERR;
+	    tag->error = "fseek";
+	    return -1;
+	}
+
+	if (fwrite(tag->tag_header, 1, 32, tag->file) != 32) {
+	    tag->errcode = APETAG_FILEERR;
+	    tag->error = "fwrite";
+	    return -1;
+	}
+
+	if (fwrite(tag->tag_data, 1, tag->size-64, tag->file) != tag->size-64) {
+	    tag->errcode = APETAG_FILEERR;
+	    tag->error = "fwrite";
+	    return -1;
+	}
+
+	if (fwrite(tag->tag_footer, 1, 32, tag->file) != 32) {
+	    tag->errcode = APETAG_FILEERR;
+	    tag->error = "fwrite";
+	    return -1;
+	}
+
+	if (tag->id3 != NULL && !(tag->flags & APE_NO_ID3)) {
+	    if (fwrite(tag->id3, 1, 128, tag->file) != 128) {
+	        tag->errcode = APETAG_FILEERR;
+	        tag->error = "fwrite";
+	        return -1;
+	    }
+	    tag->flags |= APE_HAS_ID3;
+	}
+
+	if (fflush(tag->file) != 0) {
+	    tag->errcode = APETAG_FILEERR;
+	    tag->error = "fflush";
+	    return -1;
+	}
+
+	if (fclose(tag->file) != 0) {	// must close stream before truncating
+		tag->errcode = APETAG_FILEERR;
+		tag->error = "fclose";
+		return -1;
+	}
+
+	fHandle = CreateFile (tag->filename, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (fHandle == INVALID_HANDLE_VALUE) {
+		//DWORD GetLastError (VOID);
+		error = GetLastError ();
+		goto Error;
+	}
+
+	int tag_len = ApeTag__tag_length(tag);
+	if (SetFilePointer (fHandle, tag->offset + tag_len, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
+		error = GetLastError ();
+		goto Error;
+	}
+
+	/*if (ftruncate(fileno(tag->file), (tag->offset + ApeTag__tag_length(tag))) == -1) {
+	    tag->errcode = APETAG_FILEERR;
+	    tag->error = "ftruncate";
+	    return -1;
+	}*/
+	if (SetEndOfFile(fHandle) == 0) {
+		tag->errcode = APETAG_FILEERR;
+	    tag->error = "SetEndOfFile";
+		error = GetLastError ();
+	    goto Error;
+	}
+
+	//tag->file = fopen(tag->filename, "r");	// should we reopen here? 
+
+	tag->file_item_count = tag->item_count;
+	tag->flags |= APE_HAS_APE;
+
+Error:
+	if (fHandle != INVALID_HANDLE_VALUE) {
+		CloseHandle(fHandle);
+	}
+	
+	//tag->file = fopen(tag->filename, "r");
+    return error;
 }
 
 /*
@@ -1685,58 +1739,72 @@ which the caller is responsible for freeing.
 Returns NULL on error.
 */
 static struct ApeItem ** ApeTag__get_items(struct ApeTag *tag, uint32_t *num_items) {
-//    uint32_t nitems = tag->item_count;
-    struct ApeItem **is = NULL;
+	int nitems = tag->item_count;
+	int status;
+	struct ApeItem **is = NULL;
+	HashTableIterator iter;
+	char key[256];
+	struct ApeItem *item;
 
-#if 0    /* formerly excluded lines */
-    if (num_items) {
-        *num_items = 0;
-    }
 
-    if ((is = calloc(nitems + 1, sizeof(struct ApeItem *))) == NULL) {
-        tag->errcode = APETAG_MEMERR;
-        tag->error = "calloc";
-        return NULL;
-    }
+	if (num_items) {
+	    *num_items = 0;
+	}
 
-    if (nitems > 0) {
-        uint32_t i = 0;
-        DBT key_dbt, value_dbt;
+	if ((is = calloc(nitems + 1, sizeof(struct ApeItem *))) == NULL) {
+	    tag->errcode = APETAG_MEMERR;
+	    tag->error = "calloc";
+	    return NULL;
+	}
 
-        if (tag->items == NULL) {
-            tag->errcode = APETAG_INTERNALERR;
-            tag->error = "internal consistency error: item_count > 0 but items is NULL";
-            free(is);
-            return NULL;
-        }
-        
-        /* Get all ape items from the database */
-        if (tag->items->seq(tag->items, &key_dbt, &value_dbt, R_FIRST) == 0) {
-            is[i++] = *(struct ApeItem **)(value_dbt.data);
-            while (tag->items->seq(tag->items, &key_dbt, &value_dbt, R_NEXT) == 0) {
-                if (i >= nitems) {
-                    tag->errcode = APETAG_INTERNALERR;
-                    tag->error = "internal consistency error: more items in database than item_count";
-                    free(is);
-                    return NULL;
-                }
-                is[i++] = *(struct ApeItem **)(value_dbt.data);
+	if (nitems > 0) {
+	    int i = 0;
+
+	    if (tag->items == NULL) {
+	        tag->errcode = APETAG_INTERNALERR;
+	        tag->error = "internal consistency error: item_count > 0 but items is NULL";
+	        free(is);
+	        return NULL;
+	    }
+    
+	    /* Get all ape items from the database */
+	    if (tag->items->seq(tag->items, &key_dbt, &value_dbt, R_FIRST) == 0) {
+	        is[i++] = *(struct ApeItem **)(value_dbt.data);
+	        while (tag->items->seq(tag->items, &key_dbt, &value_dbt, R_NEXT) == 0) {
+	            if (i >= nitems) {
+	                tag->errcode = APETAG_INTERNALERR;
+	                tag->error = "internal consistency error: more items in database than item_count";
+	                free(is);
+	                return NULL;
+	            }
+	            is[i++] = *(struct ApeItem **)(value_dbt.data);
+	        }
+	    }
+		for (status = HashTableIteratorCreate(tag->items, &iter); status >= 0 && status != HASH_TABLE_END; status = HashTableIteratorAdvance(tag->items, iter)) {
+			status = HashTableIteratorGetItem(tag->items, iter, key, 256, &item, sizeof(struct ApeItem **)); 
+            if (i >= nitems) {
+                tag->errcode = APETAG_INTERNALERR;
+                tag->error = "internal consistency error: more items in database than item_count";
+                free(is);
+                return NULL;
             }
-        }
-        if (i != nitems) {
-            tag->errcode = APETAG_INTERNALERR;
-            tag->error = "internal consistency error: fewer items in database than item_count";
-            free(is);
-            return NULL;
-        }
-    }
+			is[i++] = *(struct ApeItem **)&item;
+		}
+		HashTableIteratorDispose(tag->items, iter);
 
-    if (num_items) {
-        *num_items = nitems;
-    }
-#endif   /* formerly excluded lines */
+		if (i != nitems) {
+	        tag->errcode = APETAG_INTERNALERR;
+	        tag->error = "internal consistency error: fewer items in database than item_count";
+	        free(is);
+	        return NULL;
+	    }
+	}
 
-    return is;
+	if (num_items) {
+	    *num_items = nitems;
+	}
+
+	return is;
 }
 
 /* 

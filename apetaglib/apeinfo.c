@@ -1,24 +1,25 @@
+#include <ansi_c.h>
 #include <utility.h>
 #include <apetag.h>
 //#include <err.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "apev2.h"
 
 int ApeInfo_process(char *, struct ApeTag **tag);
 void ApeItem_print(struct ApeItem *item);
 
-/* Process all files on the command line */
 
 /* Print out the items in the file */
 int ApeInfo_process(char *filename, struct ApeTag **tag) {
 	int ret;
 	int status;
-	FILE *file;
+	FILE *file = NULL;
 	
 	*tag = NULL;
 
-	if ((file = fopen(filename, "r")) == NULL) {
+	if ((file = fopen(filename, "rb")) == NULL) {
 		ErrorPrintf("%s", filename);
 	    ret = 1;
 	    goto apeinfo_process_error;
@@ -30,12 +31,15 @@ int ApeInfo_process(char *filename, struct ApeTag **tag) {
 	    goto apeinfo_process_error;
 	}
 
+	ApeTag_set_filename(*tag, filename);
+
 	status = ApeTag_parse(*tag);
 	if (status == -1) {
 	    ErrorPrintf("%s: %s", filename, ApeTag_error(*tag));
 	    ret = 1;
 	    goto apeinfo_process_error;
 	}
+	ApeInfo_open_tag(filename, &tag, "r");	// TODO: Figure out why I can't use this and close tag->file below
 
 	if (ApeTag_exists(*tag)) {
 	//    ErrorPrintf("%s (%i items):\n", filename, ApeTag_item_count(*tag));
@@ -48,12 +52,54 @@ int ApeInfo_process(char *filename, struct ApeTag **tag) {
     
 apeinfo_process_error:
 	if (file != NULL) {
-	    if (fclose(file) != 0) {
-	        ErrorPrintf("%s", filename);
-	    }					
+		if (fclose(file) != 0) {
+		    ErrorPrintf("%s", filename);
+		}					
 	}
     
     return ret;
+}
+
+int ApeInfo_open_tag(char *filename, struct ApeTag **tag, char *mode) 
+{
+	int ret;
+	int status;
+	FILE *file = NULL;
+	
+	*tag = NULL;
+
+	if ((file = fopen(filename, mode)) == NULL) {
+		ErrorPrintf("%s", filename);
+	    ret = 1;
+	    goto apeinfo_process_error;
+	}
+
+	if ((*tag = ApeTag_new(file, 0)) == NULL) {
+	    ErrorPrintf(NULL);
+	    ret = 1;
+	    goto apeinfo_process_error;
+	}
+	
+	ApeTag_set_filename(*tag, filename);
+
+	status = ApeTag_parse(*tag);
+	if (status == -1) {
+	    ErrorPrintf("%s: %s", filename, ApeTag_error(*tag));
+	    ret = 1;
+	    goto apeinfo_process_error;
+	}
+	
+	ret = 0;
+
+apeinfo_process_error:
+	if (ret) {		// close file if error
+		if (file != NULL) {
+			if (fclose(file) != 0) {
+			    ErrorPrintf("%s", filename);
+			}
+		}
+	}
+	return ret;
 }
 
 void ApeTag_close(struct ApeTag *tag) {

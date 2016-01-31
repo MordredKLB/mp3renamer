@@ -60,6 +60,7 @@ int ApeTag_exists_id3(struct ApeTag *tag);
 int ApeTag_remove(struct ApeTag *tag);
 int ApeTag_raw(struct ApeTag *tag, char **raw, uint32_t *raw_size);
 int ApeTag_parse(struct ApeTag *tag);
+int ApeTag_set_filename(struct ApeTag *tag, char *filename);
 
 int ApeTag_add_item(struct ApeTag *tag, struct ApeItem *item);
 int ApeTag_replace_item(struct ApeTag *tag, struct ApeItem *item);

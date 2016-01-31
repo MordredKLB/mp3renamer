@@ -1416,20 +1416,22 @@ int CVICALLBACK SetID3Tag (int panel, int control, int event,
 				SetCtrlVal(tab1Handle, TAB1_ALBUMSORTORDER, yearStr);
 				}
 			for (i=0;i<numFiles;i++) {
-				if (IsItemChecked(i) && (strstr(fileStruct[i].origName, ".mp3") || strstr(fileStruct[i].origName, ".MP3"))) {
-					//SetCtrlVal(panel, PANEL_LOG, fileStruct[i].origName);
-					GetFileAttrs(fileStruct[i].origName, &readOnly, &system, &hidden, &archive);
-					if (!readOnly) {
-						//SetCtrlVal(panel, PANEL_LOG, "\nExists");
-						SetID3v2Tag(panel, fileStruct[i].origName, fileStruct[i].newName, i);
-						//SetCtrlVal(panel, PANEL_LOG, "\nWritten");
-						if (doID3v1)
-							SetID3v1Tag(panel, fileStruct[i].origName, fileStruct[i].newName, i);
-						//SetCtrlVal(panel, PANEL_LOG, "\nWrote ID3\n");
-						}
-					else
-						error = readOnly;
+				GetFileAttrs(fileStruct[i].origName, &readOnly, &system, &hidden, &archive);
+				if (IsItemChecked(i) && !readOnly) {
+					switch (GetAudioFileType(fileStruct[i].origName)) {
+						case kFileMP3:
+							SetID3v2Tag(panel, fileStruct[i].origName, fileStruct[i].newName, i);
+							if (doID3v1) 
+								SetID3v1Tag(panel, fileStruct[i].origName, fileStruct[i].newName, i);
+							break;
+						case kFileAC3:
+						case kFileDTS:
+							SetAPEv2Tag(panel, fileStruct[i].origName, fileStruct[i].newName, i);
+							break;
 					}
+				} else if (readOnly) {
+					error = readOnly;
+				}
 				ProgressBar_AdvanceMilestone(progressHandle, PROGRESS_PROGRESSBAR, 0);
 				}
 			ProgressBar_End(progressHandle, PROGRESS_PROGRESSBAR, NULL, 0);
