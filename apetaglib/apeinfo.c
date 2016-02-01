@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include "apev2.h"
 
-int ApeInfo_process(char *, struct ApeTag **tag);
 void ApeItem_print(struct ApeItem *item);
 
 
@@ -39,7 +38,7 @@ int ApeInfo_process(char *filename, struct ApeTag **tag) {
 	    ret = 1;
 	    goto apeinfo_process_error;
 	}
-	ApeInfo_open_tag(filename, &tag, "r");	// TODO: Figure out why I can't use this and close tag->file below
+//	ApeInfo_open_tag(filename, &tag, "rb");	// TODO: Figure out why I can't use this and close tag->file below
 
 	if (ApeTag_exists(*tag)) {
 	//    ErrorPrintf("%s (%i items):\n", filename, ApeTag_item_count(*tag));

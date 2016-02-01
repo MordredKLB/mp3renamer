@@ -415,6 +415,7 @@ add_item_error:
     return -1;
 }
 
+
 int ApeTag_replace_item(struct ApeTag *tag, struct ApeItem *item) {
     int existed = 0;
     int ret;
@@ -423,9 +424,7 @@ int ApeTag_replace_item(struct ApeTag *tag, struct ApeItem *item) {
         return -1;
     }
     
-    if ((ret = ApeTag_remove_item(tag, item->key)) < 0) {
-        return ret;
-    } else if (ret == 0) {
+    if ((ret = ApeTag_remove_item(tag, item->key)) == 0) {
         existed = 1;
     }
 
@@ -1768,18 +1767,18 @@ static struct ApeItem ** ApeTag__get_items(struct ApeTag *tag, uint32_t *num_ite
 	    }
     
 	    /* Get all ape items from the database */
-	    if (tag->items->seq(tag->items, &key_dbt, &value_dbt, R_FIRST) == 0) {
-	        is[i++] = *(struct ApeItem **)(value_dbt.data);
-	        while (tag->items->seq(tag->items, &key_dbt, &value_dbt, R_NEXT) == 0) {
-	            if (i >= nitems) {
-	                tag->errcode = APETAG_INTERNALERR;
-	                tag->error = "internal consistency error: more items in database than item_count";
-	                free(is);
-	                return NULL;
-	            }
-	            is[i++] = *(struct ApeItem **)(value_dbt.data);
-	        }
-	    }
+//	    if (tag->items->seq(tag->items, &key_dbt, &value_dbt, R_FIRST) == 0) {
+//	        is[i++] = *(struct ApeItem **)(value_dbt.data);
+//	        while (tag->items->seq(tag->items, &key_dbt, &value_dbt, R_NEXT) == 0) {
+//	            if (i >= nitems) {
+//	                tag->errcode = APETAG_INTERNALERR;
+//	                tag->error = "internal consistency error: more items in database than item_count";
+//	                free(is);
+//	                return NULL;
+//	            }
+//	            is[i++] = *(struct ApeItem **)(value_dbt.data);
+//	        }
+//	    }
 		for (status = HashTableIteratorCreate(tag->items, &iter); status >= 0 && status != HASH_TABLE_END; status = HashTableIteratorAdvance(tag->items, iter)) {
 			status = HashTableIteratorGetItem(tag->items, iter, key, 256, &item, sizeof(struct ApeItem **)); 
             if (i >= nitems) {

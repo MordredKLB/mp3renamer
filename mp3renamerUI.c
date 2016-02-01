@@ -379,7 +379,7 @@ int CVICALLBACK TreeCB (int panel, int control, int event,
 				GetLabelFromIndex (panel, PANEL_TREE, eventData1, fileStruct[eventData1].newName);
 			else {
 				GetNumTreeItems(panel, PANEL_TREE, VAL_ALL, 0, VAL_FIRST, VAL_NEXT_PLUS_SELF, 0, &rows);
-				if (eventData1 < rows)
+				if (eventData1+1 < rows)
 					SetTreeCellAttribute(panel, PANEL_TREE, eventData1+1, eventData2, ATTR_TREE_RUN_STATE, VAL_EDIT_STATE);
 			}
 			break;
@@ -621,7 +621,7 @@ int CVICALLBACK TagCB (int panel, int control, int event,
 						break;
 					case TAB1_DISCNUM:
 						led = TAB1_DISCNUMLED;
-						gUseMetaDataDiscVal = 0;
+						gUseMetaDataDiscVal = FALSE;
 						break;
 					case TAB1_PUBLISHER:
 						led = TAB1_PUBLISHERLED;

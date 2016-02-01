@@ -252,7 +252,7 @@ int CVICALLBACK BrowseCB (int panel, int control, int event,
 		case EVENT_COMMIT:
 			ClearID3DataStruct(numFiles);
 			ClearFileList();	// clear after ClearID3DataStructure, because this resets numFiles
-			gUseMetaDataDiscVal = 0;
+			gUseMetaDataDiscVal = FALSE;
 			if (callbackData) {
 				char filename[MAX_FILENAME_LEN];
 				

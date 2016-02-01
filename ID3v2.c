@@ -657,7 +657,7 @@ void StoreDataVals(int panel, int control, char *string, int index)
 			case TAB1_DISCNUM:
 				dataHandle.discPtr[index] = calloc(size, sizeof(char));
 				strcpy(dataHandle.discPtr[index], string);
-				gUseMetaDataDiscVal = 1;
+				gUseMetaDataDiscVal = TRUE;
 				break;
 			case TAB1_ARTISTFILTER:
 				dataHandle.artistFilterPtr[index] = calloc(size, sizeof(char));
