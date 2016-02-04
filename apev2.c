@@ -38,6 +38,8 @@ int GetAPETagUnhandledFields(struct ApeTag *tag, int index);
 int ApeTag_iter_handle_fields(struct ApeTag *tag, struct ApeItem *item, void *data);
 void ApeItem_handle_field(struct ApeItem *item);
 
+void EncodeMultiValueString(char *str); // remove spaces after semi-colons
+
 int SetAPETagUnhandledFields(struct ApeTag *tag, int index);
 
 //==============================================================================
@@ -86,8 +88,8 @@ int LoadAPEv2Tag (int panel, char *fileName, int index)
 
 int GetAPETagData(struct ApeTag *tag, char *key, int panel, int control, int conflict, int index) 
 {
-	int len, style;
-	int error = 0;
+	int 			len, style;
+	int 			error = 0, i, j;
 	char 			*data = NULL, *origData = NULL;
 	struct ApeItem 	*item = NULL;
 	
@@ -96,14 +98,17 @@ int GetAPETagData(struct ApeTag *tag, char *key, int panel, int control, int con
 		goto Error;
 	}
 	
-	nullChk(data = malloc(item->size + 1));
-	memcpy(data, item->value, item->size);
-	data[item->size] = '\0';
-	for (int i=0; i < item->size; i++) {
-		if (data[i] == '\0') {
-			data[i] = ';';	// TODO: Do we need to add a space after the semi-colon for multi-value strings?
+	nullChk(data = malloc(item->size + 21));	// allocate enough space for twenty multi-values
+	//memcpy(data, item->value, item->size);
+	for (i=0, j=0; i < item->size; i++) {
+		if (item->value[i] == '\0') {
+			data[j++] = ';';
+			data[j++] = ' ';
+		} else {
+			data[j++] = item->value[i];
 		}
 	}
+	data[j] = '\0';
 	
 	GetCtrlAttribute(panel, control, ATTR_CTRL_STYLE, &style);
 	if (style == CTRL_TABLE_LS) {
@@ -192,14 +197,13 @@ Error:
 	return;
 }
 
-
 /****************************************************************/
 
 int UpdateAPETagItem(struct ApeTag *tag, char *key, int panel, int control, int updateCtrl, char **dataPtr, int index, int useTagData)
 {
 	int update, len, error;
-	int style;
-	char *data = NULL;
+	int	style, count = 0, i, j;
+	char *data = NULL, *ptr;
     struct ApeItem *item = NULL;
     
 	GetCtrlVal(panel, updateCtrl, &update);
@@ -225,8 +229,14 @@ int UpdateAPETagItem(struct ApeTag *tag, char *key, int panel, int control, int 
 			}
 		}
 		if (len) {
+			ptr = data;
+			while (ptr = strstr(ptr, "; ")) {
+				count++;
+				ptr += 2; // advance past "; "
+			}
+			
 			nullChk(item = malloc(sizeof(struct ApeItem)));
-			item->size = strlen(data);
+			item->size = strlen(data) - count;
 			item->flags = 0;
 			item->key = NULL;
 			item->value = NULL;
@@ -234,7 +244,14 @@ int UpdateAPETagItem(struct ApeTag *tag, char *key, int panel, int control, int 
 			nullChk(item->key = malloc(strlen(key)+1));
 			nullChk(item->value = malloc(item->size));
 			strcpy(item->key, key);
-			memcpy(item->value, data, item->size);
+			for (i=0, j=0; i<strlen(data); i++) {
+				if (data[i] == ';' && data[i+1] == ' ') {
+					item->value[j++] = '\0';
+					i++;	// skip space
+				} else {
+					item->value[j++] = data[i];
+				}
+			}
 		
 			//ErrorPrintf("%s - %s", dataPtr[index], data);
 			ApeTag_replace_item(tag, item);
@@ -248,7 +265,6 @@ Error:
 	if (data) {
 		free(data);
 	}
-	
 	return 0;
 }
 
@@ -260,8 +276,6 @@ int SetAPEv2Tag(int panel, char *filename, char *newname, int index)
 	
 	error = ApeInfo_open_tag(filename, &tag, "rb+");
 	
-//	ApeTag_remove(tag);
-
 	UpdateAPETagItem(tag, "title", panel, PANEL_TREE, PANEL_UPDATETITLE, kTreeColTrackName, index, FALSE);
 	UpdateAPETagItem(tag, "album", panel, PANEL_ALBUM, PANEL_UPDATEALBUM, dataHandle.albumPtr, index, FALSE);
 	UpdateAPETagItem(tag, "artist", panel, PANEL_ARTIST, PANEL_UPDATEARTIST, dataHandle.artistPtr, index, FALSE);
