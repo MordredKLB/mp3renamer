@@ -68,7 +68,8 @@ int LoadAPEv2Tag (int panel, char *fileName, int index)
 	GetAPETagData(tag, "conductor", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
 	GetAPETagData(tag, "copyright", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
 	GetAPETagData(tag, "disc", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
-	GetAPETagData(tag, "encoded", tab1Handle, TAB1_ENCODED, TAB1_ENCODEDLED, index);
+	GetAPETagData(tag, "edition", tab1Handle, TAB1_EDITION, TAB1_EDITIONLED, index);
+	GetAPETagData(tag, "encoded", tab2Handle, TAB2_ENCODED, TAB2_ENCODEDLED, index);
 	GetAPETagData(tag, "genre", tab1Handle, TAB1_GENRE, TAB1_GENRELED, index);
 	GetAPETagData(tag, "musicbrainz_artistid", tab3Handle, TAB3_ARTISTMBID, 0, index);
 	GetAPETagData(tag, "musicbrainz_releasegroupid", tab3Handle, TAB3_REID, 0, index);
@@ -290,7 +291,8 @@ int SetAPEv2Tag(int panel, char *filename, char *newname, int index)
 	UpdateAPETagItem(tag, "conductor", tab1Handle, TAB1_ARTISTFILTER, TAB1_UPDATEARTISTFILTER, dataHandle.artistFilterPtr, index, FALSE);
 	UpdateAPETagItem(tag, "copyright", tab2Handle, TAB2_COPYRIGHT, TAB2_UPDATECOPYRIGHT, dataHandle.copyrightPtr, index, FALSE);
 	UpdateAPETagItem(tag, "disc", tab1Handle, TAB1_DISCNUM, TAB1_UPDATEDISCNUM, dataHandle.discPtr, index, gUseMetaDataDiscVal);
-	UpdateAPETagItem(tag, "encoded", tab1Handle, TAB1_ENCODED, TAB1_UPDATEENCODED, dataHandle.encodedPtr, index, FALSE);
+	UpdateAPETagItem(tag, "edition", tab1Handle, TAB1_EDITION, TAB1_UPDATEEDITION, dataHandle.editionPtr, index, FALSE);
+	UpdateAPETagItem(tag, "encoded", tab2Handle, TAB2_ENCODED, TAB2_UPDATEENCODED, dataHandle.encodedPtr, index, FALSE);
 	UpdateAPETagItem(tag, "genre", tab1Handle, TAB1_GENRE, TAB1_UPDATEGENRE, dataHandle.genrePtr, index, FALSE);
 	UpdateAPETagItem(tag, "musicbrainz_artistid", tab3Handle, TAB3_ARTISTMBID, TAB3_UPDATEMBID, NULL, index, FALSE);
 	UpdateAPETagItem(tag, "musicbrainz_releasegroupid", tab3Handle, TAB3_REID, TAB3_UPDATEREID, NULL, index, FALSE);

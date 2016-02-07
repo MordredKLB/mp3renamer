@@ -117,6 +117,7 @@ typedef struct {
 	char	trackNum[5];
 	char	discNum[5];
 	char 	*title;
+	char	*artist;
 	char 	time[10];
 } TrackInfoStruct;
 
@@ -729,11 +730,11 @@ void GetMetaTrackData(int panel, int albumIndex)
 				if (len) {
 					GetTreeCellAttribute(panelHandle, PANEL_TREE, k, kTreeColTrackNum, ATTR_LABEL_TEXT, offset);
 					trackNum = strtol(offset, NULL, 10);
-				}
-				else if (dataHandle.trackNumPtr[k])
+				} else if (dataHandle.trackNumPtr[k]) {
 					trackNum = strtol(dataHandle.trackNumPtr[k], NULL, 10);
-				else
+				} else {
 					trackNum = k + 1;
+				}
 				if (dataHandle.discPtr[k] && gUseMetaDataDiscVal)
 					ptr = dataHandle.discPtr[k];
 				else if (discNum && isdigit(discNum[0]))
@@ -742,6 +743,7 @@ void GetMetaTrackData(int panel, int albumIndex)
 					ptr = "1";
 				if (trackNum == count && !strncmp(ptr, gAlbumInfo[albumIndex].tracks[i].discNum, strlen(gAlbumInfo[albumIndex].tracks[i].discNum))) {
 					SetTreeCellAttribute(panelHandle, PANEL_TREE, k, kTreeColTrackName, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].title);
+					SetTreeCellAttribute(panelHandle, PANEL_TREE, k, kTreeColArtistName, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].artist);
 					if (releaseDiscs > 1) {		// get an accurate value while we can here because it's used in file renaming
 						if (dataHandle.discPtr[k])
 							free(dataHandle.discPtr[k]);
@@ -800,6 +802,9 @@ int GetAlbumTrackListing(int panel, int albumTree, int trackTree, int albumIndex
 					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackName, ATTR_LABEL_TEXT_LENGTH, &len);
 					gAlbumInfo[albumIndex].tracks[i].title = malloc(sizeof(char) * (len + 1));
 					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackName, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].title);
+					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackArtist, ATTR_LABEL_TEXT_LENGTH, &len);
+					gAlbumInfo[albumIndex].tracks[i].artist = malloc(sizeof(char) * (len + 1));
+					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackArtist, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].artist);
 				}
 			}
 		}
@@ -810,6 +815,7 @@ int GetAlbumTrackListing(int panel, int albumTree, int trackTree, int albumIndex
 				SetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackNum, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].trackNum);
 				SetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackName, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].title);
 				SetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackLength, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].time);
+				SetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackArtist, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].artist);
 			}
 		}
 	}
@@ -823,7 +829,7 @@ Error:
 int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albumIndex)
 {
 	HRESULT error = S_OK;
-	char	val[512], title[512], reid[40], queryBuf[512], offset[4], discStr[4], time[8], fileName[MAX_PATHNAME_LEN];
+	char	val[512], title[512], reid[40], queryBuf[512], artist[512], offset[4], discStr[4], time[8], fileName[MAX_PATHNAME_LEN];
 	int		i, j, releaseTracks, numTracks, numChild, num, mins, secs, checkDoubles=0, dupTrackCount, insertOffset, replaceUnicodeApostrophe=0;
 	int		done = FALSE, trackOffset=0;
 	CVIXMLDocument	doc = 0;
@@ -881,6 +887,18 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 						mins = secs/60;
 						secs = secs%60;
 					}
+					
+					GetChildElementByTag(&curElem, "artist-credit");
+					GetChildElementByTag(&curElem, "name-credit");
+					GetChildElementByTag(&curElem, "artist");
+					GetChildElementByTag(&curElem, "name");
+					hrChk(CVIXMLGetElementValue(curElem, artist));
+					if (replaceUnicodeApostrophe)
+						ReplaceUnicodeApostrophe(artist);	// also does ellipses
+					GetParentElement(&curElem);		// name
+					GetParentElement(&curElem);		// artist
+					GetParentElement(&curElem);		// name-credit
+					GetParentElement(&curElem);		// artist-credit
 
 					GetChildElementByTag(&curElem, "release-list");
 					CVIXMLGetNumChildElements(curElem, &numChild);
@@ -932,6 +950,7 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 							SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackNum, ATTR_LABEL_TEXT, offset);
 							SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackDisc, ATTR_LABEL_TEXT, discStr);
 							SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackName, ATTR_LABEL_TEXT, title);
+							SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackArtist, ATTR_LABEL_TEXT, artist);
 							sprintf(time, "%d:%02d\0", mins, secs);
 							SetTreeCellAttribute(panel, trackTree, i+insertOffset, kTrackTreeColTrackLength,ATTR_LABEL_TEXT, time);	// reusing title string
 							if (!checkDoubles || j+1==numChild) {	// if there are doubles we want to keep searching
@@ -1039,8 +1058,10 @@ void FreeAlbumInfo(void)
 {
 	for (int i=0;i<gAlbumCount;i++) {
 		if (gAlbumInfo[i].tracks)  {
-			for (int j=0;j<gAlbumInfo[i].numTracks;j++)
+			for (int j=0;j<gAlbumInfo[i].numTracks;j++) {
 				free (gAlbumInfo[i].tracks[j].title);
+				free (gAlbumInfo[i].tracks[j].artist);
+			}
 			free (gAlbumInfo[i].tracks);
 		}
 	}

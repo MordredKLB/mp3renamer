@@ -23,6 +23,11 @@
 //==============================================================================
 // Constants
 
+#define kNumPanelControls		2
+#define kNumTab1Controls		14
+#define kNumTab2Controls		4
+#define kNumTab3Controls		2
+		
 //==============================================================================
 // Types
 

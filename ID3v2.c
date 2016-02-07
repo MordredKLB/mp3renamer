@@ -66,7 +66,7 @@ int GetID3v2Tag(int panel, char *filename, int index)
 	GetTextData(id3tag, "TALB", panel, PANEL_ALBUM, PANEL_ALBUMLED, index);
 	GetTextData(id3tag, "TPE1", panel, PANEL_ARTIST, PANEL_ARTISTLED, index);
 	GetTextData(id3tag, "TRCK", panel, PANEL_TRACKNUM, PANEL_TRACKNUMLED, index);
-	GetTextData(id3tag, "TENC", tab1Handle, TAB1_ENCODED, TAB1_ENCODEDLED, index);
+	GetTextData(id3tag, "TENC", tab2Handle, TAB2_ENCODED, TAB2_ENCODEDLED, index);
 	GetTextData(id3tag, "TCOP", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
 	GetTextData(id3tag, "TCOM", tab1Handle, TAB1_COMPOSER, TAB1_COMPOSERLED, index);
 	GetTextData(id3tag, "TPOS", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
@@ -87,6 +87,7 @@ int GetID3v2Tag(int panel, char *filename, int index)
 	GetTextInformation(id3tag, "MUSICBRAINZ_RELEASEGROUPID", tab3Handle, TAB3_REID, 0, index);
 	GetTextInformation(id3tag, "MUSICBRAINZ_ARTISTID", tab3Handle, TAB3_ARTISTMBID, 0, index);
 	GetTextInformation(id3tag, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, TAB1_COUNTRYLED, index);
+	GetTextInformation(id3tag, "EDITION", tab1Handle, TAB1_EDITION, TAB1_EDITIONLED, index);
 	GetCtrlVal(panel, PANEL_USEWINAMPALBUMARTIST, &useTPE2);
 	if (useTPE2)
 		GetTextData(id3tag, "TPE2", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);				  	// winamp style
@@ -187,13 +188,12 @@ int GetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int co
 			strcpy(string, data);
 			data = NULL;
 			break;
-		case ID3_FIELD_TYPE_STRING: { /* should be description field */
-				ucs4Str = id3_field_getstring(field);
-				string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-				len = strlen(string);
-				free(string);
-				string = NULL;
-				}
+		case ID3_FIELD_TYPE_STRING:  /* should be description field */
+			ucs4Str = id3_field_getstring(field);
+			string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
+			len = strlen(string);
+			free(string);
+			string = NULL;
 			break;
 		}
 
@@ -629,6 +629,7 @@ void StoreDataVals(int panel, int control, char *string, int index)
 			case PANEL_ARTIST:
 				dataHandle.artistPtr[index] = calloc(size + 2, sizeof(char));	// we need a fudge factor for TPE2 field
 				strcpy(dataHandle.artistPtr[index], string);
+				SetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT, string);
 				break;
 			case PANEL_ALBUM:
 				dataHandle.albumPtr[index] = calloc(size, sizeof(char));
@@ -667,9 +668,9 @@ void StoreDataVals(int panel, int control, char *string, int index)
 				dataHandle.publisherPtr[index] = calloc(size, sizeof(char));
 				strcpy(dataHandle.publisherPtr[index], string);
 				break;
-			case TAB1_ENCODED:
-				dataHandle.encodedPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.encodedPtr[index], string);
+			case TAB1_EDITION:
+				dataHandle.editionPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.editionPtr[index], string);
 				break;
 			case TAB1_COUNTRY:
 				dataHandle.countryPtr[index] = calloc(size, sizeof(char));
@@ -701,11 +702,15 @@ void StoreDataVals(int panel, int control, char *string, int index)
 				break;
 			}
 		}
-	else {
+	else if (panel == tab2Handle) {
 		switch (control) {
 			case TAB2_COPYRIGHT:
 				dataHandle.copyrightPtr[index] = calloc(size, sizeof(char));
 				strcpy(dataHandle.copyrightPtr[index], string);
+				break;
+			case TAB2_ENCODED:
+				dataHandle.encodedPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.encodedPtr[index], string);
 				break;
 			case TAB2_ORIGARTIST:
 				dataHandle.origArtistPtr[index] = calloc(size, sizeof(char));
@@ -739,8 +744,7 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index)
 	SetTrackData(id3tag, "TRCK", panel, newname, index);
 	SetTextData(id3tag, "TALB", panel, PANEL_ALBUM, PANEL_UPDATEALBUM, index);
 	SetTextData(id3tag, "TPE1", panel, PANEL_ARTIST, PANEL_UPDATEARTIST, index);
-	SetTextData(id3tag, "TENC", tab1Handle, TAB1_ENCODED, TAB1_UPDATEENCODED, index);
-	//SetTextData(id3tag, "TCOP", tab1Handle, TAB1_COPYRIGHT, TAB1_UPDATECOPYRIGHT, index);
+	SetTextData(id3tag, "TENC", tab2Handle, TAB2_ENCODED, TAB2_UPDATEENCODED, index);
 	SetTextData(id3tag, "TCOP", tab2Handle, TAB2_COPYRIGHT, TAB2_UPDATECOPYRIGHT, index);
 	SetTextData(id3tag, "TCOM", tab1Handle, TAB1_COMPOSER, TAB1_UPDATECOMPOSER, index);
 	GetCtrlVal(tab1Handle, TAB1_UPDATEDISCNUM, &update);
@@ -774,6 +778,7 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index)
 	SetTextInformation(id3tag, "MUSICBRAINZ_ARTISTID", tab3Handle, TAB3_ARTISTMBID, tab3Handle, TAB3_UPDATEMBID, index);
 	SetTextInformation(id3tag, "MUSICBRAINZ_RELEASEGROUPID", tab3Handle, TAB3_REID, tab3Handle, TAB3_UPDATEREID, index);
 	SetTextInformation(id3tag, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, tab1Handle, TAB1_UPDATECOUNTRY, index);
+	SetTextInformation(id3tag, "EDITION", tab1Handle, TAB1_EDITION, tab1Handle, TAB1_UPDATEEDITION, index);
 	
 	
 	i = id3tag->options;
@@ -801,7 +806,7 @@ void GetFileName(char *buf)
 
 int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index)
 {
-	int 			error, len, i, update, nStrings, type=0;
+	int 			error, len, i, update, trackArtists = FALSE, nStrings, type=0;
 	char 			*data=NULL, *strVal=NULL, *tmpStr = NULL, *ptr, *start;
 	id3frame 		*frame;
 	union id3_field	*field;
@@ -826,22 +831,33 @@ int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int up
 		GetCtrlAttribute(tab1Handle, TAB1_ALBUMARTIST, ATTR_STRING_TEXT_LENGTH, &len);
 		nullChk(data = calloc(len+1, sizeof(char)));
 		GetCtrlVal(tab1Handle, TAB1_ALBUMARTIST, data);
-		if (stristr(data, "Various Artists"))	// album artist
+		if (stristr(data, "Various Artists")) {	// album artist
 			type = 1;
-		else if (stristr(data, "Soundtrack"))
+		} else if (stristr(data, "Soundtrack")) {
 			type = 2;
+		}
 		free(data);
 		GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
 		nullChk(data = calloc(len+3, sizeof(char)));
 		nullChk(tmpStr = calloc(len+3, sizeof(char)));
 		errChk(GetCtrlVal(panel, control, data));
-		if (type > 0)
+		if (type > 0) {
 			len++;	// we have to do something here whether anything was entered in "Artist Filter" field or not
-	} else {		// handle anything but disc num or Artist Filter
-		GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
-		nullChk(data = calloc(len+3, sizeof(char)));
-		nullChk(tmpStr = calloc(len+3, sizeof(char)));
-		errChk(GetCtrlVal(panel, control, data));
+		}
+	} else {		// handle everything but disc num and Artist Filter
+		int val;
+		GetCtrlVal(panelHandle, PANEL_SHOWTRACKARTISTS, &val);
+		if (!stricmp(frameType, "TPE1") && val == TRUE) {
+			GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT_LENGTH, &len);
+			nullChk(data = calloc(len+3, sizeof(char)));
+			nullChk(tmpStr = calloc(len+3, sizeof(char)));
+			errChk(GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT, data));
+		} else {
+			GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
+			nullChk(data = calloc(len+3, sizeof(char)));
+			nullChk(tmpStr = calloc(len+3, sizeof(char)));
+			errChk(GetCtrlVal(panel, control, data));
+		}
 	}
 	
 	frame = id3_tag_findframe(id3tag, frameType, 0);
@@ -850,8 +866,8 @@ int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int up
 			frame = NewFrame(id3tag, frameType);
 			if (stristr(frameType, "WXXX")) {
 				//id3_field_set
-				}
 			}
+		}
 		/* update existing frame */
 		if (frame->nfields < 2)
 			Breakpoint();
@@ -860,13 +876,14 @@ int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int up
 			return 0;
 		switch (field->type) {
 			case ID3_FIELD_TYPE_STRINGLIST:
-				if (type > 0) {
+				if (type > 0) {		// various artists or soundtrack
 					nStrings = 0;
 					GetCtrlVal(panelHandle, PANEL_UPDATEARTIST, &update);
-					if (update) {
+					GetCtrlVal(panelHandle, PANEL_SHOWTRACKARTISTS, &trackArtists);
+					if (update && !trackArtists) {
 						GetCtrlAttribute(tab1Handle, TAB1_PERFORMERSORTORDER, ATTR_STRING_TEXT_LENGTH, &len);
 						if (len > 0) {
-							nullChk(strVal = calloc(len+2, sizeof(char)));
+							nullChk(strVal = calloc(len+2, sizeof(char)));	// +2 so we can add a comma if needed
 							errChk(GetCtrlVal(tab1Handle, TAB1_PERFORMERSORTORDER, strVal));
 						} else {		
 							GetCtrlAttribute(panelHandle, PANEL_ARTIST, ATTR_STRING_TEXT_LENGTH, &len);
@@ -874,11 +891,17 @@ int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int up
 							errChk(GetCtrlVal(panelHandle, PANEL_ARTIST, strVal));
 						}
 						ptr = strVal;
+					} else {
+						GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT_LENGTH, &len);
+						if (len > 0) {
+							nullChk(strVal = calloc(len+2, sizeof(char)));	// +2 so we can add a comma if needed
+							errChk(GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT, strVal));
+							ptr = strVal;
+						} else {
+							ptr = dataHandle.artistPtr[index];
+						}
 					}
-					else {
-						ptr = dataHandle.artistPtr[index];
-					}
-					if (!strncmp("The ", ptr, 4) || !strncmp("the ", ptr, 4)){
+					if (!strncmp("The ", ptr, 4) || !strncmp("the ", ptr, 4)) {
 						memmove(ptr, ptr+4, strlen(ptr)-3);	// include NULL
 						strcat(ptr, ", The");
 					}
@@ -891,7 +914,7 @@ int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int up
 							tmpStr[ptr-start] = '\0';
 							AllocAndCopyStr(&stringVals[nStrings++], tmpStr);
 							start = ptr+2;	// skip the "; "
-							}
+						}
 						AllocAndCopyStr(&stringVals[nStrings++], start);
 					}
 
@@ -900,8 +923,7 @@ int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int up
 						AllocAndCopyStr(&stringVals[nStrings++], "Various Artists");
 					else
 						AllocAndCopyStr(&stringVals[nStrings++], "Soundtrack");
-				}
-				else {
+				} else {
 					nStrings = 0;
 					start = ptr = data;
 					while (ptr = strchr(start, ';')) {
@@ -909,23 +931,23 @@ int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int up
 						tmpStr[ptr-start] = '\0';
 						AllocAndCopyStr(&stringVals[nStrings++], tmpStr);
 						start = ptr+2;	// skip the "; "
-						}
+					}
 					AllocAndCopyStr(&stringVals[nStrings++], start);
 				}
 				nStrings = CheckForDuplicates(stringVals, nStrings);
-				for (i=0;i<nStrings;i++)
+				for (i=0;i<nStrings;i++) {
 					ucs4Str[i] = id3_latin1_ucs4duplicate(stringVals[i]);
+				}
 				id3_field_setstrings(field, nStrings, ucs4Str);
 				break;
 			case ID3_FIELD_TYPE_LATIN1:
 				id3_field_setlatin1(field, (id3_latin1_t *)data);
 				break;
-			}
 		}
-	else if (frame) {
+	} else if (frame) {
 		id3_tag_detachframe(id3tag, frame);
 		id3_frame_delete(frame);
-		}
+	}
 	
 	
 Error:
@@ -1473,28 +1495,28 @@ void SetConflictTooltips(panel)
 		if (val) {
 			ledList[j]=panelLEDList[i];
 			panelList[j]=panel;
-			}
-		else
+		} else {
 			ledList[j]=0;
 		}
+	}
 	for (i=0;i<sizeof(tab1LEDList);i++,j++) {
 		GetCtrlVal(tab1Handle, tab1LEDList[i], &val);
 		if (val) {
 			ledList[j]=tab1LEDList[i];
 			panelList[j]=tab1Handle;
-			}
-		else
+		} else {
 			ledList[j]=0;
 		}
+	}
 	for (i=0;i<sizeof(tab2LEDList);i++,j++) {
 		GetCtrlVal(tab2Handle, tab2LEDList[i], &val);
 		if (val) {
 			ledList[j]=tab2LEDList[i];
 			panelList[j]=tab2Handle;
-			}
-		else
+		} else {
 			ledList[j]=0;
 		}
+	}
 	
 	dataPtr = calloc(kEndOfList, sizeof(char**));
 	// main panel
@@ -1507,7 +1529,7 @@ void SetConflictTooltips(panel)
 	dataPtr[kNumPanelControls + 3] 						= dataHandle.discPtr;
 	dataPtr[kNumPanelControls + 4] 						= dataHandle.composerPtr;
 	dataPtr[kNumPanelControls + 5] 						= dataHandle.publisherPtr;
-	dataPtr[kNumPanelControls + 6] 						= dataHandle.encodedPtr;
+	dataPtr[kNumPanelControls + 6] 						= dataHandle.editionPtr;
 	dataPtr[kNumPanelControls + 7]						= dataHandle.countryPtr;
 	dataPtr[kNumPanelControls + 8] 						= dataHandle.relTypePtr;
 	dataPtr[kNumPanelControls + 9] 						= dataHandle.albumArtistPtr;
@@ -1519,6 +1541,7 @@ void SetConflictTooltips(panel)
 	dataPtr[kNumPanelControls + kNumTab1Controls + 0] 	= dataHandle.origArtistPtr;
 	dataPtr[kNumPanelControls + kNumTab1Controls + 1] 	= dataHandle.urlPtr;
 	dataPtr[kNumPanelControls + kNumTab1Controls + 2]	= dataHandle.copyrightPtr;
+	dataPtr[kNumPanelControls + kNumTab1Controls + 3]	= dataHandle.encodedPtr;
 
 	for (i=0;i<kEndOfList;i++)
 		if (ledList[i]) {

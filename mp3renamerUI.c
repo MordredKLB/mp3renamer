@@ -21,7 +21,7 @@ void InitUIAttrs(void)
 	
 	PopulateGenreComboBox(tab1Handle, TAB1_GENRE);
 	SetTableCellAttribute(tab1Handle, TAB1_GENRE, tagCell, ATTR_MAX_ENTRY_LENGTH, kMaxGenreEntryLength);
-	GetCtrlAttribute(tab1Handle, TAB1_ENCODED, ATTR_TEXT_BGCOLOR, &color);
+	GetCtrlAttribute(tab2Handle, TAB2_ENCODED, ATTR_TEXT_BGCOLOR, &color);
 	SetCtrlAttribute(tab1Handle, TAB1_ALBUMGAIN, ATTR_TEXT_BGCOLOR, color);
 	SetCtrlAttribute(tab2Handle, TAB2_ARTWORK, ATTR_FRAME_COLOR, VAL_WHITE);
 	SetCtrlAttribute(tab1Handle, TAB1_VABUTTON, ATTR_HEIGHT, 13);
@@ -63,7 +63,7 @@ void ClearID3Fields(void)
 	SetCtrlVal (tab1Handle, TAB1_DISCNUM, "");
 	SetCtrlVal (tab1Handle, TAB1_COMPOSER, "");
 	SetCtrlVal (tab1Handle, TAB1_PUBLISHER, "");
-	SetCtrlVal (tab1Handle, TAB1_ENCODED, "");
+	SetCtrlVal (tab1Handle, TAB1_EDITION, "");
 	SetCtrlVal (tab1Handle, TAB1_COUNTRY, "");
 	//SetCtrlVal (tab1Handle, TAB1_RELTYPE, "");
 	SetCtrlVal (tab1Handle, TAB1_ALBUMARTIST, "");
@@ -75,6 +75,7 @@ void ClearID3Fields(void)
 	SetCtrlVal (tab2Handle, TAB2_URL, "");
 	DeleteImage(tab2Handle, TAB2_ARTWORK);
 	SetCtrlVal (tab2Handle, TAB2_COPYRIGHT, "");
+	SetCtrlVal (tab2Handle, TAB2_ENCODED, "");
 	SetCtrlVal (tab3Handle, TAB3_ARTISTMBID, "");
 	SetCtrlVal (tab3Handle, TAB3_REID, "");
 }
@@ -607,8 +608,8 @@ int CVICALLBACK TagCB (int panel, int control, int event,
 					case TAB1_COMPOSER:
 						led = TAB1_COMPOSERLED;
 						break;
-					case TAB1_ENCODED:
-						led = TAB1_ENCODEDLED;
+					case TAB1_EDITION:
+						led = TAB1_EDITIONLED;
 						break;
 					case TAB1_ALBUMARTIST:
 						led = TAB1_ALBUMARTISTLED;
@@ -640,6 +641,9 @@ int CVICALLBACK TagCB (int panel, int control, int event,
 						break;
 					case TAB2_COPYRIGHT:
 						led = TAB2_COPYRIGHTLED;
+						break;
+					case TAB2_ENCODED:
+						led = TAB2_ENCODEDLED;
 						break;
 					}
 			if (led)
@@ -989,4 +993,27 @@ int CVICALLBACK TableComboCB (int panel, int control, int event,
 			break;
 	}
 	return swallow;
+}
+
+
+#define kTreeArtistWidth 100
+int CVICALLBACK ShowTrackArtistCB (int panel, int control, int event,
+								   void *callbackData, int eventData1, int eventData2)
+{
+	int val, width;
+	switch (event)
+	{
+		case EVENT_COMMIT:
+			GetCtrlVal(panel, control, &val);
+			SetTreeColumnAttribute(panel, PANEL_TREE, kTreeColArtistName, ATTR_COLUMN_VISIBLE, val);
+			GetTreeColumnAttribute(panel, PANEL_TREE, kTreeColFilename, ATTR_COLUMN_WIDTH, &width);
+			if (val) {
+				SetTreeColumnAttribute(panel, PANEL_TREE, kTreeColFilename, ATTR_COLUMN_WIDTH, width-kTreeArtistWidth);
+				SetTreeColumnAttribute(panel, PANEL_TREE, kTreeColArtistName, ATTR_COLUMN_WIDTH, kTreeArtistWidth);
+			} else {
+				SetTreeColumnAttribute(panel, PANEL_TREE, kTreeColFilename, ATTR_COLUMN_WIDTH, width+kTreeArtistWidth);
+			}
+			break;
+	}
+	return 0;
 }

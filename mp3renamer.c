@@ -13,6 +13,7 @@
 #include "progressbar.h"
 #include "inifile.h"
 #include "combobox.h"
+#include "globals.h"
 
 /***************************/
 /*** Function Prototypes ***/
@@ -59,20 +60,20 @@ int firstFile = 0;
 
 static char **fileList = NULL;
 extern char *genreList[kNumWinampGenres];
-extern Point tagCell;
+extern const Point tagCell;
 static int gRetrievedFolderJpgData = 0;
 
 char panelLEDList[2] = {PANEL_ARTISTLED, PANEL_ALBUMLED};
 char tab1LEDList[kNumTab1Controls] = {TAB1_GENRELED, TAB1_COMMENTLED, TAB1_YEARLED, TAB1_DISCNUMLED, TAB1_COMPOSERLED, 
-						TAB1_PUBLISHERLED, TAB1_ENCODEDLED, TAB1_COUNTRYLED, TAB1_RELTYPELED, TAB1_ALBUMARTISTLED, 
+						TAB1_PUBLISHERLED, TAB1_EDITIONLED, TAB1_COUNTRYLED, TAB1_RELTYPELED, TAB1_ALBUMARTISTLED, 
 						TAB1_ARTISTFILTERLED, TAB1_PERFSORTLED, TAB1_ALBUMGAINLED, TAB1_ALBUMSORTLED};
-char tab2LEDList[kNumTab2Controls] = {TAB2_ORIGARTISTLED, TAB2_URLLED, TAB2_COPYRIGHTLED};
+char tab2LEDList[kNumTab2Controls] = {TAB2_ORIGARTISTLED, TAB2_URLLED, TAB2_COPYRIGHTLED, TAB2_ENCODEDLED};
 
 char panelUpdateList[2] = {PANEL_UPDATEARTIST, PANEL_UPDATEALBUM};
 char tab1UpdateList[kNumTab1Controls] = {TAB1_UPDATEGENRE, TAB1_UPDATECOMMENT, TAB1_UPDATEYEAR, TAB1_UPDATEDISCNUM, TAB1_UPDATECOMPOSER, 
-										 TAB1_UPDATEPUBLISHER, TAB1_UPDATEALBUMARTIST, TAB1_UPDATEARTISTFILTER, TAB1_UPDATEENCODED, 
+										 TAB1_UPDATEPUBLISHER, TAB1_UPDATEALBUMARTIST, TAB1_UPDATEARTISTFILTER, TAB1_UPDATEEDITION, 
 										 TAB1_UPDATECOUNTRY, TAB1_UPDATERELTYPE, TAB1_UPDATEPERFSORT, TAB1_UPDATEALBUMGAIN, TAB1_UPDATEALBUMSORT};
-char tab2UpdateList[kNumTab2Controls] = {TAB2_UPDATEORIGARTIST, TAB2_UPDATEURL, TAB2_UPDATECOPYRIGHT};
+char tab2UpdateList[kNumTab2Controls] = {TAB2_UPDATEORIGARTIST, TAB2_UPDATEURL, TAB2_UPDATECOPYRIGHT, TAB2_UPDATEENCODED};
 char tab3UpdateList[kNumTab3Controls] = {TAB3_UPDATEMBID, TAB3_UPDATEREID};
 
 #define kNumWords			21
@@ -483,6 +484,7 @@ void initID3DataStruct(int numSongs)
 	dataHandle.albumArtistPtr = calloc(numFiles, sizeof(char *));
 	dataHandle.artistFilterPtr = calloc(numFiles, sizeof(char *));
 	dataHandle.publisherPtr = calloc(numFiles, sizeof(char *));
+	dataHandle.editionPtr = calloc(numFiles, sizeof(char *));
 	dataHandle.albumGainPtr = calloc(numFiles, sizeof(char *));
 	dataHandle.albSortOrderPtr = calloc(numFiles, sizeof(char *));
 	dataHandle.perfSortOrderPtr = calloc(numFiles, sizeof(char *));
@@ -512,6 +514,7 @@ void ClearID3DataStruct(int numSongs)
 		free(dataHandle.albumArtistPtr[i]);
 		free(dataHandle.artistFilterPtr[i]);
 		free(dataHandle.publisherPtr[i]);
+		free(dataHandle.editionPtr[i]);
 		free(dataHandle.albumGainPtr[i]);
 		free(dataHandle.albSortOrderPtr[i]);
 		free(dataHandle.perfSortOrderPtr[i]);
@@ -533,6 +536,7 @@ void ClearID3DataStruct(int numSongs)
 	free(dataHandle.albumArtistPtr);
 	free(dataHandle.artistFilterPtr);
 	free(dataHandle.publisherPtr);
+	free(dataHandle.editionPtr);
 	free(dataHandle.albumGainPtr);
 	free(dataHandle.albSortOrderPtr);
 	free(dataHandle.perfSortOrderPtr);
@@ -540,7 +544,7 @@ void ClearID3DataStruct(int numSongs)
 		dataHandle.discPtr = dataHandle.composerPtr = dataHandle.copyrightPtr = dataHandle.publisherPtr = 
 		dataHandle.urlPtr = dataHandle.encodedPtr = dataHandle.countryPtr = dataHandle.relTypePtr = 
 		dataHandle.origArtistPtr = dataHandle.albumArtistPtr = dataHandle.trackNumPtr = dataHandle.albumGainPtr = 
-		dataHandle.albSortOrderPtr = dataHandle.artistFilterPtr = dataHandle.perfSortOrderPtr = NULL;
+		dataHandle.albSortOrderPtr = dataHandle.artistFilterPtr = dataHandle.perfSortOrderPtr = dataHandle.editionPtr = NULL;
 }
 
 int compareName(const void *element1, const void *element2)
@@ -553,7 +557,7 @@ int compareName(const void *element1, const void *element2)
 	return CompareStrings (val1->newName, 0, val2->newName, 0, 0);
 }
 
-void SortFileNames()
+void SortFileNames()																			  
 {
 	qsort (fileStruct, numFiles, sizeof(mainFileStruct), compareName);
 }

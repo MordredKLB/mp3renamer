@@ -65,6 +65,7 @@ char replaceChar[10];	// list of unuseable characters replacement values
 
 enum {
 	kTreeColFilename = 0,
+	kTreeColArtistName,
 	kTreeColTrackName,
 	kTreeColTrackNum,
 	kTreeColID,
@@ -76,6 +77,7 @@ enum {
 	kTrackTreeColTrackNum,
 	kTrackTreeColTrackName,
 	kTrackTreeColTrackLength,
+	kTrackTreeColTrackArtist,
 };
 
 enum {
@@ -110,10 +112,6 @@ enum {
 #define kNumDiacritics			18
 
 #define kTooltipLineLength		80
-#define kNumPanelControls		2
-#define kNumTab1Controls		14
-#define kNumTab2Controls		3
-#define kNumTab3Controls		2
 
 /* used for image ring */
 #define VAL_FRONT	0	// VAL_FOLDER is used for something so VAL_FRONT == folder.jpg
