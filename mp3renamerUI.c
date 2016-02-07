@@ -262,30 +262,30 @@ int CVICALLBACK PanelCB (int panel, int event, void *callbackData,
 				GetPanelEventRect(eventData2, &rect);
 				gPanelBorderHeight = rect.height - gPanelHeight;
 				gPanelBorderWidth = rect.width - gPanelWidth;
-				}
+			}
 			if (eventData1 != PANEL_SIZING_RIGHT && eventData1 != PANEL_SIZING_LEFT) {	// do for all other sizes
 				GetPanelEventRect(eventData2, &rect);
 				GetCtrlAttribute(panel, PANEL_HSPLITTER, ATTR_TOP, &splitterTop);
 				if (rect.height < 600 + gPanelBorderHeight) {
 					rect.height = 600 + gPanelBorderHeight;
 					SetPanelEventRect(eventData2, rect);
-					}
+				}
 				if (rect.height - gPanelBorderHeight - splitterTop != gSplitterGap)
 	            	OperateSplitter(panel, PANEL_HSPLITTER, rect.height - gPanelBorderHeight - splitterTop - gSplitterGap);
 				gPanelHeight = rect.height - gPanelBorderHeight;
-				}
+			}
 			if (eventData1 != PANEL_SIZING_TOP && eventData1 != PANEL_SIZING_BOTTOM) {	// do for all other sizes
 				GetPanelEventRect(eventData2, &rect);
 				GetCtrlAttribute(panel, PANEL_VSPLITTER, ATTR_LEFT, &splitterLeft);
 				if (rect.width < gPanelInitialWidth + gPanelBorderWidth) {
 					rect.width = gPanelInitialWidth + gPanelBorderWidth;
 					SetPanelEventRect(eventData2, rect);
-					}
+				}
 				if (rect.width - gPanelBorderWidth - splitterLeft != gVSplitterGap)
 	            	OperateSplitter(panel, PANEL_VSPLITTER, rect.width - gPanelBorderWidth - splitterLeft - gVSplitterGap);
 				gPanelWidth = rect.width - gPanelBorderWidth;
 				ShowLengthCB(panel, PANEL_TREE, EVENT_COMMIT, NULL, 0, 0);
-				}
+			}
 			break;
 		}
 	return 0;

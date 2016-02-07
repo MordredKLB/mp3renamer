@@ -193,8 +193,8 @@
 #define  PANEL_TEXTMSG_2                  53      /* control type: textMsg, callback function: (none) */
 #define  PANEL_TEXTMSG_3                  54      /* control type: textMsg, callback function: (none) */
 #define  PANEL_VSPLITTER                  55      /* control type: splitter, callback function: (none) */
-#define  PANEL_LOG                        56      /* control type: textBox, callback function: (none) */
-#define  PANEL_TEXTMSG_4                  57      /* control type: textMsg, callback function: (none) */
+#define  PANEL_TEXTMSG_4                  56      /* control type: textMsg, callback function: (none) */
+#define  PANEL_LOG                        57      /* control type: textBox, callback function: (none) */
 
 #define  PROGRESS                         8
 #define  PROGRESS_PROGRESSBAR             2       /* control type: scale, callback function: (none) */
