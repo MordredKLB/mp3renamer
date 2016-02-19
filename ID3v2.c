@@ -411,6 +411,7 @@ int GetExtendedFields(id3_Tag *id3tag, int index)
 						(stricmp(string, "MUSICBRAINZ_RELEASEGROUPID")) &&
 						(stricmp(string, "MUSICBRAINZ_ARTISTID")) &&
 						(stricmp(string, "ARTISTCOUNTRY")) &&
+						(stricmp(string, "EDITION")) &&
 						(showRG || (stricmp(string, "replaygain_album_gain") && stricmp(string, "replaygain_track_gain") &&
 								   stricmp(string, "replaygain_album_peak") && stricmp(string, "replaygain_track_peak"))) ) {
 						GetNumListItems(tab3Handle, TAB3_EXTENDEDTAGS, &numItems);
