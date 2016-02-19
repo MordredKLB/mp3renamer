@@ -1017,3 +1017,21 @@ int CVICALLBACK ShowTrackArtistCB (int panel, int control, int event,
 	}
 	return 0;
 }
+
+int CVICALLBACK VinylArtCB (int panel, int control, int event, void *callbackData, int eventData1, int eventData2)
+{
+	int val;
+	
+	switch (event)
+	{
+		case EVENT_COMMIT:
+			GetCtrlVal(panel, control, &val);
+			if (val) {
+				SetCtrlAttribute(panel, FANART_MULTIPLEDISCS, ATTR_LABEL_TEXT, "Multiple Sides (vinylA.png, vinylB.png...)");
+			} else {
+				SetCtrlAttribute(panel, FANART_MULTIPLEDISCS, ATTR_LABEL_TEXT, "Multiple Discs (cd1.png, cd2.png, etc.)");
+			}
+			break;
+	}
+	return 0;
+}

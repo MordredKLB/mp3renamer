@@ -16,6 +16,7 @@ typedef struct {
 void SetupFanartPanel(void);
 static PanelControl* CurrentSelectedControl(void);
 void RetrieveFileFromURL(HINTERNET connection, char *url, char *fileName, int binary);
+void FreeCdArtPaths(void);
 
 /* Fanart source is fanart.tv */
 
@@ -70,14 +71,19 @@ sort
 
 char logoControls[kMaxLogos] = {HDLOGO_HDLOGO_1, HDLOGO_HDLOGO_2, HDLOGO_HDLOGO_3, HDLOGO_HDLOGO_4, HDLOGO_HDLOGO_5, HDLOGO_HDLOGO_6, HDLOGO_HDLOGO_7, HDLOGO_HDLOGO_8, HDLOGO_HDLOGO_9, HDLOGO_HDLOGO_10, HDLOGO_HDLOGO_11, HDLOGO_HDLOGO_12};
 char cdartCtrls[kMaxCdArt] = {CDART_CDART_1, CDART_CDART_2, CDART_CDART_3, CDART_CDART_4, CDART_CDART_5, CDART_CDART_6};//, CDART_CDART_7, CDART_CDART_8, CDART_CDART_9};
-char logoName[12][10] = {"l1.png", "l2.png", "l3.png", "l4.png", "l5.png", "l6.png", "l7.png", "l8.png", "l9.png", "l10.png", "l11.png", "l12.png"};
-char cdName[12][10] = {"cd1.png", "cd2.png", "cd3.png", "cd4.png", "cd5.png", "cd6.png", "cd7.png", "cd8.png", "cd9.png", "cd10.png", "cd11.png", "cd12.png"};
+char logoName[kMaxLogos][10] = {"l1.png", "l2.png", "l3.png", "l4.png", "l5.png", "l6.png", "l7.png", "l8.png", "l9.png", "l10.png", "l11.png", "l12.png"};
+char cdName[kMaxCdArt][10] = {"cd1.png", "cd2.png", "cd3.png", "cd4.png", "cd5.png", "cd6.png", "cd7.png", "cd8.png", "cd9.png", "cd10.png", "cd11.png", "cd12.png"};
+char *cdArtPaths[kMaxCdArt];
 
 char url[kMaxLogos][256], cdUrl[kMaxCdArt][256];
 
 int  logoExists=0;
 int	 cdExists=0;
 int  hoverEnabled=1;
+
+const char *cdArtNames[] = {"cd.png", "cd1.png", "cd2.png", "cd3.png", "cd4.png", "cd5.png", "cd6.png", "cd7.png", "cd8.png", "cd9.png", "cd10.png",
+							"vinyl.png", "vinylA.png", "vinylB.png", "vinylC.png", "vinylD.png", "vinylE.png", "vinylF.png", "vinylG.png", 
+							"vinylH.png", "vinylI.png", "vinylJ.png", "vinylK.png"};
 
 int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 		void *callbackData, int eventData1, int eventData2)
@@ -150,10 +156,6 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 				if (numLogos > 0) {
 					connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 					for (i=logoExists;i<numLogos+logoExists && i<kMaxLogos;i++) {
-						//if (strstr(url[i], "http://assets."))
-						//	sprintf(previewUrl, "%s%s/preview", "http://api.", url[i] + 14);
-						//else
-						//	sprintf(previewUrl, "%s/preview", url[i]);
 						sprintf(previewUrl, "http://assets.fanart.tv/preview/%s", url[i] + 31);
 						
 						sprintf(fileName, "tempFanart\\%s", logoName[i]);
@@ -171,25 +173,17 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 			if (percent < 50.0)
 				ProgressBar_AdvanceMilestone(fanartPanHandle, FANART_PROGRESSBAR, 0);
 			/*** CDART ***/
-			sprintf(path, "%s\\cd.png", pathName);	// cd.png
-			if (cdExists = FileExists(path, 0)) {
-				SetCtrlAttribute(cdartPanHandle, cdartCtrls[0], ATTR_VISIBLE, 1);
-				SetCtrlAttribute(cdartPanHandle, cdartCtrls[0], ATTR_IMAGE_FILE, path);
-				SetCtrlVal(cdartPanHandle, cdartCtrls[0], 1);
-			}
-			sprintf(path, "%s\\cd1.png", pathName);	// cd1.png
-			if (FileExists(path, 0)) {
-				cdExists++;
-				SetCtrlAttribute(cdartPanHandle, cdartCtrls[cdExists-1], ATTR_VISIBLE, 1);
-				SetCtrlAttribute(cdartPanHandle, cdartCtrls[cdExists-1], ATTR_IMAGE_FILE, path);
-				SetCtrlVal(cdartPanHandle, cdartCtrls[cdExists-1], 1);
-			}
-			sprintf(path, "%s\\cd2.png", pathName);	// cd2.png
-			if (FileExists(path, 0)) {
-				cdExists++;
-				SetCtrlAttribute(cdartPanHandle, cdartCtrls[cdExists-1], ATTR_VISIBLE, 1);
-				SetCtrlAttribute(cdartPanHandle, cdartCtrls[cdExists-1], ATTR_IMAGE_FILE, path);
-				SetCtrlVal(cdartPanHandle, cdartCtrls[cdExists-1], 1);
+			cdExists = 0;
+			for (i=0;i<(sizeof (cdArtNames) / sizeof (const char *));i++) {
+				sprintf(path, "%s\\%s", pathName, cdArtNames[i]);
+				if (FileExists(path, 0)) {
+					SetCtrlAttribute(cdartPanHandle, cdartCtrls[cdExists], ATTR_VISIBLE, 1);
+					SetCtrlAttribute(cdartPanHandle, cdartCtrls[cdExists], ATTR_IMAGE_FILE, path);
+					SetCtrlVal(cdartPanHandle, cdartCtrls[cdExists], 1);
+					cdArtPaths[cdExists] = malloc(sizeof(char) * strlen(path) + 1);
+					strcpy(cdArtPaths[cdExists], path);
+					cdExists++;
+				}
 			}
 			
 			if (strlen(relGroupMBID) > 16) {
@@ -233,11 +227,6 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 				if (numCdArt > 0) {
 					connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 					for (i=cdExists;i<numCdArt+cdExists && i<kMaxCdArt;i++) {
-						/*if (strstr(url[i], "http://assets."))
-							sprintf(previewUrl, "%s%s/preview", "http://api.", cdUrl[i] + 14);
-						else
-							sprintf(previewUrl, "%s/preview", cdUrl[i]);
-						*/
 						sprintf(previewUrl, "http://assets.fanart.tv/preview/%s", cdUrl[i] + 31);
 						sprintf(fileName, "tempFanart\\%s", cdName[i]);
 						RetrieveFileFromURL(connection, previewUrl, fileName, TRUE);
@@ -357,13 +346,14 @@ void SetupFanartPanel ()
 	DeleteImage(hdPreviewHandle, HDPREVIEW_PREVIEW);
 	SetCtrlAttribute(hdlogoPanHandle, HDLOGO_PREVIEWTIMER, ATTR_ENABLED, 1);
 	SetCtrlAttribute(cdartPanHandle, CDART_PREVIEWTIMER, ATTR_ENABLED, 1);
+	SetCtrlVal(fanartPanHandle, FANART_VINYLART, 0);
 	SetCtrlVal(fanartPanHandle, FANART_MULTIPLEDISCS, 0);
 }
 
 int CVICALLBACK FanartOKCB (int panel, int control, int event,
 		void *callbackData, int eventData1, int eventData2)
 {
-	int 		i, val, numDiscs=0, multiDiscs;
+	int 		i, val, numDiscs=0, multiDiscs, vinyl;
 	char		artist[256], destPath[MAX_PATHNAME_LEN*2], path[MAX_PATHNAME_LEN*2];
     HINTERNET	connection;
 	
@@ -389,17 +379,27 @@ int CVICALLBACK FanartOKCB (int panel, int control, int event,
 				}
 			}
 			GetCtrlVal(fanartPanHandle, FANART_MULTIPLEDISCS, &multiDiscs);
+			GetCtrlVal(fanartPanHandle, FANART_VINYLART, &vinyl);
 			for (i=cdExists;i<kMaxCdArt;i++) {
 				GetCtrlVal(cdartPanHandle, cdartCtrls[i], &val);
 				if (val && pathName) {
-					if (multiDiscs)	
-						sprintf(destPath, "%s\\cd%d.png", pathName, ++numDiscs);
-					else
-						sprintf(destPath, "%s\\cd.png", pathName);
+					if (!vinyl) {
+						if (multiDiscs)	{
+							sprintf(destPath, "%s\\cd%d.png", pathName, ++numDiscs);
+						} else {
+							sprintf(destPath, "%s\\cd.png", pathName);
+						}
+					} else {
+						if (multiDiscs)	{
+							sprintf(destPath, "%s\\vinyl%c.png", pathName, ++numDiscs + 64);	// start at 'A'
+						} else {
+							sprintf(destPath, "%s\\vinyl.png", pathName);
+						}
+					}
 					sprintf(path, "tempFanart\\full%s", cdName[i]);
-					if (FileExists(path, 0))
+					if (FileExists(path, 0)) {
 						CopyFile(path, destPath);
-					else {
+					} else {
 						connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 						RetrieveFileFromURL(connection, cdUrl[i], destPath, TRUE);
 						InternetCloseHandle(connection);
@@ -407,6 +407,7 @@ int CVICALLBACK FanartOKCB (int panel, int control, int event,
 					if (!multiDiscs) break;
 				}
 			}
+			FreeCdArtPaths();
 			RemovePopup(0);
 			break;
 	}
@@ -421,11 +422,20 @@ int CVICALLBACK FanartCancelCB (int panel, int control, int event,
 		case EVENT_COMMIT:
 			SetCtrlAttribute(hdlogoPanHandle, HDLOGO_PREVIEWTIMER, ATTR_ENABLED, 0);
 			SetCtrlAttribute(cdartPanHandle, CDART_PREVIEWTIMER, ATTR_ENABLED, 0);
+			FreeCdArtPaths();
 			RemovePopup(0);
 			break;
 	}
 	return 0;
 }
+
+void FreeCdArtPaths(void)
+{
+	for (int i=0; i<kMaxCdArt; i++) {
+		free(cdArtPaths[i]);
+	}
+}
+
 
 int CVICALLBACK SelectCB (int panel, int control, int event,
 		void *callbackData, int eventData1, int eventData2)
@@ -566,7 +576,7 @@ int CVICALLBACK CDPreviewTimerCB (int panel, int control, int event,
 		void *callbackData, int eventData1, int eventData2)
 {
 	int 	i, x, y, top, left, height, width, fTop, fLeft, offset, monitorID, mWidth, mHeight, pTop, pLeft, maxSize = 1000;
-	char	path[MAX_PATHNAME_LEN*2];	
+	char	path[MAX_PATHNAME_LEN*2] = "";	
 	static	lastX=0, lastY=0;
 
 	switch (event)
@@ -578,15 +588,8 @@ int CVICALLBACK CDPreviewTimerCB (int panel, int control, int event,
 					GetCtrlBoundingRect(panel, cdartCtrls[i], &top, &left, &height, &width);
 					if (x>=left && x<=left+width && y>=top && y<=top+height) {
 						if (cdExists && i<cdExists) {
-							sprintf(path, "%s\\cd.png", pathName);
-							if (!FileExists(path,0)) {
-								sprintf(path, "%s\\cd1.png", pathName);
-								if (!FileExists(path,0)) {
-									sprintf(path, "%s\\cd2.png", pathName);
-								}
-							}
-						}
-						else {
+							sprintf(path, cdArtPaths[i]);
+						} else {
 							sprintf(path, "tempFanart\\full%s", cdName[i]);
 						}
 						if (FileExists(path, 0)) {

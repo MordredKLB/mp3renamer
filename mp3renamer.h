@@ -79,7 +79,8 @@
 #define  FANART_DECORATION                8       /* control type: deco, callback function: (none) */
 #define  FANART_ARTISTPAGE                9       /* control type: textMsg, callback function: OpenArtistPageCB */
 #define  FANART_TEXTMSG                   10      /* control type: textMsg, callback function: OpenArtistPageCB */
-#define  FANART_MULTIPLEDISCS             11      /* control type: radioButton, callback function: (none) */
+#define  FANART_VINYLART                  11      /* control type: radioButton, callback function: VinylArtCB */
+#define  FANART_MULTIPLEDISCS             12      /* control type: radioButton, callback function: (none) */
 
 #define  HDLOGO                           4       /* callback function: FanartPanelCB */
 #define  HDLOGO_HDLOGO_1                  2       /* control type: pictButton, callback function: SelectCB */
@@ -362,6 +363,7 @@ int  CVICALLBACK tabLEDCallback(int panel, int control, int event, void *callbac
 int  CVICALLBACK TagCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK TreeCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK ValChangeCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
+int  CVICALLBACK VinylArtCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 
 
 #ifdef __cplusplus
