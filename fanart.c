@@ -536,6 +536,11 @@ int CVICALLBACK PreviewTimerCB (int panel, int control, int event,
 			if (x == lastX && y == lastY && hoverEnabled) {
 				for (i=0;i<kMaxLogos;i++) {
 					GetCtrlBoundingRect(panel, logoControls[i], &top, &left, &height, &width);
+					GetPanelAttribute(hdlogoPanHandle, ATTR_VSCROLL_OFFSET, &offset); 	// account for being scrolled down 
+					if (offset > top) {
+						height -= offset-top;
+						top = offset;
+					}
 					if (x>=left && x<=left+width && y>=top && y<=top+height) {
 						if (logoExists && i==0) {
 							GetCtrlVal(panelHandle, PANEL_ARTIST, artist);
@@ -552,7 +557,6 @@ int CVICALLBACK PreviewTimerCB (int panel, int control, int event,
 							GetPanelAttribute(fanartPanHandle, ATTR_LEFT, &fLeft);
 							SetCtrlAttribute(hdPreviewHandle, HDPREVIEW_PREVIEW, ATTR_WIDTH, 800);
 							SetCtrlAttribute(hdPreviewHandle, HDPREVIEW_PREVIEW, ATTR_HEIGHT, 310);
-							GetPanelAttribute(hdlogoPanHandle, ATTR_VSCROLL_OFFSET, &offset); 	// account for being scrolled down 
 							SetPanelPos(hdPreviewHandle, y+top+fTop-35-offset, x+left+fLeft-8);
 							SetPanelSize(hdPreviewHandle, 335, 804);
 							SetCtrlAttribute(hdlogoPanHandle, HDLOGO_PREVIEWTIMER, ATTR_ENABLED, 0);	// disable while panel is displayed
@@ -586,6 +590,11 @@ int CVICALLBACK CDPreviewTimerCB (int panel, int control, int event,
 			if (x == lastX && y == lastY && hoverEnabled) {
 				for (i=0;i<kMaxCdArt;i++) {
 					GetCtrlBoundingRect(panel, cdartCtrls[i], &top, &left, &height, &width);
+					GetPanelAttribute(cdartPanHandle, ATTR_VSCROLL_OFFSET, &offset); 	// account for being scrolled down
+					if (offset > top) {
+						height -= offset-top;
+						top = offset;
+					}
 					if (x>=left && x<=left+width && y>=top && y<=top+height) {
 						if (cdExists && i<cdExists) {
 							sprintf(path, cdArtPaths[i]);
@@ -609,7 +618,6 @@ int CVICALLBACK CDPreviewTimerCB (int panel, int control, int event,
 							}
 							SetCtrlAttribute(hdPreviewHandle, HDPREVIEW_PREVIEW, ATTR_WIDTH, maxSize);
 							SetCtrlAttribute(hdPreviewHandle, HDPREVIEW_PREVIEW, ATTR_HEIGHT, maxSize);
-							GetPanelAttribute(cdartPanHandle, ATTR_VSCROLL_OFFSET, &offset); 	// account for being scrolled down
 							pTop = y+top+fTop-65-offset;
 							pLeft = x+left+fLeft-8;
 							if (pTop + maxSize > mHeight) pTop -= ((pTop + maxSize + 25) - mHeight);
