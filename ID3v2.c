@@ -11,6 +11,8 @@
 #include "file.h"
 #include "globals.h"
 
+#include "tag_c.h"
+
 /*** Globals ***/
 
 char PADDING[3] = {0,0,0};
@@ -55,9 +57,20 @@ int GetID3v2Tag(int panel, char *filename, int index)
 {
 	int useTPE2;
 	int version, foundYear;
-
+	TagLib_File *taglibfile;
+	TagLib_Tag *tag;
+	
 	void *id3file = NULL;
 	id3_Tag *id3tag = NULL;
+	
+	taglibfile = taglib_file_new(filename);
+	tag = taglib_file_tag(taglibfile);
+	char buf[255];
+	//strcpy(buf, taglib_tag_genre(tag));
+	//strcpy(buf, taglib_tag_album_artist(tag));
+	strcpy(buf, taglib_file_property(taglibfile, "ALBUMARTIST"));
+	ErrorPrintf("%s", buf);
+	//taglib_file_free(taglibfile);
 	
 	id3file = id3_file_open(filename, ID3_FILE_MODE_READONLY);
 	id3tag = id3_file_tag(id3file);
