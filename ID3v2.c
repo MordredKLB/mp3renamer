@@ -1237,29 +1237,32 @@ int SetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control
 		GetTableCellValLength(panel, control, tagCell, &len);
 	else
 		GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
-	nullChk(data = calloc(len+1, sizeof(char)));
-	if (style == CTRL_TABLE_LS)
-		errChk(GetTableCellVal(panel, control, tagCell, data))
-	else
-		errChk(GetCtrlVal(panel, control, data));
 
 	// we are setting this field so we need to remove it first
 	RemoveTextInformation(id3tag, descString);
-	frame = NewFrame(id3tag, "TXXX");
-	field = id3_frame_field(frame, 1);
-	if (!field)
-		errChk(-1);
-	if (field->type == ID3_FIELD_TYPE_STRING) {
-		ucs4desc = id3_latin1_ucs4duplicate((id3_latin1_t *)descString);
-		id3_field_setstring(field, ucs4desc);
+	if (len) {
+		nullChk(data = calloc(len+1, sizeof(char)));
+		if (style == CTRL_TABLE_LS)
+			errChk(GetTableCellVal(panel, control, tagCell, data))
+		else
+			errChk(GetCtrlVal(panel, control, data));
+
+		frame = NewFrame(id3tag, "TXXX");
+		field = id3_frame_field(frame, 1);
+		if (!field)
+			errChk(-1);
+		if (field->type == ID3_FIELD_TYPE_STRING) {
+			ucs4desc = id3_latin1_ucs4duplicate((id3_latin1_t *)descString);
+			id3_field_setstring(field, ucs4desc);
 		}
-	field = id3_frame_field(frame, 2);
-	if (!field)
-		errChk(-1);
-	if (field->type == ID3_FIELD_TYPE_STRING) {
-		ucs4data = id3_latin1_ucs4duplicate((id3_latin1_t *)data);
-		id3_field_setstring(field, ucs4data);
+		field = id3_frame_field(frame, 2);
+		if (!field)
+			errChk(-1);
+		if (field->type == ID3_FIELD_TYPE_STRING) {
+			ucs4data = id3_latin1_ucs4duplicate((id3_latin1_t *)data);
+			id3_field_setstring(field, ucs4data);
 		}
+	}
 	
 Error:
 	if (data)
