@@ -22,13 +22,15 @@ char gFilename[MAX_FILENAME_LEN];	// needed to get filename from file.c
 
 /*** Prototypes ***/
 
-int GetTitleData(id3_Tag *id3tag, char *frameType, int panel, int control, int index);
-int GetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index);
+int GetTitleData(TagLib_File *taglibfile, char *frameType, int panel, int control, int index);
+int GetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index);
 int GetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index);
 int GetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control, int conflict, int index);
 int GetGenreData(id3_Tag *id3tag, int panel, int control, int conflict, int index);
-int GetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index);
+//int GetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index);
+int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index);
 int GetExtendedFields(id3_Tag *id3tag, int index);
+int GetUnhandledFields(TagLib_File *taglibfile, int index);
 
 int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index);
 int SetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index);
@@ -55,183 +57,138 @@ void AllocAndCopyStr(char **string, char *val);
 
 int GetID3v2Tag(int panel, char *filename, int index)
 {
-	int useTPE2;
-	int version, foundYear;
+	//int useTPE2;
+	int version;
 	TagLib_File *taglibfile;
 	TagLib_Tag *tag;
-	
+
 	void *id3file = NULL;
 	id3_Tag *id3tag = NULL;
-	
+
+	taglib_set_strings_unicode(FALSE);
 	taglibfile = taglib_file_new(filename);
 	tag = taglib_file_tag(taglibfile);
-	char buf[255];
-	//strcpy(buf, taglib_tag_genre(tag));
-	//strcpy(buf, taglib_tag_album_artist(tag));
-	strcpy(buf, taglib_file_property(taglibfile, "ALBUMARTIST"));
-	ErrorPrintf("%s", buf);
-	//taglib_file_free(taglibfile);
-	
+
 	id3file = id3_file_open(filename, ID3_FILE_MODE_READONLY);
 	id3tag = id3_file_tag(id3file);
 	version = id3_tag_version(id3tag);
-	GetTitleData(id3tag,"TIT2", panel, PANEL_TREE, index);
-	GetTextData(id3tag, "TALB", panel, PANEL_ALBUM, PANEL_ALBUMLED, index);
-	GetTextData(id3tag, "TPE1", panel, PANEL_ARTIST, PANEL_ARTISTLED, index);
-	GetTextData(id3tag, "TRCK", panel, PANEL_TRACKNUM, PANEL_TRACKNUMLED, index);
-	GetTextData(id3tag, "TENC", tab2Handle, TAB2_ENCODED, TAB2_ENCODEDLED, index);
-	GetTextData(id3tag, "TCOP", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
-	GetTextData(id3tag, "TCOM", tab1Handle, TAB1_COMPOSER, TAB1_COMPOSERLED, index);
-	GetTextData(id3tag, "TPOS", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
-	GetTextData(id3tag, "TPUB", tab1Handle, TAB1_PUBLISHER, TAB1_PUBLISHERLED, index);
-	GetTextData(id3tag, "TOPE", tab2Handle, TAB2_ORIGARTIST, TAB2_ORIGARTISTLED, index);
-	GetTextData(id3tag, "WXXX", tab2Handle, TAB2_URL, TAB2_URLLED, index);
-	GetTextData(id3tag, "TSOP", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_PERFSORTLED, index);
-	GetTextData(id3tag, "TSOA", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_ALBUMSORTLED, index);
-	GetTextData(id3tag, "TPE3", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
-	foundYear = GetTextData(id3tag, "TYER", tab1Handle, TAB1_YEAR, TAB1_YEARLED, index);
-	if (!foundYear)		// only need to get TDRC if TYER not found I think
-		GetTextData(id3tag, "TDRC", tab1Handle, TAB1_YEAR, TAB1_YEARLED, index);
-	
-	GetCommentsData(id3tag, "COMM", tab1Handle, TAB1_COMMENT, TAB1_COMMENTLED, index); 
-	GetGenreData(id3tag, tab1Handle, TAB1_GENRE, TAB1_GENRELED, index);
-	GetTextInformation(id3tag, "replaygain_album_gain", tab1Handle, TAB1_ALBUMGAIN, TAB1_ALBUMGAINLED, index);
-	GetTextInformation(id3tag, "RELEASETYPE", tab1Handle, TAB1_RELTYPE, TAB1_RELTYPELED, index);
-	GetTextInformation(id3tag, "MUSICBRAINZ_RELEASEGROUPID", tab3Handle, TAB3_REID, 0, index);
-	GetTextInformation(id3tag, "MUSICBRAINZ_ARTISTID", tab3Handle, TAB3_ARTISTMBID, 0, index);
-	GetTextInformation(id3tag, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, TAB1_COUNTRYLED, index);
-	GetTextInformation(id3tag, "EDITION", tab1Handle, TAB1_EDITION, TAB1_EDITIONLED, index);
-	GetCtrlVal(panel, PANEL_USEWINAMPALBUMARTIST, &useTPE2);
-	if (useTPE2)
-		GetTextData(id3tag, "TPE2", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);				  	// winamp style
-	else
-		GetTextInformation(id3tag, "ALBUM ARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);// foobar style
+	GetTitleData(taglibfile,"TITLE", panel, PANEL_TREE, index);
+	GetTextData(taglibfile, "ALBUM", panel, PANEL_ALBUM, PANEL_ALBUMLED, index);
+	GetTextData(taglibfile, "ARTIST", panel, PANEL_ARTIST, PANEL_ARTISTLED, index);
+	GetTextData(taglibfile, "TRACKNUMBER", panel, PANEL_TRACKNUM, PANEL_TRACKNUMLED, index);
+	GetTextData(taglibfile, "ENCODEDBY", tab2Handle, TAB2_ENCODED, TAB2_ENCODEDLED, index);
+	GetTextData(taglibfile, "COPYRIGHT", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
+	GetTextData(taglibfile, "COMMENT", tab1Handle, TAB1_COMMENT, TAB1_COMMENTLED, index);
+	GetTextData(taglibfile, "COMPOSER", tab1Handle, TAB1_COMPOSER, TAB1_COMPOSERLED, index);
+	GetTextData(taglibfile, "DISCNUM", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
+	GetTextData(taglibfile, "LABEL", tab1Handle, TAB1_PUBLISHER, TAB1_PUBLISHERLED, index);
+	GetTextData(taglibfile, "ORIGINALARTIST", tab2Handle, TAB2_ORIGARTIST, TAB2_ORIGARTISTLED, index);
+	GetTextData(taglibfile, "URL", tab2Handle, TAB2_URL, TAB2_URLLED, index);
+	GetTextData(taglibfile, "ARTISTSORT", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_PERFSORTLED, index);
+	GetTextData(taglibfile, "ALBUMSORT", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_ALBUMSORTLED, index);
+	GetTextData(taglibfile, "CONDUCTOR", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
+	GetTextData(taglibfile, "DATE", tab1Handle, TAB1_YEAR, TAB1_YEARLED, index);
+	GetTextData(taglibfile, "ALBUMARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);
+	GetTextData(taglibfile, "GENRE", tab1Handle, TAB1_GENRE, TAB1_GENRELED, index);
+
+	GetTextData(taglibfile, "replaygain_album_gain", tab1Handle, TAB1_ALBUMGAIN, TAB1_ALBUMGAINLED, index);
+	GetTextData(taglibfile, "RELEASETYPE", tab1Handle, TAB1_RELTYPE, TAB1_RELTYPELED, index);
+	GetTextData(taglibfile, "MUSICBRAINZ_RELEASEGROUPID", tab3Handle, TAB3_REID, 0, index);
+	GetTextData(taglibfile, "MUSICBRAINZ_ARTISTID", tab3Handle, TAB3_ARTISTMBID, 0, index);
+	GetTextData(taglibfile, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, TAB1_COUNTRYLED, index);
+	GetTextData(taglibfile, "EDITION", tab1Handle, TAB1_EDITION, TAB1_EDITIONLED, index);
+	//GetCtrlVal(panel, PANEL_USEWINAMPALBUMARTIST, &useTPE2);
+	//if (useTPE2)
+	//else
+	//	GetTextInformation(id3tag, "ALBUM ARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);// foobar style
 	//GetTextInformation(id3tag, index);
-	GetPictureData(id3tag, "APIC", tab2Handle, TAB2_ARTWORK, TAB2_ARTWORKLED, index);
-	GetExtendedFields(id3tag, index);
+	GetPictureData(taglibfile, "APIC", tab2Handle, TAB2_ARTWORK, TAB2_ARTWORKLED, index);
+	//GetExtendedFields(id3tag, index);
+	GetUnhandledFields(taglibfile, index);
 
 Error:
 	if (id3file)
 		id3_file_close(id3file);
+	if (taglibfile)
+		taglib_file_free(taglibfile);
+	taglib_tag_free_strings();
 	return 0;
 }
 
-int GetTitleData(id3_Tag *id3tag, char *frameType, int panel, int control, int index)
+int GetTitleData(TagLib_File *taglibfile, char *frameType, int panel, int control, int index)
 {
-	int			nStrings, found = 1;
-	char 		*data = NULL, *string = NULL;
-	id3frame 	*frame;
-	union id3_field	*field;
-	id3_ucs4_t const *ucs4Str;
-	
-	frame = id3_tag_findframe(id3tag, frameType, 0);
-	if (!frame)
-		return 0;
-	if (frame->nfields < 2)
-		Breakpoint();
-	field = id3_frame_field(frame, frame->nfields-1);	// I think we always want the last field in the frame
-	if (!field)
-		return 0;
-	switch (field->type) {
-		case ID3_FIELD_TYPE_STRINGLIST:
-			nStrings = id3_field_getnstrings(field);
-			if (!nStrings)
-				return 0;
-			ucs4Str = id3_field_getstrings(field, 0);
-			string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-			break;
-		case ID3_FIELD_TYPE_LATIN1:
-			data = (char *)id3_field_getlatin1(field);
-			string = malloc(sizeof(char) * strlen(data)+1);
-			strcpy(string, data);
-			data = NULL;
-			break;
-		}
-	
-	SetTreeCellAttribute(panel, control, index, kTreeColTrackName, ATTR_LABEL_TEXT, string);
+	int			numStrs, found = 0;
+	char 		*string = NULL;
+	size_t		len;
+
+	if (taglib_file_property_attrs(taglibfile, frameType, &numStrs, &len)) {
+		string = malloc(sizeof(char) * len + 1);
+		strcpy(string, taglib_file_property(taglibfile, frameType));
+		SetTreeCellAttribute(panel, control, index, kTreeColTrackName, ATTR_LABEL_TEXT, string);
+		found = 1;
+	}
 
 Error:
-	if (data)
-		free(data);
 	if (string)
 		free(string);
 	return found;
 }
 
-int GetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index)
+int GetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index)
 {
-	int			i, len, error, nStrings, found = 0;
-	char 		*data = NULL, *origData = NULL, *string = NULL, *tmpStr = NULL;
-	id3frame 	*frame;
-	union id3_field	*field;
-	id3_ucs4_t const *ucs4Str;
-	
-	frame = id3_tag_findframe(id3tag, frameType, 0);
-	if (!frame)
-		return 0;
-	if (frame->nfields < 2)
-		Breakpoint();
-	field = id3_frame_field(frame, frame->nfields-1);	// I think we always want the last field in the frame
-	if (!field)
-		return 0;
-	switch (field->type) {
-		case ID3_FIELD_TYPE_STRINGLIST:
-			nStrings = id3_field_getnstrings(field);
-			if (!nStrings)
-				return 0;
-			for (i=0;i<nStrings;i++) {
-				ucs4Str = id3_field_getstrings(field, i);
-				tmpStr = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-				if (i==0) {
-					string = malloc(sizeof(char) * (strlen(tmpStr) + 3));
-					strcpy(string, tmpStr);
-				}
-				else {
-					string = realloc(string, sizeof(char) * (strlen(tmpStr) + strlen(string) + 3));
-					strcat(string, "; \0");
-					strcat(string, tmpStr);
-				}
-				free(tmpStr);
-				tmpStr = NULL;
+	int				error, found = 0, style;
+	unsigned int 	numStrs;
+	size_t			len;
+	char 			*origData = NULL, *string = NULL;
+
+	if (taglib_file_property_attrs(taglibfile, frameType, &numStrs, &len)) {
+		string = malloc(sizeof(char) * len + 1);
+		strcpy(string, taglib_file_property(taglibfile, frameType));
+
+		GetCtrlAttribute(panel, control, ATTR_CTRL_STYLE, &style);
+		switch (style) {
+			case CTRL_STRING:
+			case CTRL_STRING_LS:
+			case CTRL_TEXT_BOX:
+			case CTRL_TEXT_BOX_LS:
+				GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
+				nullChk(origData = malloc(len+1));
+				GetCtrlVal(panel, control, origData);
+				break;
+			case CTRL_TABLE_LS:
+				GetTableCellValLength(panel, control, tagCell, &len);
+				nullChk(origData = malloc(len+1));
+				GetTableCellVal(panel, control, tagCell, origData);
+				break;
+		}
+
+		if (!firstFile && (len!=strlen(string) || memcmp(origData, string, len))) {
+			SetCtrlVal(panel, conflict, 1);
+		} else {
+			switch (style) {
+				case CTRL_TEXT_BOX:
+				case CTRL_TEXT_BOX_LS:
+					errChk(ResetTextBox(panel, control, string));
+					break;
+				case CTRL_STRING:
+				case CTRL_STRING_LS:
+					errChk(SetCtrlVal(panel, control, string));
+					break;
+				case CTRL_TABLE_LS:
+					SetTableCellVal(panel, control, tagCell, string);
+					break;
 			}
-			break;
-		case ID3_FIELD_TYPE_LATIN1:
-			data = (char *)id3_field_getlatin1(field);
-			string = malloc(sizeof(char) * strlen(data)+1);
-			strcpy(string, data);
-			data = NULL;
-			break;
-		case ID3_FIELD_TYPE_STRING:  /* should be description field */
-			ucs4Str = id3_field_getstring(field);
-			string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-			len = strlen(string);
-			free(string);
-			string = NULL;
-			break;
 		}
 
-	GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
-	if (len) {
-		nullChk(origData = malloc(len+1));
-		GetCtrlVal(panel, control, origData); 
-		}
-	if (!firstFile && (len!=strlen(string) || memcmp(origData, string, len)))
-		SetCtrlVal(panel, conflict, 1);
-	else
-		errChk(SetCtrlVal(panel, control, string));
+		StoreDataVals(panel, control, string, index);
+		found = 1;
+	}
 
-	StoreDataVals(panel, control, string, index);
-	found = 1;
-	
 Error:
 	if (origData)
 		free(origData);
-	if (data)
-		free(data);
 	if (string)
 		free(string);
-	if (tmpStr)
-		free(tmpStr);
 	return found;
 }
 
@@ -258,8 +215,8 @@ int GetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, in
 				ucs4Str = id3_field_getstring(field);
 				string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
 				len = strlen(string);
-				if (len > 0 && (!strncmp(string, "iTunPGAP", len) || 
-					!strncmp(string, "iTunSMPB", len) || 
+				if (len > 0 && (!strncmp(string, "iTunPGAP", len) ||
+					!strncmp(string, "iTunSMPB", len) ||
 					!strncmp(string, "iTunNORM", len))) {
 					j = frame->nfields;	// don't do anything with iTunes Comment Frames
 					free(string);
@@ -283,7 +240,7 @@ int GetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, in
 		GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &length);
 		if (length) {
 			origData = malloc(length+1);
-			GetCtrlVal(panel, control, origData); 
+			GetCtrlVal(panel, control, origData);
 		}
 
 		if (string) {
@@ -294,7 +251,7 @@ int GetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, in
 		else
 			errChk(ResetTextBox(panel, control, string));
 	}
-	
+
 Error:
 	if (origData)
 		free(origData);
@@ -356,7 +313,7 @@ int GetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control
 			if (style == CTRL_TABLE_LS)
 				GetTableCellVal(panel, control, tagCell, origData);
 			else
-				GetCtrlVal(panel, control, origData); 
+				GetCtrlVal(panel, control, origData);
 			}
 		if (!firstFile && (len!=strlen(string) || memcmp(origData, string, len)) && conflict)
 			SetCtrlVal(panel, conflict, 1);
@@ -369,7 +326,7 @@ int GetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control
 
 		StoreDataVals(panel, control, string, index);
 	}
-		
+
 Error:
 	if (data)
 		free(data);
@@ -383,19 +340,90 @@ Error:
 int isHandledFrameType(char *id) {
 	/* do not include TXXX here, because we only handle some cases */
 	if (!strcmp("TALB", id) || !strcmp("TPE1", id) ||
-		!strcmp("TRCK", id) || !strcmp("TENC", id) || 
-		!strcmp("TCOP", id) || !strcmp("TCOM", id) || 
-		!strcmp("TPOS", id) || !strcmp("TPUB", id) || 
-		!strcmp("TOPE", id) || !strcmp("TPE2", id) || 
+		!strcmp("TRCK", id) || !strcmp("TENC", id) ||
+		!strcmp("TCOP", id) || !strcmp("TCOM", id) ||
+		!strcmp("TPOS", id) || !strcmp("TPUB", id) ||
+		!strcmp("TOPE", id) || !strcmp("TPE2", id) ||
 		!strcmp("WXXX", id) || !strcmp("TSOP", id) ||
-		!strcmp("TSOA", id) || !strcmp("TYER", id) || 
-		!strcmp("TDRC", id) || !strcmp("COMM", id) || 
+		!strcmp("TSOA", id) || !strcmp("TYER", id) ||
+		!strcmp("TDRC", id) || !strcmp("COMM", id) ||
 		!strcmp("APIC", id) || !strcmp("TIT2", id) ||
 		!strcmp("TCON", id))
 		return 1;
 	else
 		return 0;
-	
+
+}
+
+int isHandledFrame(char *key)
+{
+	if (!stricmp("TITLE", key) ||
+		!stricmp("ALBUM", key) ||
+		!stricmp("ALBUMARTIST", key) ||
+		!stricmp("ALBUMSORT", key) ||
+		!stricmp("ARTIST", key) ||
+		!stricmp("ARTISTCOUNTRY", key) ||
+		!stricmp("ARTISTSORT", key) ||
+		!stricmp("ENCODEDBY", key) ||
+		!stricmp("COPYRIGHT", key) ||
+		!stricmp("COMMENT", key) ||
+		!stricmp("COMPOSER", key) ||
+		!stricmp("CONDUCTOR", key) ||
+		!stricmp("DATE", key) ||
+		!stricmp("DISCNUM", key) ||
+		!stricmp("EDITION", key) ||
+		!stricmp("GENRE", key) ||
+		!stricmp("LABEL", key) ||
+		!stricmp("MUSICBRAINZ_RELEASEGROUPID", key) ||
+		!stricmp("MUSICBRAINZ_ARTISTID", key) ||
+		!stricmp("ORIGINALARTIST", key) ||
+		!stricmp("RELEASETYPE", key) ||
+		!stricmp("REPLAYGAIN_ALBUM_GAIN", key) ||
+		!stricmp("REPLAYGAIN_ALBUM_PEAK", key) ||
+		!stricmp("REPLAYGAIN_TRACK_GAIN", key) ||
+		!stricmp("REPLAYGAIN_TRACK_PEAK", key) ||
+		!stricmp("TRACKNUMBER", key) ||
+		!stricmp("URL", key))
+		return 1;
+	else
+		return 0;
+}
+
+int GetUnhandledFields(TagLib_File *taglibfile, int index)
+{
+	int 	i=0, numStrs, numItems, found = -1;
+	size_t	len;
+	char	frameType[255];
+	char	*string = NULL;
+
+	while (strcpy(frameType, taglib_file_property_key_index(taglibfile, i)) && strlen(frameType)) {
+		if (!isHandledFrame(frameType)) {
+			if (taglib_file_property_attrs(taglibfile, frameType, &numStrs, &len)) {
+				string = malloc(sizeof(char) * len + 1);
+				strcpy(string, taglib_file_property(taglibfile, frameType));
+//				ErrorPrintf("%d. %s - %s", i, frameType, string);
+			
+				GetNumListItems(tab3Handle, TAB3_EXTENDEDTAGS, &numItems);
+				if (numItems) {
+					GetTreeItemFromLabel(tab3Handle, TAB3_EXTENDEDTAGS, VAL_ALL, 0, 0, VAL_NEXT_PLUS_SELF, 0, frameType, &found);
+				}
+				if (found==-1) {
+					InsertTreeItem(tab3Handle, TAB3_EXTENDEDTAGS, VAL_SIBLING, 0, VAL_LAST, frameType, NULL, NULL, numItems);
+					SetTreeItemAttribute (tab3Handle, TAB3_EXTENDEDTAGS, numItems, ATTR_MARK_STATE, 1);
+					SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, 2, ATTR_LABEL_TEXT, "TXXX");
+					SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, 1, ATTR_LABEL_TEXT, string);
+					SetCtrlVal(panelHandle, PANEL_TABVALS2, 1);
+				}
+				free(string);
+				string = NULL;
+			}
+		}
+		i++;
+	}
+
+	if (string)
+		free(string);
+	return 0;
 }
 
 int GetExtendedFields(id3_Tag *id3tag, int index)
@@ -415,10 +443,10 @@ int GetExtendedFields(id3_Tag *id3tag, int index)
 				if (!field)
 					continue;
 
-				if (field->type == ID3_FIELD_TYPE_STRING) { // should be description field 
+				if (field->type == ID3_FIELD_TYPE_STRING) { // should be description field
 					ucs4Str = id3_field_getstring(field);
 					string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-					
+
 					if ((useTPE2 || stricmp(string, "ALBUM ARTIST")) &&
 						(stricmp(string, "RELEASETYPE")) &&
 						(stricmp(string, "MUSICBRAINZ_RELEASEGROUPID")) &&
@@ -453,7 +481,7 @@ int GetExtendedFields(id3_Tag *id3tag, int index)
 			}
 		}
 
-	
+
 Error:
 	if (string)
 		free(string);
@@ -469,7 +497,7 @@ int GetGenreData(id3_Tag *id3tag, int panel, int control, int conflict, int inde
 	union id3_field	*field;
 	id3_ucs4_t const *ucs4Str;
 	id3_ucs4_t const *ucs4genre;
-	
+
 	frame = id3_tag_findframe(id3tag, "TCON", 0);
 	if (!frame)
 		return 0;
@@ -490,8 +518,8 @@ int GetGenreData(id3_Tag *id3tag, int panel, int control, int conflict, int inde
 				break;
 			case 2:
 				ucs4Str = id3_field_getstrings(field, 0);
-				ucs4genre = id3_genre_name(ucs4Str);			 
-				genreVal = (char *)id3_ucs4_latin1duplicate(ucs4genre);  
+				ucs4genre = id3_genre_name(ucs4Str);
+				genreVal = (char *)id3_ucs4_latin1duplicate(ucs4genre);
 				ucs4Str = id3_field_getstrings(field, 1);
 				genreString = (char *)id3_ucs4_latin1duplicate(ucs4Str);
 				break;
@@ -513,7 +541,7 @@ int GetGenreData(id3_Tag *id3tag, int panel, int control, int conflict, int inde
 		SetTableCellVal(panel, control, tagCell, genreString);
 
 	StoreDataVals(panel, control, genreString, index);
-	
+
 Error:
 	if (genreVal)
 		free(genreVal);
@@ -526,107 +554,67 @@ int GetImageTypeExtension(char *type, char ext[4])
 {
 	int found=0;
 	char errMsg[255];
-	
+
 	if (stristr(type, "png")) {
 		strcpy(ext, "png\0");
-		}
-	else if (stristr(type, "jpeg") || stristr(type, "jpg")) {
+	} else if (stristr(type, "jpeg") || stristr(type, "jpg")) {
 		strcpy(ext, "jpg\0");
-		}
-	else if (stristr(type, "gif")) {
+	} else if (stristr(type, "gif")) {
 		// We can't handle .gif files
 		//strcpy(ext, "gif\0");
 		found = -1;
-		}
-	else {
+	} else {
 		sprintf(errMsg, "Undefined mimeType = %s", type);
 		MessagePopup("ERROR",errMsg);
 		found = -1;
-		}
-	
+	}
+
 	return found;
 }
 
-int GetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index)
+//int GetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index)
+int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index)
 {
 	int			error, pictureType;
 	int			width, height, bitmap = 0;
-	size_t		len;
-	char 		*mimeType, imageNameStr[MAX_FILENAME_LEN], ext[4], sizeStr[100];
+	char 		mimeType[255], imageNameStr[MAX_FILENAME_LEN], ext[4], sizeStr[100];
 	char		*desc = NULL;
 	char		*data = NULL;
-	FILE		*fileIn = NULL;//, *fileOut = NULL;
-	id3frame 	*frame;
-	union id3_field	*field;
-	id3_ucs4_t const *ucs4Str;
-	
-	frame = id3_tag_findframe(id3tag, "APIC", 0);
-	if (!frame) {
+
+	strcpy(mimeType, taglib_mp3_file_picture_attrs(taglibfile, &pictureType));
+	if (strlen(mimeType)) {
+		errChk(GetImageTypeExtension(mimeType, ext));
+		sprintf(imageNameStr, "imageFile%d.%s", index, ext);
+		taglib_mp3_file_picture(taglibfile, imageNameStr);
+
+		DisableBreakOnLibraryErrors();
+		if (!DisplayImageFile(panel, control, imageNameStr)) {
+			SetCtrlAttribute(panel, TAB2_IMAGECORRUPTEDMSG, ATTR_VISIBLE, 0);
+			GetCtrlBitmap(panel, control, 0, &bitmap);
+			GetBitmapData(bitmap, NULL, NULL, &width, &height, NULL, NULL, NULL);
+			sprintf(sizeStr, kPictureSizeStr, width, height);
+			SetCtrlVal(panel, TAB2_IMAGESIZEMSG, sizeStr);
+		} else {
+			SetCtrlAttribute(panel, TAB2_IMAGECORRUPTEDMSG, ATTR_VISIBLE, 1);
+			sprintf(sizeStr, kPictureSizeStr, 0, 0);
+			SetCtrlVal(panel, TAB2_IMAGESIZEMSG, sizeStr);
+		}
+		EnableBreakOnLibraryErrors();
+		SetCtrlVal(panelHandle, PANEL_TABVALS, 1);
+		SetCtrlAttribute(panel, TAB2_CLEARARTWORK, ATTR_VISIBLE, 1);
+	} else {
 		DisableBreakOnLibraryErrors();
 		DeleteImage(panel, control);
 		EnableBreakOnLibraryErrors();
-		return 0;
-		}
-	
-	/* APIC STRUCTURE
-	FIELDS(APIC) = {
-	  ID3_FIELD_TYPE_TEXTENCODING,		    // Text encoding      $xx
-	  ID3_FIELD_TYPE_LATIN1,				// MIME type          <text string> $00
-	  ID3_FIELD_TYPE_INT8,					// Picture type       $xx
-	  ID3_FIELD_TYPE_STRING,				// Description        <text string according to encoding> $00 (00)
-	  ID3_FIELD_TYPE_BINARYDATA				// Picture data       <binary data>
-	}; */
-	
-	field =    id3_frame_field(frame, 1);	// MIME Type
-	mimeType = (char *)id3_field_getlatin1(field);
-	field =    id3_frame_field(frame, 2);	// Picture Type
-	pictureType = field->number.value;
-	field =    id3_frame_field(frame, 3);	// Description
-	ucs4Str =  id3_field_getstring(field);
-	desc =     (char *)id3_ucs4_latin1duplicate(ucs4Str);
-	field =    id3_frame_field(frame, 4);	// Picture data
-	len =      field->binary.length;
-	errChk(GetImageTypeExtension(mimeType, ext));
-	sprintf(imageNameStr, "imageFile%d.%s", index, ext);
+	}
 
-	fileIn = fopen(imageNameStr,"wb+");
-	fwrite(field->binary.data, 1, field->binary.length, fileIn);
-	fclose(fileIn);
-	DisableBreakOnLibraryErrors();
-	if (DisplayImageFile(panel, control, imageNameStr)) {
-		SetCtrlAttribute(panel, TAB2_IMAGECORRUPTEDMSG, ATTR_VISIBLE, 1);
-		sprintf(sizeStr, kPictureSizeStr, 0, 0);
-		SetCtrlVal(panel, TAB2_IMAGESIZEMSG, sizeStr);
-		}
-	else {
-		SetCtrlAttribute(panel, TAB2_IMAGECORRUPTEDMSG, ATTR_VISIBLE, 0);
-		GetCtrlBitmap(panel, control, 0, &bitmap);
-		GetBitmapData(bitmap, NULL, NULL, &width, &height, NULL, NULL, NULL);
-		sprintf(sizeStr, kPictureSizeStr, width, height);
-		SetCtrlVal(panel, TAB2_IMAGESIZEMSG, sizeStr);
-		}
-	EnableBreakOnLibraryErrors();
-	fileIn = fopen(imageNameStr, "rb");
-	SetCtrlVal(panelHandle, PANEL_TABVALS, 1);
-	SetCtrlAttribute(panel, TAB2_CLEARARTWORK, ATTR_VISIBLE, 1);
-	
-	//errChk(GetImageTypeExtension(mimeType, ext));
-
-	//fileOut = fopen(imageNameStr, "wb");
-	//decodeMIME(fileIn, fileOut);
-	
-	//data = calloc(len * 3 / 4, sizeof(char));
-
-	
 Error:
 	if (desc)
 		free(desc);
 	if (data)
 		free(data);
-	if (fileIn && imageNameStr) {
-		fclose(fileIn);
+	if (imageNameStr)
 		DeleteFile(imageNameStr);
-		}
 	if (bitmap)
 		DiscardBitmap(bitmap);
 	return 1;
@@ -636,7 +624,7 @@ Error:
 void StoreDataVals(int panel, int control, char *string, int index)
 {
 	size_t size;
-	
+
 	size = strlen(string)+1;
 	if (panel == panelHandle) {
 		switch (control) {
@@ -749,9 +737,9 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index)
 	size_t	v2size;
 	void 	*id3file = NULL;
 	id3_Tag *id3tag = NULL;
-	
+
 	strcpy(gFilename, filename);	// needed for file.c
-		
+
 	id3file = id3_file_open(filename, ID3_FILE_MODE_READWRITE);
 	id3tag = id3_file_tag(id3file);
 	SetTitleData(id3tag, "TIT2", panel, PANEL_UPDATETITLE, newname, index);
@@ -773,7 +761,7 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index)
 	RemoveFrame(id3tag, "TDRC");	// force it to only show what is in Year
 	SetTextData(id3tag, "TDRC", tab1Handle, TAB1_YEAR, TAB1_UPDATEYEAR, index);
 	SetTextData(id3tag, "TSOP", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_UPDATEPERFSORT, index);
-	
+
 	SetCommentsData(id3tag, "COMM", tab1Handle, TAB1_COMMENT, TAB1_UPDATECOMMENT, index);
 	SetGenreData(id3tag, "TCON", tab1Handle, TAB1_GENRE, TAB1_UPDATEGENRE, index);
 	SetPictureData(id3tag,"APIC",tab2Handle, TAB2_ARTWORK, TAB2_UPDATEARTWORK, TAB2_CLEARARTWORK);
@@ -782,7 +770,7 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index)
 
 
 	SetExtendedFields(id3tag, index);
-	
+
 	GetCtrlVal(panel, PANEL_USEWINAMPALBUMARTIST, &useTPE2);
 	if (useTPE2)
 		SetTextData(id3tag, "TPE2", tab1Handle, TAB1_ALBUMARTIST, TAB1_UPDATEALBUMARTIST, index);
@@ -793,8 +781,8 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index)
 	SetTextInformation(id3tag, "MUSICBRAINZ_RELEASEGROUPID", tab3Handle, TAB3_REID, tab3Handle, TAB3_UPDATEREID, index);
 	SetTextInformation(id3tag, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, tab1Handle, TAB1_UPDATECOUNTRY, index);
 	SetTextInformation(id3tag, "EDITION", tab1Handle, TAB1_EDITION, tab1Handle, TAB1_UPDATEEDITION, index);
-	
-	
+
+
 	i = id3tag->options;
 	id3tag->options &= ~ID3_TAG_OPTION_ID3V1;		// clear flag to get size of id3v2
 	id3tag->options |= ID3_TAG_OPTION_NOPADDING;	// calculate size without padding
@@ -803,7 +791,7 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index)
 	if (v2size > id3tag->paddedsize || (v2size + (DEFAULT_PAD_SIZE*2) < id3tag->paddedsize))
 		id3_tag_setlength(id3tag, v2size + DEFAULT_PAD_SIZE);
 	error = id3_file_update(id3file);
-	
+
 Error:
 	if (id3file)
 		id3_file_close(id3file);
@@ -832,9 +820,9 @@ int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int up
 		stringVals[i] = NULL;
 	}
 	errChk(GetCtrlVal(panel, updateCtrl, &update));
-	if (!update) 
-		goto Error;		
-	
+	if (!update)
+		goto Error;
+
 	if (!strcmp(frameType, "TPOS") && gUseMetaDataDiscVal && dataHandle.discPtr[index]) {	// disc num
 		if (!strcmp(dataHandle.discPtr[index], "1/1"))
 			goto Error;	// don't save "1/1" strings
@@ -873,7 +861,7 @@ int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int up
 			errChk(GetCtrlVal(panel, control, data));
 		}
 	}
-	
+
 	frame = id3_tag_findframe(id3tag, frameType, 0);
 	if (len) {	// add/update tag
 		if (!frame) {
@@ -899,7 +887,7 @@ int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int up
 						if (len > 0) {
 							nullChk(strVal = calloc(len+2, sizeof(char)));	// +2 so we can add a comma if needed
 							errChk(GetCtrlVal(tab1Handle, TAB1_PERFORMERSORTORDER, strVal));
-						} else {		
+						} else {
 							GetCtrlAttribute(panelHandle, PANEL_ARTIST, ATTR_STRING_TEXT_LENGTH, &len);
 							nullChk(strVal = calloc(len+2, sizeof(char)));
 							errChk(GetCtrlVal(panelHandle, PANEL_ARTIST, strVal));
@@ -962,8 +950,8 @@ int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int up
 		id3_tag_detachframe(id3tag, frame);
 		id3_frame_delete(frame);
 	}
-	
-	
+
+
 Error:
 	for (i=0;i<kMaxMultipleValues;i++) {
 		if (ucs4Str[i])
@@ -977,7 +965,7 @@ Error:
 		free(tmpStr);
 	if (strVal)
 		free(strVal);
-	
+
 	return error;
 }
 
@@ -990,8 +978,8 @@ int SetTitleData(id3_Tag *id3tag, char *frameType, int panel, int updateCtrl, ch
 	id3_ucs4_t 		*ucs4Str = NULL;
 
 	errChk(GetCtrlVal(panel, updateCtrl, &update));
-	if (!update) 
-		return 0;		
+	if (!update)
+		return 0;
 
 	GetTreeCellAttribute (panelHandle, PANEL_TREE, index, kTreeColTrackName, ATTR_LABEL_TEXT_LENGTH, &len);
 	if (len) {
@@ -1017,7 +1005,7 @@ int SetTitleData(id3_Tag *id3tag, char *frameType, int panel, int updateCtrl, ch
 			id3_field_setstrings(field, 1, &ucs4Str);	// always add/store in first string
 			}
 		}
-	
+
 Error:
 	if (title)
 		free(title);
@@ -1043,7 +1031,7 @@ int SetTrackData(id3_Tag *id3tag, char *frameType, int panel, char *filename, in
 		ptr = trackStr;
 		len = (int)strlen(trackStr);
 		}
-	
+
 	if (ptr) {
 		nullChk(data = calloc(len+1, sizeof(char)));
 		strncpy(data, trackStr, len);
@@ -1061,7 +1049,7 @@ int SetTrackData(id3_Tag *id3tag, char *frameType, int panel, char *filename, in
 		}
 	else
 		return 0;
-	
+
 Error:
 	if (data)
 		free(data);
@@ -1069,16 +1057,16 @@ Error:
 		free(ucs4Str);
 	return 1;
 }
-	
+
 int SetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int clearCtrl)
 {
 	int 			error, update, clear, bitmap=0;
 //	id3frame 		*frame = NULL;
 //	union id3_field	*field;
-	
+
 	errChk(GetCtrlVal(panel, updateCtrl, &update));
 	errChk(GetCtrlVal(panel, clearCtrl, &clear));
-	
+
 	if (update) {
 		if (clear)
 			RemoveFrame(id3tag, frameType);
@@ -1088,7 +1076,7 @@ int SetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int
 			GetCtrlBitmap(tab2Handle, TAB2_ARTWORK, 0, &bitmap);
 			if (!bitmap)
 				errChk(-1);
-			//SaveBitmapToJPEGFile(bitmap, "temporaryJPGFile.jpg",  
+			//SaveBitmapToJPEGFile(bitmap, "temporaryJPGFile.jpg",
 			frame = NewFrame(id3tag, frameType);
 	/* APIC STRUCTURE
 		FIELDS(APIC) = {
@@ -1098,16 +1086,16 @@ int SetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int
 		  ID3_FIELD_TYPE_STRING,				// Description        <text string according to encoding> $00 (00)
 		  ID3_FIELD_TYPE_BINARYDATA				// Picture data       <binary data>
 		}; */
-			
+
 			field = id3_frame_field(frame, 1);	// MIME Type
 			field = id3_frame_field(frame, 2);	// Picture Type
 			field = id3_frame_field(frame, 3);	// Description
 			field = id3_frame_field(frame, 4);	// Picture data
 			}
 #endif
-		
+
 		}
-Error:	
+Error:
 	if (bitmap)
 		DiscardBitmap(bitmap);
 	return 0;
@@ -1123,21 +1111,21 @@ int SetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, in
 	id3_ucs4_t 		*ucs4Str = NULL;
 
 	errChk(GetCtrlVal(panel, updateCtrl, &update));
-	if (!update) 
-		goto Error;		
+	if (!update)
+		goto Error;
 	else
 		GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
 
 	nullChk(data = calloc(len+1, sizeof(char)));
 	errChk(GetCtrlVal(panel, control, data));
-					
-Start:		
+
+Start:
 	while(!found && (frame = id3_tag_findframe(id3tag, frameType, i++))) {
 		if (!frame) {
 			frame = NewFrame(id3tag, frameType);
 			id3_field_setlanguage(&frame->fields[1], "eng");
 			}
-			
+
 		for (j=1;j<frame->nfields;j++) {
 			field = id3_frame_field(frame, j);	// do we always want the 2nd field?
 			if (!field)
@@ -1146,8 +1134,8 @@ Start:
 			if (field->type == ID3_FIELD_TYPE_STRING) { /* should be description field */
 				ucs4temp = id3_field_getstring(field);
 				string = (char *)id3_ucs4_latin1duplicate(ucs4temp);
-				if (stristr(string, "iTunPGAP") || 
-					stristr(string, "iTunSMPB") || 
+				if (stristr(string, "iTunPGAP") ||
+					stristr(string, "iTunSMPB") ||
 					stristr(string, "iTunNORM"))
 					j = frame->nfields;	// don't do anything with iTunes Comment Frames
 				free(string);
@@ -1180,7 +1168,7 @@ Start:
 		id3_tag_detachframe(id3tag, frame);
 		id3_frame_delete(frame);
 		}
-	
+
 Error:
 	if (ucs4Str)
 		free(ucs4Str);
@@ -1188,7 +1176,7 @@ Error:
 		free(data);
 	if (string)
 		free(string);
-	
+
 	return error;
 }
 
@@ -1199,10 +1187,10 @@ int SetGenreData(id3_Tag *id3tag, char *frameType, int panel, int control, int u
 	id3frame 	*frame;
 	union id3_field	 *field;
 	id3_ucs4_t *ucs4genre = NULL;
-	
+
 	errChk(GetCtrlVal(panel, updateCtrl, &update));
-	if (!update) 
-		goto Error;		
+	if (!update)
+		goto Error;
 	else {
 		GetTableCellValLength(panel, control, tagCell, &len);
 		nullChk(data = calloc(len+1, sizeof(char)));
@@ -1240,9 +1228,9 @@ int SetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control
 	union id3_field	*field;
 	id3_ucs4_t 		*ucs4desc = NULL;
 	id3_ucs4_t 		*ucs4data = NULL;
-	
+
 	errChk(GetCtrlVal(updatePanel, updateCtrl, &update));
-	if (!update) 
+	if (!update)
 		goto Error;
 
 	GetCtrlAttribute(panel, control, ATTR_CTRL_STYLE, &style);
@@ -1273,7 +1261,7 @@ int SetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control
 		ucs4data = id3_latin1_ucs4duplicate((id3_latin1_t *)data);
 		id3_field_setstring(field, ucs4data);
 		}
-	
+
 Error:
 	if (data)
 		free(data);
@@ -1288,7 +1276,7 @@ int SetExtendedFields(id3_Tag *id3tag, int index)
 {
 	int	i, numItems, checked, descLen;
 	char *description=NULL, fieldType[255];
-	
+
 	GetNumListItems(tab3Handle, TAB3_EXTENDEDTAGS, &numItems);
 	for (i=0;i<numItems;i++) {
 		GetTreeItemAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, ATTR_MARK_STATE, &checked);
@@ -1306,7 +1294,7 @@ int SetExtendedFields(id3_Tag *id3tag, int index)
 			description = NULL;
 			}
 		}
-		
+
 	return 1;
 }
 
@@ -1334,8 +1322,8 @@ int RemoveTextInformation(id3_Tag *id3tag, char *textDescription)
 				if (!stricmp(string, textDescription)) {
 					free(string);
 					string = NULL;
-					
-#if _CVI_DEBUG_					
+
+#if _CVI_DEBUG_
 					field = id3_frame_field(frame, j+1);	/* just so we can see what we're about to delete */
 					if (field) {
 						ucs4Str = id3_field_getstring(field);
@@ -1357,7 +1345,7 @@ int RemoveTextInformation(id3_Tag *id3tag, char *textDescription)
 
 		}
 
-	
+
 Error:
 	if (string)
 		free(string);
@@ -1415,7 +1403,7 @@ int RemoveTextInformationFrame(id3_Tag *id3tag, char *descString)
 id3frame* NewFrame(id3_Tag *id3tag, char *frameType)
 {
 	id3frame *frame = NULL;
-	
+
 	frame = id3_frame_new(frameType);
 	id3_tag_attachframe(id3tag, frame);
 	id3_field_settextencoding(&frame->fields[0], ID3_FIELD_TEXTENCODING_UTF_8);
@@ -1466,14 +1454,14 @@ int CheckForDuplicates(char **stringVals, int nStrings) {
 			}
 		}
 	}
-	
+
 	return nStrings;
 }
 
 void AllocAndCopyStr(char **string, char *val)
 {
 	int len, error;
-	
+
 	len = strlen(val);
 	nullChk(*string = malloc(sizeof(char) * len + 1));
 	strcpy(*string, val);
@@ -1490,7 +1478,7 @@ extern char tab2LEDList[kNumTab2Controls];
 int CVICALLBACK StringCompare(void *item1, void *item2)
 {
 	// the standard CStringCompare wasn't working for some reason so had to create this version
-	return strcmp(item1, item2);	
+	return strcmp(item1, item2);
 }
 
 /* Turns on the "conflict" LED and populates a tooltip with the conflict values */
@@ -1502,8 +1490,8 @@ void SetConflictTooltips(panel)
 	ListType	list;
 	size_t		offset=0;
 	int			i,j, val, blankLine;
-	int 		panelList[kEndOfList] = {0}, ledList[kEndOfList] = {0};	
-	
+	int 		panelList[kEndOfList] = {0}, ledList[kEndOfList] = {0};
+
 	for (i=0,j=0;i<sizeof(panelLEDList);i++,j++) {
 		GetCtrlVal(panel, panelLEDList[i], &val);
 		if (val) {
@@ -1531,7 +1519,7 @@ void SetConflictTooltips(panel)
 			ledList[j]=0;
 		}
 	}
-	
+
 	dataPtr = calloc(kEndOfList, sizeof(char**));
 	// main panel
 	dataPtr[0] 											= dataHandle.artistPtr;
@@ -1579,13 +1567,13 @@ void SetConflictTooltips(panel)
 					sprintf(buf+offset, offset ? "\n%s" : "%s", str);
 					if (offset)
 						offset++; // linebreak
-					offset += strlen(dataPtr[i][j]) < kTooltipLineLength ? 
+					offset += strlen(dataPtr[i][j]) < kTooltipLineLength ?
 						(blankLine ? strlen(kBlankStr) : strlen(dataPtr[i][j])) : kTooltipLineLength;
 					}
 				}
 			buf[offset] = 0;
 			ListDispose(list);
-		
+
 			SetCtrlAttribute(panelList[i], ledList[i], ATTR_TOOLTIP_TEXT, buf);
 			SetCtrlAttribute(panelList[i], ledList[i], ATTR_DISABLE_CTRL_TOOLTIP, 0);
 			//SetCtrlToolTipAttribute(panelList[i], ledList[i], CTRL_TOOLTIP_ATTR_TEXT, buf);
