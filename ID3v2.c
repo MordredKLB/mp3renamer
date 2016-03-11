@@ -25,13 +25,8 @@ char gFilename[MAX_FILENAME_LEN];	// needed to get filename from file.c
 
 int GetTitleData(jsmntok_t *tokens, char *pmapJSON, char *frameType, int panel, int control, int index);
 int GetTextData(jsmntok_t *tokens, char *pmapJSON, char *frameType, int panel, int control, int conflict, int index);
-int GetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index);
-int GetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control, int conflict, int index);
-int GetGenreData(id3_Tag *id3tag, int panel, int control, int conflict, int index);
-//int GetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index);
-int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index);
-int GetExtendedFields(id3_Tag *id3tag, int index);
 int GetUnhandledFields(jsmntok_t *tokens, char *pmapJSON, int index);
+int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index);
 
 size_t SearchJSONForKey(jsmntok_t *tokens, char *pmapJSON, char *frameType, char **string);
 
@@ -212,151 +207,6 @@ Error:
 	return found;
 }
 
-int GetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index)
-{
-	int				i=0, j, error, found=0, length;
-	size_t			len=0;
-	char 			*origData = NULL, *string = NULL;
- 	id3frame 		*frame;
-	union id3_field	*field;
-	id3_ucs4_t const *ucs4Str;
-
-	while((frame = id3_tag_findframe(id3tag, frameType, i++)) && !found) {
-		if (!frame)
-			return 0;
-		if (frame->nfields < 2)
-			Breakpoint();
-		for (j=1;j<frame->nfields;j++) {
-			field = id3_frame_field(frame, j);	// do we always want the 2nd field?
-			if (!field)
-				return 0;
-
-			if (field->type == ID3_FIELD_TYPE_STRING) { /* should be description field */
-				ucs4Str = id3_field_getstring(field);
-				string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-				len = strlen(string);
-				if (len > 0 && (!strncmp(string, "iTunPGAP", len) ||
-					!strncmp(string, "iTunSMPB", len) ||
-					!strncmp(string, "iTunNORM", len))) {
-					j = frame->nfields;	// don't do anything with iTunes Comment Frames
-					free(string);
-					string = NULL;
-					}
-				}
-			else if (field->type == ID3_FIELD_TYPE_STRINGFULL) {
-				if (string)
-					free(string);
-				string = NULL;
-				ucs4Str = id3_field_getfullstring(field);
-				string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-				found = 1;
-				break;
-				}
-			}
-
-		}
-
-	if (found) {
-		GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &length);
-		if (length) {
-			origData = malloc(length+1);
-			GetCtrlVal(panel, control, origData);
-		}
-
-		if (string) {
-			StoreDataVals(panel, control, string, index);
-		}
-		if (len && (len!=strlen(string) || memcmp(origData, string, len)))
-			SetCtrlVal(panel, conflict, 1);
-		else
-			errChk(ResetTextBox(panel, control, string));
-	}
-
-Error:
-	if (origData)
-		free(origData);
-	if (string)
-		free(string);
-	return found;
-}
-
-/* Retrieve information from a TXXX field with a description == descString */
-int GetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control, int conflict, int index)
-{
-	int				len, i=0, j, error, found=0, style;
-	char 			*data = NULL, *origData = NULL, *string = NULL;
- 	id3frame 		*frame;
-	union id3_field	*field;
-	id3_ucs4_t const *ucs4Str;
-
-	while((frame = id3_tag_findframe(id3tag, "TXXX", i++)) && !found) {
-		if (!frame)
-			return 0;
-		if (frame->nfields < 2)
-			Breakpoint();
-		for (j=1;j<frame->nfields;j++) {
-			field = id3_frame_field(frame, j);	// do we always want the 2nd field?
-			if (!field)
-				return 0;
-
-			if (field->type == ID3_FIELD_TYPE_STRING) { /* should be description field */
-				ucs4Str = id3_field_getstring(field);
-				string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-				if (!stricmp(string, descString)) {
-					free(string);
-					string = NULL;
-					field = id3_frame_field(frame, j+1);
-					if (field) {
-						ucs4Str = id3_field_getstring(field);
-						string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-						found = 1;
-						j=frame->nfields;
-						}
-					}
-				else {
-					free(string);
-					string = NULL;
-					j=frame->nfields;	// skip this frame
-					}
-				}
-			}
-		}
-
-	if (found) {
-		GetCtrlAttribute(panel, control, ATTR_CTRL_STYLE, &style);
-		if (style == CTRL_TABLE_LS)
-			GetTableCellValLength(panel, control, tagCell, &len);
-		else
-			GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
-		if (len) {
-			nullChk(origData = malloc(len+1));
-			if (style == CTRL_TABLE_LS)
-				GetTableCellVal(panel, control, tagCell, origData);
-			else
-				GetCtrlVal(panel, control, origData);
-			}
-		if (!firstFile && (len!=strlen(string) || memcmp(origData, string, len)) && conflict)
-			SetCtrlVal(panel, conflict, 1);
-		else {
-			if (style == CTRL_TABLE_LS)
-				errChk(SetTableCellVal(panel, control, tagCell, string))
-			else
-				errChk(SetCtrlVal(panel, control, string));
-		}
-
-		StoreDataVals(panel, control, string, index);
-	}
-
-Error:
-	if (data)
-		free(data);
-	if (origData)
-		free(origData);
-	if (string)
-		free(string);
-	return found;
-}
-
 int isHandledFrameType(char *id) {
 	/* do not include TXXX here, because we only handle some cases */
 	if (!strcmp("TALB", id) || !strcmp("TPE1", id) ||
@@ -411,7 +261,7 @@ int isHandledFrame(char *key)
 
 int GetUnhandledFields(jsmntok_t *tokens, char *pmapJSON, int index)
 {
-	int 	i=0, numStrs, numItems, found = -1;
+	int 	i=0, numItems, found = -1;
 	size_t	len;
 	char	frameType[255];
 	char	*string = NULL;
@@ -452,129 +302,6 @@ int GetUnhandledFields(jsmntok_t *tokens, char *pmapJSON, int index)
 	return 0;
 }
 
-int GetExtendedFields(id3_Tag *id3tag, int index)
-{
-	int				i=0, numItems, found=-1, showRG, useTPE2;
-	char 			*string = NULL;
- 	id3frame 		*frame;
-	union id3_field	*field;
-	id3_ucs4_t const *ucs4Str;
-
-	GetCtrlVal(configHandle, OPTIONS_SHOWREPLAYGAIN, &showRG);
-	GetCtrlVal(panelHandle, PANEL_USEWINAMPALBUMARTIST, &useTPE2);
-	while(frame = id3_tag_findframe(id3tag, NULL, i++)) {
-		if (!isHandledFrameType(frame->id)) {
-			if (!strcmp(frame->id, "TXXX")) {
-				field = id3_frame_field(frame, 1);	// we always want to start with the 2nd field
-				if (!field)
-					continue;
-
-				if (field->type == ID3_FIELD_TYPE_STRING) { // should be description field
-					ucs4Str = id3_field_getstring(field);
-					string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-
-					if ((useTPE2 || stricmp(string, "ALBUM ARTIST")) &&
-						(stricmp(string, "RELEASETYPE")) &&
-						(stricmp(string, "MUSICBRAINZ_RELEASEGROUPID")) &&
-						(stricmp(string, "MUSICBRAINZ_ARTISTID")) &&
-						(stricmp(string, "ARTISTCOUNTRY")) &&
-						(stricmp(string, "EDITION")) &&
-						(showRG || (stricmp(string, "replaygain_album_gain") && stricmp(string, "replaygain_track_gain") &&
-								   stricmp(string, "replaygain_album_peak") && stricmp(string, "replaygain_track_peak"))) ) {
-						GetNumListItems(tab3Handle, TAB3_EXTENDEDTAGS, &numItems);
-						if (numItems)
-							GetTreeItemFromLabel(tab3Handle, TAB3_EXTENDEDTAGS, VAL_ALL, 0, 0, VAL_NEXT_PLUS_SELF, 0, string, &found);
-						if (found==-1) {
-							InsertTreeItem(tab3Handle, TAB3_EXTENDEDTAGS, VAL_SIBLING, 0, VAL_LAST, string, NULL, NULL, numItems);
-							SetTreeItemAttribute (tab3Handle, TAB3_EXTENDEDTAGS, numItems, ATTR_MARK_STATE, 1);
-							SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, 2, ATTR_LABEL_TEXT, "TXXX");
-							free(string);
-							string = NULL;
-							field = id3_frame_field(frame, 2);
-							if (field) {
-								ucs4Str = id3_field_getstring(field);
-								string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-								SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, 1, ATTR_LABEL_TEXT, string);
-								}
-							SetCtrlVal(panelHandle, PANEL_TABVALS2, 1);
-							}
-						}
-					// string should always be allocated at this point.
-					free(string);
-					string = NULL;
-					}
-				}
-			}
-		}
-
-
-Error:
-	if (string)
-		free(string);
-	return found;
-}
-
-int GetGenreData(id3_Tag *id3tag, int panel, int control, int conflict, int index)
-{
-	int			error, nStrings;
-	char 		*genreVal = NULL, oldGenre[kMaxGenreEntryLength];
-	char		*genreString = NULL;
-	id3frame 	*frame;
-	union id3_field	*field;
-	id3_ucs4_t const *ucs4Str;
-	id3_ucs4_t const *ucs4genre;
-
-	frame = id3_tag_findframe(id3tag, "TCON", 0);
-	if (!frame)
-		return 0;
-	if (frame->nfields < 2)
-		Breakpoint();
-	field = id3_frame_field(frame, frame->nfields-1);	// I think we always want the last field in the frame
-	if (!field)
-		return 0;
-	if (field->type == ID3_FIELD_TYPE_STRINGLIST) {
-		nStrings = id3_field_getnstrings(field);
-		switch (nStrings) {
-			case 0:
-				return 0;
-			case 1:
-				ucs4Str = id3_field_getstrings(field, 0);
-				ucs4genre = id3_genre_name(ucs4Str);
-				genreString = (char *)id3_ucs4_latin1duplicate(ucs4genre);
-				break;
-			case 2:
-				ucs4Str = id3_field_getstrings(field, 0);
-				ucs4genre = id3_genre_name(ucs4Str);
-				genreVal = (char *)id3_ucs4_latin1duplicate(ucs4genre);
-				ucs4Str = id3_field_getstrings(field, 1);
-				genreString = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-				break;
-			default:
-				Breakpoint();
-				errChk(-1)
-				break;
-			}
-		}
-	else {
-		Breakpoint();
-		errChk(-1);
-		}
-
-	GetTableCellVal(panel, control, tagCell, oldGenre);
-	if (!firstFile && index > 0 && strcmp(oldGenre, genreString))
-		SetCtrlVal(panel, conflict, 1);
-	else
-		SetTableCellVal(panel, control, tagCell, genreString);
-
-	StoreDataVals(panel, control, genreString, index);
-
-Error:
-	if (genreVal)
-		free(genreVal);
-	if (genreString)
-		free(genreString);
-	return 1;
-}
 
 int GetImageTypeExtension(char *type, char ext[4])
 {
@@ -598,7 +325,6 @@ int GetImageTypeExtension(char *type, char ext[4])
 	return found;
 }
 
-//int GetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index)
 int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index)
 {
 	int			error, pictureType;
