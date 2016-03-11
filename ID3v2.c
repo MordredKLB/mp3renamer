@@ -12,6 +12,7 @@
 #include "globals.h"
 
 #include "tag_c.h"
+#include "json.h"
 
 /*** Globals ***/
 
@@ -22,15 +23,18 @@ char gFilename[MAX_FILENAME_LEN];	// needed to get filename from file.c
 
 /*** Prototypes ***/
 
-int GetTitleData(TagLib_File *taglibfile, char *frameType, int panel, int control, int index);
-int GetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index);
+int GetTitleData(jsmntok_t *tokens, char *pmapJSON, char *frameType, int panel, int control, int index);
+int GetTextData(jsmntok_t *tokens, char *pmapJSON, char *frameType, int panel, int control, int conflict, int index);
 int GetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index);
 int GetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control, int conflict, int index);
 int GetGenreData(id3_Tag *id3tag, int panel, int control, int conflict, int index);
 //int GetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int conflict, int index);
 int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index);
 int GetExtendedFields(id3_Tag *id3tag, int index);
-int GetUnhandledFields(TagLib_File *taglibfile, int index);
+int GetUnhandledFields(jsmntok_t *tokens, char *pmapJSON, int index);
+
+size_t SearchJSONForKey(jsmntok_t *tokens, char *pmapJSON, char *frameType, char **string);
+
 
 int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index);
 int SetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index);
@@ -57,73 +61,71 @@ void AllocAndCopyStr(char **string, char *val);
 
 int GetID3v2Tag(int panel, char *filename, int index)
 {
-	//int useTPE2;
-	int version;
 	TagLib_File *taglibfile;
 	TagLib_Tag *tag;
-
-	void *id3file = NULL;
-	id3_Tag *id3tag = NULL;
-
+	char *pmapJSON = NULL;
+	size_t len;
+	
 	taglib_set_strings_unicode(FALSE);
 	taglibfile = taglib_file_new(filename);
 	tag = taglib_file_tag(taglibfile);
 
-	id3file = id3_file_open(filename, ID3_FILE_MODE_READONLY);
-	id3tag = id3_file_tag(id3file);
-	version = id3_tag_version(id3tag);
-	GetTitleData(taglibfile,"TITLE", panel, PANEL_TREE, index);
-	GetTextData(taglibfile, "ALBUM", panel, PANEL_ALBUM, PANEL_ALBUMLED, index);
-	GetTextData(taglibfile, "ARTIST", panel, PANEL_ARTIST, PANEL_ARTISTLED, index);
-	GetTextData(taglibfile, "TRACKNUMBER", panel, PANEL_TRACKNUM, PANEL_TRACKNUMLED, index);
-	GetTextData(taglibfile, "ENCODEDBY", tab2Handle, TAB2_ENCODED, TAB2_ENCODEDLED, index);
-	GetTextData(taglibfile, "COPYRIGHT", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
-	GetTextData(taglibfile, "COMMENT", tab1Handle, TAB1_COMMENT, TAB1_COMMENTLED, index);
-	GetTextData(taglibfile, "COMPOSER", tab1Handle, TAB1_COMPOSER, TAB1_COMPOSERLED, index);
-	GetTextData(taglibfile, "DISCNUM", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
-	GetTextData(taglibfile, "LABEL", tab1Handle, TAB1_PUBLISHER, TAB1_PUBLISHERLED, index);
-	GetTextData(taglibfile, "ORIGINALARTIST", tab2Handle, TAB2_ORIGARTIST, TAB2_ORIGARTISTLED, index);
-	GetTextData(taglibfile, "URL", tab2Handle, TAB2_URL, TAB2_URLLED, index);
-	GetTextData(taglibfile, "ARTISTSORT", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_PERFSORTLED, index);
-	GetTextData(taglibfile, "ALBUMSORT", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_ALBUMSORTLED, index);
-	GetTextData(taglibfile, "CONDUCTOR", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
-	GetTextData(taglibfile, "DATE", tab1Handle, TAB1_YEAR, TAB1_YEARLED, index);
-	GetTextData(taglibfile, "ALBUMARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);
-	GetTextData(taglibfile, "GENRE", tab1Handle, TAB1_GENRE, TAB1_GENRELED, index);
+	len = taglib_file_property_map_to_JSON_length(taglibfile);
+	pmapJSON = malloc(len * sizeof(char) + 1);
+	strcpy(pmapJSON, taglib_file_property_map_to_JSON(taglibfile));
+	jsmntok_t *tokens = json_tokenise(pmapJSON, len);
 
-	GetTextData(taglibfile, "replaygain_album_gain", tab1Handle, TAB1_ALBUMGAIN, TAB1_ALBUMGAINLED, index);
-	GetTextData(taglibfile, "RELEASETYPE", tab1Handle, TAB1_RELTYPE, TAB1_RELTYPELED, index);
-	GetTextData(taglibfile, "MUSICBRAINZ_RELEASEGROUPID", tab3Handle, TAB3_REID, 0, index);
-	GetTextData(taglibfile, "MUSICBRAINZ_ARTISTID", tab3Handle, TAB3_ARTISTMBID, 0, index);
-	GetTextData(taglibfile, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, TAB1_COUNTRYLED, index);
-	GetTextData(taglibfile, "EDITION", tab1Handle, TAB1_EDITION, TAB1_EDITIONLED, index);
+	
+	GetTitleData(tokens,pmapJSON, "TITLE", panel, PANEL_TREE, index);
+	GetTextData(tokens, pmapJSON, "ALBUM", panel, PANEL_ALBUM, PANEL_ALBUMLED, index);
+	GetTextData(tokens, pmapJSON, "ARTIST", panel, PANEL_ARTIST, PANEL_ARTISTLED, index);
+	GetTextData(tokens, pmapJSON, "TRACKNUMBER", panel, PANEL_TRACKNUM, PANEL_TRACKNUMLED, index);
+	GetTextData(tokens, pmapJSON, "ENCODEDBY", tab2Handle, TAB2_ENCODED, TAB2_ENCODEDLED, index);
+	GetTextData(tokens, pmapJSON, "COPYRIGHT", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
+	GetTextData(tokens, pmapJSON, "COMMENT", tab1Handle, TAB1_COMMENT, TAB1_COMMENTLED, index);
+	GetTextData(tokens, pmapJSON, "COMPOSER", tab1Handle, TAB1_COMPOSER, TAB1_COMPOSERLED, index);
+	GetTextData(tokens, pmapJSON, "DISCNUM", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
+	GetTextData(tokens, pmapJSON, "LABEL", tab1Handle, TAB1_PUBLISHER, TAB1_PUBLISHERLED, index);
+	GetTextData(tokens, pmapJSON, "ORIGINALARTIST", tab2Handle, TAB2_ORIGARTIST, TAB2_ORIGARTISTLED, index);
+	GetTextData(tokens, pmapJSON, "URL", tab2Handle, TAB2_URL, TAB2_URLLED, index);
+	GetTextData(tokens, pmapJSON, "ARTISTSORT", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_PERFSORTLED, index);
+	GetTextData(tokens, pmapJSON, "ALBUMSORT", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_ALBUMSORTLED, index);
+	GetTextData(tokens, pmapJSON, "CONDUCTOR", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
+	GetTextData(tokens, pmapJSON, "DATE", tab1Handle, TAB1_YEAR, TAB1_YEARLED, index);
+	GetTextData(tokens, pmapJSON, "ALBUMARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);
+	GetTextData(tokens, pmapJSON, "GENRE", tab1Handle, TAB1_GENRE, TAB1_GENRELED, index);
+
+	GetTextData(tokens, pmapJSON, "replaygain_album_gain", tab1Handle, TAB1_ALBUMGAIN, TAB1_ALBUMGAINLED, index);
+	GetTextData(tokens, pmapJSON, "RELEASETYPE", tab1Handle, TAB1_RELTYPE, TAB1_RELTYPELED, index);
+	GetTextData(tokens, pmapJSON, "MUSICBRAINZ_RELEASEGROUPID", tab3Handle, TAB3_REID, 0, index);
+	GetTextData(tokens, pmapJSON, "MUSICBRAINZ_ARTISTID", tab3Handle, TAB3_ARTISTMBID, 0, index);
+	GetTextData(tokens, pmapJSON, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, TAB1_COUNTRYLED, index);
+	GetTextData(tokens, pmapJSON, "EDITION", tab1Handle, TAB1_EDITION, TAB1_EDITIONLED, index);
 	//GetCtrlVal(panel, PANEL_USEWINAMPALBUMARTIST, &useTPE2);
 	//if (useTPE2)
 	//else
 	//	GetTextInformation(id3tag, "ALBUM ARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);// foobar style
-	//GetTextInformation(id3tag, index);
 	GetPictureData(taglibfile, "APIC", tab2Handle, TAB2_ARTWORK, TAB2_ARTWORKLED, index);
-	//GetExtendedFields(id3tag, index);
-	GetUnhandledFields(taglibfile, index);
+	GetUnhandledFields(tokens, pmapJSON, index);
+	free(tokens);
 
 Error:
-	if (id3file)
-		id3_file_close(id3file);
+	if (pmapJSON)
+		free(pmapJSON);
 	if (taglibfile)
 		taglib_file_free(taglibfile);
 	taglib_tag_free_strings();
 	return 0;
 }
 
-int GetTitleData(TagLib_File *taglibfile, char *frameType, int panel, int control, int index)
+int GetTitleData(jsmntok_t *tokens, char *pmapJSON, char *frameType, int panel, int control, int index)
 {
-	int			numStrs, found = 0;
+	int			found = 0;
 	char 		*string = NULL;
 	size_t		len;
 
-	if (taglib_file_property_attrs(taglibfile, frameType, &numStrs, &len)) {
-		string = malloc(sizeof(char) * len + 1);
-		strcpy(string, taglib_file_property(taglibfile, frameType));
+	len = SearchJSONForKey(tokens, pmapJSON, frameType, &string);
+	if (len) {
 		SetTreeCellAttribute(panel, control, index, kTreeColTrackName, ATTR_LABEL_TEXT, string);
 		found = 1;
 	}
@@ -134,17 +136,35 @@ Error:
 	return found;
 }
 
-int GetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index)
+size_t SearchJSONForKey(jsmntok_t *tokens, char *pmapJSON, char *frameType, char **string)
+{
+	int i=0;
+	size_t len = 0;
+	
+	jsmntok_t *t = &tokens[i];
+	while (t->type > JSMN_PRIMITIVE) {
+		if (t->type == JSMN_STRING && json_token_streq(pmapJSON, t, frameType)) {
+			t = &tokens[++i];	// value of key
+			len = strlen(json_token_tostr(pmapJSON, t));
+			*string = malloc(sizeof(char) * len + 1);
+			strcpy(*string, json_token_tostr(pmapJSON, t));
+			break;
+		}
+		t = &tokens[++i];
+	}
+	return len;
+}
+
+int GetTextData(jsmntok_t *tokens, char *pmapJSON, char *frameType, int panel, int control, int conflict, int index)
 {
 	int				error, found = 0, style;
-	unsigned int 	numStrs;
-	size_t			len;
+	size_t			len = 0;
 	char 			*origData = NULL, *string = NULL;
 
-	if (taglib_file_property_attrs(taglibfile, frameType, &numStrs, &len)) {
-		string = malloc(sizeof(char) * len + 1);
-		strcpy(string, taglib_file_property(taglibfile, frameType));
-
+	
+	len = SearchJSONForKey(tokens, pmapJSON, frameType, &string);
+	if (len) {
+		
 		GetCtrlAttribute(panel, control, ATTR_CTRL_STYLE, &style);
 		switch (style) {
 			case CTRL_STRING:
@@ -389,19 +409,23 @@ int isHandledFrame(char *key)
 		return 0;
 }
 
-int GetUnhandledFields(TagLib_File *taglibfile, int index)
+int GetUnhandledFields(jsmntok_t *tokens, char *pmapJSON, int index)
 {
 	int 	i=0, numStrs, numItems, found = -1;
 	size_t	len;
 	char	frameType[255];
 	char	*string = NULL;
+	jsmntok_t *t = &tokens[i];
 
-	while (strcpy(frameType, taglib_file_property_key_index(taglibfile, i)) && strlen(frameType)) {
-		if (!isHandledFrame(frameType)) {
-			if (taglib_file_property_attrs(taglibfile, frameType, &numStrs, &len)) {
+	while (t->type > JSMN_PRIMITIVE) {
+		if (t->type == JSMN_STRING) {
+			strcpy(frameType, json_token_tostr(pmapJSON, t));
+			if (!isHandledFrame(frameType)) {
+
+				t = &tokens[++i];	// value of key
+				len = strlen(json_token_tostr(pmapJSON, t));
 				string = malloc(sizeof(char) * len + 1);
-				strcpy(string, taglib_file_property(taglibfile, frameType));
-//				ErrorPrintf("%d. %s - %s", i, frameType, string);
+				strcpy(string, json_token_tostr(pmapJSON, t));
 			
 				GetNumListItems(tab3Handle, TAB3_EXTENDEDTAGS, &numItems);
 				if (numItems) {
@@ -416,9 +440,11 @@ int GetUnhandledFields(TagLib_File *taglibfile, int index)
 				}
 				free(string);
 				string = NULL;
+			} else {
+				t = &tokens[++i];	// this does not handle arrays or objects
 			}
 		}
-		i++;
+		t = &tokens[++i];
 	}
 
 	if (string)
