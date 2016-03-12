@@ -79,7 +79,7 @@ int GetID3v2Tag(int panel, char *filename, int index)
 	GetTextData(tokens, pmapJSON, "COPYRIGHT", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
 	GetTextData(tokens, pmapJSON, "COMMENT", tab1Handle, TAB1_COMMENT, TAB1_COMMENTLED, index);
 	GetTextData(tokens, pmapJSON, "COMPOSER", tab1Handle, TAB1_COMPOSER, TAB1_COMPOSERLED, index);
-	GetTextData(tokens, pmapJSON, "DISCNUM", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
+	GetTextData(tokens, pmapJSON, "DISCNUMBER", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
 	GetTextData(tokens, pmapJSON, "LABEL", tab1Handle, TAB1_PUBLISHER, TAB1_PUBLISHERLED, index);
 	GetTextData(tokens, pmapJSON, "ORIGINALARTIST", tab2Handle, TAB2_ORIGARTIST, TAB2_ORIGARTISTLED, index);
 	GetTextData(tokens, pmapJSON, "URL", tab2Handle, TAB2_URL, TAB2_URLLED, index);
@@ -153,7 +153,7 @@ size_t SearchJSONForKey(jsmntok_t *tokens, char *pmapJSON, char *frameType, char
 int GetTextData(jsmntok_t *tokens, char *pmapJSON, char *frameType, int panel, int control, int conflict, int index)
 {
 	int				error, found = 0, style;
-	size_t			len = 0;
+	int		len = 0;
 	char 			*origData = NULL, *string = NULL;
 
 	
@@ -240,7 +240,7 @@ int isHandledFrame(char *key)
 		!stricmp("COMPOSER", key) ||
 		!stricmp("CONDUCTOR", key) ||
 		!stricmp("DATE", key) ||
-		!stricmp("DISCNUM", key) ||
+		!stricmp("DISCNUMBER", key) ||
 		!stricmp("EDITION", key) ||
 		!stricmp("GENRE", key) ||
 		!stricmp("LABEL", key) ||
