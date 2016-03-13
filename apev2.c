@@ -62,19 +62,19 @@ int LoadAPEv2Tag (int panel, char *fileName, int index)
 	GetAPETagData(tag, "album artist", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);
 	GetAPETagData(tag, "albumsortorder", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_ALBUMSORTLED, index);
 	GetAPETagData(tag, "artistcountry", tab1Handle, TAB1_COUNTRY, TAB1_COUNTRYLED, index);
+	GetAPETagData(tag, "artistfilter", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index);
 	GetAPETagData(tag, "artistsortorder", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_PERFSORTLED, index);
 	GetAPETagData(tag, "comment", tab1Handle, TAB1_COMMENT, TAB1_COMMENTLED, index);
 	GetAPETagData(tag, "composer", tab1Handle, TAB1_COMPOSER, TAB1_COMPOSERLED, index);
-	GetAPETagData(tag, "conductor", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
 	GetAPETagData(tag, "copyright", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
 	GetAPETagData(tag, "disc", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
 	GetAPETagData(tag, "edition", tab1Handle, TAB1_EDITION, TAB1_EDITIONLED, index);
 	GetAPETagData(tag, "encoded", tab2Handle, TAB2_ENCODED, TAB2_ENCODEDLED, index);
 	GetAPETagData(tag, "genre", tab1Handle, TAB1_GENRE, TAB1_GENRELED, index);
+	GetAPETagData(tag, "label", tab1Handle, TAB1_PUBLISHER, TAB1_PUBLISHERLED, index);
 	GetAPETagData(tag, "musicbrainz_artistid", tab3Handle, TAB3_ARTISTMBID, 0, index);
 	GetAPETagData(tag, "musicbrainz_releasegroupid", tab3Handle, TAB3_REID, 0, index);
 	GetAPETagData(tag, "original artist", tab2Handle, TAB2_ORIGARTIST, TAB2_ORIGARTISTLED, index);
-	GetAPETagData(tag, "publisher", tab1Handle, TAB1_PUBLISHER, TAB1_PUBLISHERLED, index);
 	GetAPETagData(tag, "releasetype", tab1Handle, TAB1_RELTYPE, TAB1_RELTYPELED, index);
 	GetAPETagData(tag, "replaygain_album_gain", tab1Handle, TAB1_ALBUMGAIN, TAB1_ALBUMGAINLED, index);
 	GetAPETagData(tag, "url", tab2Handle, TAB2_URL, TAB2_URLLED, index);
@@ -285,19 +285,19 @@ int SetAPEv2Tag(int panel, char *filename, char *newname, int index)
 	UpdateAPETagItem(tag, "album artist", tab1Handle, TAB1_ALBUMARTIST, TAB1_UPDATEALBUMARTIST, dataHandle.albumArtistPtr, index, FALSE);
 	UpdateAPETagItem(tag, "albumsortorder", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_UPDATEALBUMSORT, dataHandle.albSortOrderPtr, index, FALSE);
 	UpdateAPETagItem(tag, "artistcountry", tab1Handle, TAB1_COUNTRY, TAB1_UPDATECOUNTRY, dataHandle.countryPtr, index, FALSE);
+	UpdateAPETagItem(tag, "artistfilter", tab1Handle, TAB1_ARTISTFILTER, TAB1_UPDATEARTISTFILTER, dataHandle.artistFilterPtr, index, gUseMetaArtistFilter);
 	UpdateAPETagItem(tag, "artistsortorder", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_UPDATEPERFSORT, dataHandle.perfSortOrderPtr, index, FALSE);
 	UpdateAPETagItem(tag, "comment", tab1Handle, TAB1_COMMENT, TAB1_UPDATECOMMENT, dataHandle.commentPtr, index, FALSE);
 	UpdateAPETagItem(tag, "composer", tab1Handle, TAB1_COMPOSER, TAB1_UPDATECOMPOSER, dataHandle.composerPtr, index, FALSE);
-	UpdateAPETagItem(tag, "conductor", tab1Handle, TAB1_ARTISTFILTER, TAB1_UPDATEARTISTFILTER, dataHandle.artistFilterPtr, index, FALSE);
 	UpdateAPETagItem(tag, "copyright", tab2Handle, TAB2_COPYRIGHT, TAB2_UPDATECOPYRIGHT, dataHandle.copyrightPtr, index, FALSE);
 	UpdateAPETagItem(tag, "disc", tab1Handle, TAB1_DISCNUM, TAB1_UPDATEDISCNUM, dataHandle.discPtr, index, gUseMetaDataDiscVal);
 	UpdateAPETagItem(tag, "edition", tab1Handle, TAB1_EDITION, TAB1_UPDATEEDITION, dataHandle.editionPtr, index, FALSE);
 	UpdateAPETagItem(tag, "encoded", tab2Handle, TAB2_ENCODED, TAB2_UPDATEENCODED, dataHandle.encodedPtr, index, FALSE);
 	UpdateAPETagItem(tag, "genre", tab1Handle, TAB1_GENRE, TAB1_UPDATEGENRE, dataHandle.genrePtr, index, FALSE);
+	UpdateAPETagItem(tag, "label", tab1Handle, TAB1_PUBLISHER, TAB1_UPDATEPUBLISHER, dataHandle.publisherPtr, index, FALSE);
 	UpdateAPETagItem(tag, "musicbrainz_artistid", tab3Handle, TAB3_ARTISTMBID, TAB3_UPDATEMBID, NULL, index, FALSE);
 	UpdateAPETagItem(tag, "musicbrainz_releasegroupid", tab3Handle, TAB3_REID, TAB3_UPDATEREID, NULL, index, FALSE);
 	UpdateAPETagItem(tag, "original artist", tab2Handle, TAB2_ORIGARTIST, TAB2_UPDATEORIGARTIST, dataHandle.origArtistPtr, index, FALSE);
-	UpdateAPETagItem(tag, "publisher", tab1Handle, TAB1_PUBLISHER, TAB1_UPDATEPUBLISHER, dataHandle.publisherPtr, index, FALSE);
 	UpdateAPETagItem(tag, "releasetype", tab1Handle, TAB1_RELTYPE, TAB1_UPDATERELTYPE, dataHandle.relTypePtr, index, FALSE);
 	UpdateAPETagItem(tag, "url", tab2Handle, TAB2_URL, TAB2_UPDATEURL, dataHandle.urlPtr, index, FALSE);
 	

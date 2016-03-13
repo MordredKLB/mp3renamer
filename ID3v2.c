@@ -31,11 +31,11 @@ int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int cont
 size_t SearchJSONForKey(jsmntok_t *tokens, char *pmapJSON, char *frameType, char **string);
 
 
-int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index);
+//int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index);
+int SetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control, int updateCtrl, int index, int multi);
+int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int index);
+
 int SetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index);
-int SetGenreData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index);
-int SetTitleData(id3_Tag *id3tag, char *frameType, int panel, int updateCtrl, char *filename, int index);
-int SetTrackData(id3_Tag *id3tag, char *frameType, int panel, char *filename, int index);
 int SetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int clearCtrl);
 int SetExtendedFields(id3_Tag *id3tag, int index);
 int SetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control, int updatePanel, int updateCtrl, int index);
@@ -85,7 +85,7 @@ int GetID3v2Tag(int panel, char *filename, int index)
 	GetTextData(tokens, pmapJSON, "URL", tab2Handle, TAB2_URL, TAB2_URLLED, index);
 	GetTextData(tokens, pmapJSON, "ARTISTSORT", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_PERFSORTLED, index);
 	GetTextData(tokens, pmapJSON, "ALBUMSORT", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_ALBUMSORTLED, index);
-	GetTextData(tokens, pmapJSON, "CONDUCTOR", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
+	GetTextData(tokens, pmapJSON, "ARTISTFILTER", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
 	GetTextData(tokens, pmapJSON, "DATE", tab1Handle, TAB1_YEAR, TAB1_YEARLED, index);
 	GetTextData(tokens, pmapJSON, "ALBUMARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);
 	GetTextData(tokens, pmapJSON, "GENRE", tab1Handle, TAB1_GENRE, TAB1_GENRELED, index);
@@ -96,6 +96,8 @@ int GetID3v2Tag(int panel, char *filename, int index)
 	GetTextData(tokens, pmapJSON, "MUSICBRAINZ_ARTISTID", tab3Handle, TAB3_ARTISTMBID, 0, index);
 	GetTextData(tokens, pmapJSON, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, TAB1_COUNTRYLED, index);
 	GetTextData(tokens, pmapJSON, "EDITION", tab1Handle, TAB1_EDITION, TAB1_EDITIONLED, index);
+	GetTextData(tokens, pmapJSON, "REPLAYGAIN_ALBUM_GAIN", tab1Handle, TAB1_ALBUMGAIN, TAB1_ALBUMGAINLED, index);
+	
 	//GetCtrlVal(panel, PANEL_USEWINAMPALBUMARTIST, &useTPE2);
 	//if (useTPE2)
 	//else
@@ -169,9 +171,9 @@ size_t SearchJSONForKey(jsmntok_t *tokens, char *pmapJSON, char *frameType, char
 
 int GetTextData(jsmntok_t *tokens, char *pmapJSON, char *frameType, int panel, int control, int conflict, int index)
 {
-	int				error, found = 0, style;
+	int		error, found = 0, style;
 	int		len = 0;
-	char 			*origData = NULL, *string = NULL;
+	char 	*origData = NULL, *string = NULL;
 
 	
 	len = SearchJSONForKey(tokens, pmapJSON, frameType, &string);
@@ -250,12 +252,12 @@ int isHandledFrame(char *key)
 		!stricmp("ALBUMSORT", key) ||
 		!stricmp("ARTIST", key) ||
 		!stricmp("ARTISTCOUNTRY", key) ||
+		!stricmp("ARTISTFILTER", key) ||
 		!stricmp("ARTISTSORT", key) ||
 		!stricmp("ENCODEDBY", key) ||
 		!stricmp("COPYRIGHT", key) ||
 		!stricmp("COMMENT", key) ||
 		!stricmp("COMPOSER", key) ||
-		!stricmp("CONDUCTOR", key) ||
 		!stricmp("DATE", key) ||
 		!stricmp("DISCNUMBER", key) ||
 		!stricmp("EDITION", key) ||
@@ -345,7 +347,8 @@ int GetImageTypeExtension(char *type, char ext[4])
 
 int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index)
 {
-	int			error, pictureType;
+	int			error;
+	unsigned int pictureType;
 	int			width, height, bitmap = 0;
 	char 		mimeType[255], imageNameStr[MAX_FILENAME_LEN], ext[4], sizeStr[100];
 	char		*desc = NULL;
@@ -435,6 +438,7 @@ void StoreDataVals(int panel, int control, char *string, int index)
 			case TAB1_ARTISTFILTER:
 				dataHandle.artistFilterPtr[index] = calloc(size, sizeof(char));
 				strcpy(dataHandle.artistFilterPtr[index], string);
+				gUseMetaArtistFilter = TRUE;
 				break;
 			case TAB1_PUBLISHER:
 				dataHandle.publisherPtr[index] = calloc(size, sizeof(char));
@@ -503,68 +507,48 @@ void StoreDataVals(int panel, int control, char *string, int index)
 
 int SetID3v2Tag(int panel, char *filename, char *newname, int index)
 {
-	int 	i, error, useTPE2, update;
-	size_t	v2size;
-	void 	*id3file = NULL;
-	id3_Tag *id3tag = NULL;
-
+	int 	error=0;
+	TagLib_File *taglibfile;
+	TagLib_Tag *tag;
+	
+	taglib_set_strings_unicode(FALSE);
+	taglibfile = taglib_file_new(filename);
+	tag = taglib_file_tag(taglibfile);
+	
+	
 	strcpy(gFilename, filename);	// needed for file.c
 
-	id3file = id3_file_open(filename, ID3_FILE_MODE_READWRITE);
-	id3tag = id3_file_tag(id3file);
-	SetTitleData(id3tag, "TIT2", panel, PANEL_UPDATETITLE, newname, index);
-	SetTrackData(id3tag, "TRCK", panel, newname, index);
-	SetTextData(id3tag, "TALB", panel, PANEL_ALBUM, PANEL_UPDATEALBUM, index);
-	SetTextData(id3tag, "TPE1", panel, PANEL_ARTIST, PANEL_UPDATEARTIST, index);
-	SetTextData(id3tag, "TENC", tab2Handle, TAB2_ENCODED, TAB2_UPDATEENCODED, index);
-	SetTextData(id3tag, "TCOP", tab2Handle, TAB2_COPYRIGHT, TAB2_UPDATECOPYRIGHT, index);
-	SetTextData(id3tag, "TCOM", tab1Handle, TAB1_COMPOSER, TAB1_UPDATECOMPOSER, index);
-	GetCtrlVal(tab1Handle, TAB1_UPDATEDISCNUM, &update);
-	if (update)
-		RemoveFrame(id3tag, "TPOS");
-	SetTextData(id3tag, "TPOS", tab1Handle, TAB1_DISCNUM, TAB1_UPDATEDISCNUM, index);
-	SetTextData(id3tag, "TPUB", tab1Handle, TAB1_PUBLISHER, TAB1_UPDATEPUBLISHER, index);
-	SetTextData(id3tag, "TOPE", tab2Handle, TAB2_ORIGARTIST, TAB2_UPDATEORIGARTIST, index);
-	SetTextData(id3tag, "WXXX", tab2Handle, TAB2_URL, TAB2_UPDATEURL, index);
-	//SetTextData(id3tag, "TYER", tab1Handle, TAB1_YEAR, TAB1_UPDATEYEAR, index);
-	RemoveFrame(id3tag, "TYER");	// supposedly this frame is not used in v2.4
-	RemoveFrame(id3tag, "TDRC");	// force it to only show what is in Year
-	SetTextData(id3tag, "TDRC", tab1Handle, TAB1_YEAR, TAB1_UPDATEYEAR, index);
-	SetTextData(id3tag, "TSOP", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_UPDATEPERFSORT, index);
-
-	SetCommentsData(id3tag, "COMM", tab1Handle, TAB1_COMMENT, TAB1_UPDATECOMMENT, index);
-	SetGenreData(id3tag, "TCON", tab1Handle, TAB1_GENRE, TAB1_UPDATEGENRE, index);
-	SetPictureData(id3tag,"APIC",tab2Handle, TAB2_ARTWORK, TAB2_UPDATEARTWORK, TAB2_CLEARARTWORK);
-	SetTextData(id3tag, "TSOA", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_UPDATEALBUMSORT, index);
-	SetTextData(id3tag, "TPE3", tab1Handle, TAB1_ARTISTFILTER, TAB1_UPDATEARTISTFILTER, index); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
-
-
-	SetExtendedFields(id3tag, index);
-
-	GetCtrlVal(panel, PANEL_USEWINAMPALBUMARTIST, &useTPE2);
-	if (useTPE2)
-		SetTextData(id3tag, "TPE2", tab1Handle, TAB1_ALBUMARTIST, TAB1_UPDATEALBUMARTIST, index);
-	else
-		SetTextInformation(id3tag, "ALBUM ARTIST", tab1Handle, TAB1_ALBUMARTIST, tab1Handle, TAB1_UPDATEALBUMARTIST, index);
-	SetTextInformation(id3tag, "RELEASETYPE", tab1Handle, TAB1_RELTYPE, tab1Handle, TAB1_UPDATERELTYPE, index);
-	SetTextInformation(id3tag, "MUSICBRAINZ_ARTISTID", tab3Handle, TAB3_ARTISTMBID, tab3Handle, TAB3_UPDATEMBID, index);
-	SetTextInformation(id3tag, "MUSICBRAINZ_RELEASEGROUPID", tab3Handle, TAB3_REID, tab3Handle, TAB3_UPDATEREID, index);
-	SetTextInformation(id3tag, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, tab1Handle, TAB1_UPDATECOUNTRY, index);
-	SetTextInformation(id3tag, "EDITION", tab1Handle, TAB1_EDITION, tab1Handle, TAB1_UPDATEEDITION, index);
-
-
-	i = id3tag->options;
-	id3tag->options &= ~ID3_TAG_OPTION_ID3V1;		// clear flag to get size of id3v2
-	id3tag->options |= ID3_TAG_OPTION_NOPADDING;	// calculate size without padding
-	v2size = id3_tag_render(id3tag, 0);
-	id3tag->options = i;
-	if (v2size > id3tag->paddedsize || (v2size + (DEFAULT_PAD_SIZE*2) < id3tag->paddedsize))
-		id3_tag_setlength(id3tag, v2size + DEFAULT_PAD_SIZE);
-	error = id3_file_update(id3file);
-
+	SetTextData(taglibfile, "TITLE", panel, PANEL_TREE, PANEL_UPDATETITLE, index, false);
+	SetTextData(taglibfile, "TRACKNUMBER", panel, PANEL_ALBUM, PANEL_TREE, index, false);
+	SetTextData(taglibfile, "ALBUM", panel, PANEL_ALBUM, PANEL_UPDATEALBUM, index, false);
+	SetTextData(taglibfile, "ALBUMARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_UPDATEALBUMARTIST, index, true);
+	SetTextData(taglibfile, "ALBUMSORT", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_UPDATEALBUMSORT, index, false);
+	SetTextData(taglibfile, "ARTIST", panel, PANEL_ARTIST, PANEL_UPDATEARTIST, index, true);
+	SetTextData(taglibfile, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, TAB1_UPDATECOUNTRY, index, true);
+	SetTextData(taglibfile, "ARTISTSORT", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_UPDATEPERFSORT, index, false);
+	SetTextData(taglibfile, "COMMENT", tab1Handle, TAB1_COMMENT, TAB1_UPDATECOMMENT, index, false);
+	SetTextData(taglibfile, "COMPOSER", tab1Handle, TAB1_COMPOSER, TAB1_UPDATECOMPOSER, index, true);
+	SetTextData(taglibfile, "ARTISTFILTER", tab1Handle, TAB1_ARTISTFILTER, TAB1_UPDATEARTISTFILTER, index, true); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
+	SetTextData(taglibfile, "COPYRIGHT", tab2Handle, TAB2_COPYRIGHT, TAB2_UPDATECOPYRIGHT, index, true);
+	SetTextData(taglibfile, "DATE", tab1Handle, TAB1_YEAR, TAB1_UPDATEYEAR, index, false);
+	SetTextData(taglibfile, "DISCNUMBER", tab1Handle, TAB1_DISCNUM, TAB1_UPDATEDISCNUM, index, false);
+	SetTextData(taglibfile, "EDITION", tab1Handle, TAB1_EDITION, TAB1_UPDATEEDITION, index, false);
+	SetTextData(taglibfile, "ENCODEDBY", tab2Handle, TAB2_ENCODED, TAB2_UPDATEENCODED, index, true);
+	SetTextData(taglibfile, "GENRE", tab1Handle, TAB1_GENRE, TAB1_UPDATEGENRE, index, true);
+	SetTextData(taglibfile, "LABEL", tab1Handle, TAB1_PUBLISHER, TAB1_UPDATEPUBLISHER, index, true);
+	SetTextData(taglibfile, "MUSICBRAINZ_ARTISTID", tab3Handle, TAB3_ARTISTMBID, TAB3_UPDATEMBID, index, true);
+	SetTextData(taglibfile, "MUSICBRAINZ_RELEASEGROUPID", tab3Handle, TAB3_REID, TAB3_UPDATEREID, index, false);
+	SetTextData(taglibfile, "ORIGINALARTIST", tab2Handle, TAB2_ORIGARTIST, TAB2_UPDATEORIGARTIST, index, true);
+	SetTextData(taglibfile, "RELEASETYPE", tab1Handle, TAB1_RELTYPE, TAB1_UPDATERELTYPE, index, false);
+	SetTextData(taglibfile, "URL", tab2Handle, TAB2_URL, TAB2_UPDATEURL, index, true);
+	SetUnhandledFields(taglibfile, tab3Handle, TAB3_EXTENDEDTAGS, index);
+	
+	error = taglib_file_save(taglibfile);
+	
 Error:
-	if (id3file)
-		id3_file_close(id3file);
+	if (taglibfile)
+		taglib_file_free(taglibfile);
+	taglib_tag_free_strings();	// do we need this?
 
 	return error;
 }
@@ -576,15 +560,106 @@ void GetFileName(char *buf)
 
 #define kMaxMultipleValues	10
 
-int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index)
+//int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index)
+int SetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control, int updateCtrl, int index, int multi)
 {
-	int 			error, len, i, update, trackArtists = FALSE, nStrings, type=0;
-	char 			*data=NULL, *strVal=NULL, *tmpStr = NULL, *ptr, *start;
-	id3frame 		*frame;
-	union id3_field	*field;
-	id3_ucs4_t 		*ucs4Str[kMaxMultipleValues] = {0};	// max of 10 values?
-	unsigned char	*stringVals[kMaxMultipleValues] = {0};
+	int 			error, len, update, needsVarious=0, style;
+	char 			*data=NULL, *strVal=NULL, *tmpStr = NULL;
 
+	errChk(GetCtrlVal(panel, updateCtrl, &update));
+	if (!update)
+		goto Error;
+
+	if (!strcmp(frameType, "DISCNUMBER") && gUseMetaDataDiscVal && dataHandle.discPtr[index]) {	// disc num
+		if (!strcmp(dataHandle.discPtr[index], "1/1"))
+			goto Error;	// don't save "1/1" strings
+		len = strlen(dataHandle.discPtr[index]);
+		nullChk(data = calloc(len+3, sizeof(char)));
+		sprintf(data, "%s\0", dataHandle.discPtr[index]);
+	} else if (!stricmp(frameType, "TITLE")) {
+		GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColTrackName, ATTR_LABEL_TEXT_LENGTH, &len);
+		nullChk(data = calloc(len+1, sizeof(char)));
+		errChk(GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColTrackName, ATTR_LABEL_TEXT, data));
+	} else if (!stricmp(frameType, "TRACKNUMBER")) {
+		GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColTrackNum, ATTR_LABEL_TEXT_LENGTH, &len);
+		nullChk(data = calloc(len+1, sizeof(char)));
+		errChk(GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColTrackNum, ATTR_LABEL_TEXT, data));
+	} else if (!stricmp(frameType, "ARTISTFILTER")) {			// If we're setting the custom "Artist Filter" check to see if Album Artist is VA/Soundtrack and add that, along with Artist
+		//GetCtrlVal(panelHandle, PANEL_SHOWTRACKARTISTS, &trackArtists);
+		GetCtrlAttribute(tab1Handle, TAB1_ALBUMARTIST, ATTR_STRING_TEXT_LENGTH, &len);
+		if (!len && gUseMetaArtistFilter) 
+			goto Error;	// don't update if no album artist
+		else if (!len && !gUseMetaArtistFilter)
+			goto Default;	// artist filter was explicitly edited, so set it
+		nullChk(data = calloc(len+1, sizeof(char)));
+		GetCtrlVal(tab1Handle, TAB1_ALBUMARTIST, data);
+		if (stristr(data, "Various Artists")) {
+			needsVarious = 1;
+		} else if (stristr(data, "Soundtrack")) {
+			needsVarious = 2;
+		}
+		free(data);
+		GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
+		if (len) {
+			nullChk(data = calloc(len+20, sizeof(char)));
+			errChk(GetCtrlVal(panel, control, data));
+		} else if (needsVarious) {
+			GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT_LENGTH, &len);
+			nullChk(data = calloc(len+20, sizeof(char)));
+			errChk(GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT, data));
+		} else {
+			GetCtrlAttribute(tab1Handle, TAB1_PERFORMERSORTORDER, ATTR_STRING_TEXT_LENGTH, &len);
+			if (len > 0) {
+				nullChk(data = calloc(len+20, sizeof(char)));	// +20 so we can add a comma & "; Various Artists" as needed
+				errChk(GetCtrlVal(tab1Handle, TAB1_PERFORMERSORTORDER, data));
+			} else {
+				GetCtrlAttribute(panelHandle, PANEL_ARTIST, ATTR_STRING_TEXT_LENGTH, &len);
+				nullChk(data = calloc(len+20, sizeof(char)));
+				errChk(GetCtrlVal(panelHandle, PANEL_ARTIST, data));
+			}
+		}
+		if (!strncmp("The ", data, 4) || !strncmp("the ", data, 4)) {
+			memmove(data, data+4, strlen(data)-3);	// include NULL
+			strcat(data, ", The");
+		}
+
+		if (needsVarious == 1 && !stristr(data, "Various Artists")) {
+			strcat(data, "; Various Artists");	
+		} else if (needsVarious == 2 && !stristr(data, "Soundtrack")) {
+			strcat(data, "; Soundtrack");	
+		}
+		
+	} else {		// handle everything but disc num and Artist Filter
+Default:
+		int val;
+		GetCtrlVal(panelHandle, PANEL_SHOWTRACKARTISTS, &val);
+		if (!stricmp(frameType, "ARTIST") && val == TRUE) {
+			GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT_LENGTH, &len);
+			nullChk(data = calloc(len+1, sizeof(char)));
+			errChk(GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT, data));
+		} else {
+			GetCtrlAttribute(panel, control, ATTR_CTRL_STYLE, &style);
+			switch (style) {
+				case CTRL_STRING:
+				case CTRL_STRING_LS:
+				case CTRL_TEXT_BOX:
+				case CTRL_TEXT_BOX_LS:
+					GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
+					nullChk(data = malloc(len+1));
+					GetCtrlVal(panel, control, data);
+					break;
+				case CTRL_TABLE_LS:
+					GetTableCellValLength(panel, control, tagCell, &len);
+					nullChk(data = malloc(len+1));
+					GetTableCellVal(panel, control, tagCell, data);
+					break;
+			}
+		}
+	}	
+
+	taglib_file_set_property(taglibfile, frameType, data, multi);
+	
+#if 0
 	for (i=0;i<kMaxMultipleValues;i++) {
 		ucs4Str[i] = NULL;
 		stringVals[i] = NULL;
@@ -720,15 +795,9 @@ int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int up
 		id3_tag_detachframe(id3tag, frame);
 		id3_frame_delete(frame);
 	}
-
+#endif
 
 Error:
-	for (i=0;i<kMaxMultipleValues;i++) {
-		if (ucs4Str[i])
-			free(ucs4Str[i]);
-		if (stringVals[i])
-			free(stringVals[i]);
-	}
 	if (data)
 		free(data);
 	if (tmpStr)
@@ -739,94 +808,6 @@ Error:
 	return error;
 }
 
-int SetTitleData(id3_Tag *id3tag, char *frameType, int panel, int updateCtrl, char *filename, int index)
-{
-	int 			error, len, update, nStrings;
-	char 			*data=NULL, *ptr = NULL, *title = NULL;
-	id3frame 		*frame = NULL;
-	union id3_field	*field;
-	id3_ucs4_t 		*ucs4Str = NULL;
-
-	errChk(GetCtrlVal(panel, updateCtrl, &update));
-	if (!update)
-		return 0;
-
-	GetTreeCellAttribute (panelHandle, PANEL_TREE, index, kTreeColTrackName, ATTR_LABEL_TEXT_LENGTH, &len);
-	if (len) {
-		title = malloc(sizeof(char) * (len + 1));
-		GetTreeCellAttribute (panelHandle, PANEL_TREE, index, kTreeColTrackName, ATTR_LABEL_TEXT, title);
-		ptr = title;
-		}
-	else
-		ptr = FindSongTitle(filename, index, &len);
-	if (ptr) {
-		nullChk(data = calloc(len+1, sizeof(char)));
-		strncpy(data, ptr, len);
-
-		frame = id3_tag_findframe(id3tag, frameType, 0);
-		if (!frame) {
-			frame = NewFrame(id3tag, frameType);
-			}
-		/* update existing frame */
-		field = id3_frame_field(frame, frame->nfields-1);	// I think we always want the last field in the frame
-		if (field->type) {
-			nStrings = id3_field_getnstrings(field);
-			ucs4Str = id3_latin1_ucs4duplicate((id3_latin1_t *)data);
-			id3_field_setstrings(field, 1, &ucs4Str);	// always add/store in first string
-			}
-		}
-
-Error:
-	if (title)
-		free(title);
-	if (data)
-		free(data);
-	if (ucs4Str)
-		free(ucs4Str);
-	return 1;
-}
-
-int SetTrackData(id3_Tag *id3tag, char *frameType, int panel, char *filename, int index)
-{
-	int 			error, len, nStrings;
-	char 			*data=NULL, *ptr = NULL, trackStr[5];
-	id3frame 		*frame = NULL;
-	union id3_field	*field;
-	id3_ucs4_t 		*ucs4Str = NULL;
-
-	GetTreeCellAttribute (panelHandle, PANEL_TREE, index, kTreeColTrackNum, ATTR_LABEL_TEXT, trackStr);
-	if (!strcmp(trackStr, ""))
-		ptr = FindTrackNum(filename, index, &len, trackStr);
-	else {
-		ptr = trackStr;
-		len = (int)strlen(trackStr);
-		}
-
-	if (ptr) {
-		nullChk(data = calloc(len+1, sizeof(char)));
-		strncpy(data, trackStr, len);
-
-		frame = id3_tag_findframe(id3tag, frameType, 0);
-		if (!frame)
-			frame = NewFrame(id3tag, frameType);
-		/* update existing frame */
-		field = id3_frame_field(frame, frame->nfields-1);	// I think we always want the last field in the frame
-		if (field->type) {
-			nStrings = id3_field_getnstrings(field);
-			ucs4Str = id3_latin1_ucs4duplicate((id3_latin1_t *)data);
-			id3_field_setstrings(field, 1, &ucs4Str);	// always add/store in first string
-			}
-		}
-	else
-		return 0;
-
-Error:
-	if (data)
-		free(data);
-	if (ucs4Str)
-		free(ucs4Str);
-	return 1;
-}
 
 int SetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int clearCtrl)
 {
@@ -950,44 +931,6 @@ Error:
 	return error;
 }
 
-int SetGenreData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index)
-{
-	int			len, error, update;
-	char 		*data = NULL;
-	id3frame 	*frame;
-	union id3_field	 *field;
-	id3_ucs4_t *ucs4genre = NULL;
-
-	errChk(GetCtrlVal(panel, updateCtrl, &update));
-	if (!update)
-		goto Error;
-	else {
-		GetTableCellValLength(panel, control, tagCell, &len);
-		nullChk(data = calloc(len+1, sizeof(char)));
-		GetTableCellVal(panel, control, tagCell, data);
-		}
-
-	if (len) {	// add/update tag
-		RemoveFrame(id3tag, frameType);	// we need to remove this frame and start over
-
-		frame = NewFrame(id3tag, frameType);
-		field = id3_frame_field(frame, 1);
-		if (!field)
-			return 0;
-		if (field->type == ID3_FIELD_TYPE_STRINGLIST) {
-			ucs4genre = id3_latin1_ucs4duplicate((id3_latin1_t *)data);
-			id3_field_addstring(field, ucs4genre);
-			}
-		}
-
-Error:
-	if (data)
-		free(data);
-	if (ucs4genre)
-		free(ucs4genre);
-	return 1;
-}
-
 
 /* currently this can only be used to set the "ALBUM ARTIST" TXXX field */
 int SetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control, int updatePanel, int updateCtrl, int index)
@@ -1040,6 +983,46 @@ Error:
 	if (ucs4data)
 		free(ucs4data);
 	return error;
+}
+
+int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int index)
+{
+	int i, numItems, checked, len;
+	char *key=NULL, *val=NULL, *origVal=NULL;
+	
+	GetNumListItems(panel, control, &numItems);
+	for (i=0;i<numItems;i++) {
+		GetTreeItemAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, ATTR_MARK_STATE, &checked);
+		if (checked) {
+			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColValue, ATTR_LABEL_TEXT_LENGTH, &len);
+			val = malloc(sizeof(char) * len + 1);
+			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColValue, ATTR_LABEL_TEXT, val);
+			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColOrigValue, ATTR_LABEL_TEXT_LENGTH, &len);
+			origVal = malloc(sizeof(char) * len + 1);
+			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColOrigValue, ATTR_LABEL_TEXT, origVal);
+			if (strcmp(val, origVal)) {
+				// val was changed, so update in tags
+				GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT_LENGTH, &len);
+				key = malloc(sizeof(char) * len + 1);
+				GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT, key);
+				taglib_file_set_property(taglibfile, key, "", true);
+			}
+		} else {
+			// remove this field!
+			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT_LENGTH, &len);
+			key = malloc(sizeof(char) * len + 1);
+			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT, key);
+			taglib_file_set_property(taglibfile, key, "", false);  // clears field
+		}
+	}
+
+	if (key)
+		free(key);
+	if (val)
+		free(val);
+	if (origVal)
+		free(origVal);
+	return 1;
 }
 
 int SetExtendedFields(id3_Tag *id3tag, int index)
