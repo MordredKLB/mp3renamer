@@ -1285,6 +1285,7 @@ int CVICALLBACK CancelCallback (int panel, int control, int event,
 int CVICALLBACK GetID3Tag (int panel, int control, int event,
 		void *callbackData, int eventData1, int eventData2)
 {
+	double start;
 	int i;
 	char buf[100];
 	char indexStr[3];
@@ -1303,6 +1304,7 @@ int CVICALLBACK GetID3Tag (int panel, int control, int event,
 			SetCtrlAttribute(panel, PANEL_RENAMEFOLDER, ATTR_DIMMED, FALSE);
 			DeleteListItem (tab3Handle, TAB3_EXTENDEDTAGS, 0, -1);	// clear extended tags tree
 			firstFile = TRUE;
+			start = Timer();
 			for (i=0;i<numFiles;i++) {
 				if (IsItemChecked(i)) {
 					switch (GetAudioFileType(fileStruct[i].origName)) {
@@ -1321,6 +1323,7 @@ int CVICALLBACK GetID3Tag (int panel, int control, int event,
 				sprintf(indexStr, "%d\0", i);
 				SetTreeCellAttribute (panelHandle, PANEL_TREE, i, kTreeColID, ATTR_LABEL_TEXT, indexStr);
 			}
+			ErrorPrintf("Time to read ID3 tags: %f\n", Timer() - start);
 			PopulateTrackData();
 			SetMetaDataButtonDimming(panel, 0);
 			SetConflictTooltips(panel);
@@ -1396,6 +1399,7 @@ int CVICALLBACK SetID3Tag (int panel, int control, int event,
 	int i, readOnly, archive, hidden, system, error=0, populateAlbumOrder;
 	int len, yearLen, doID3v1, val;
 	char *yearStr = NULL, artist[512];
+	double start;
 	
 	switch (event)
 		{
@@ -1419,15 +1423,17 @@ int CVICALLBACK SetID3Tag (int panel, int control, int event,
 				yearStr = GetCtrlStrVal(tab1Handle, TAB1_YEAR);
 				yearStr[4] = '\0';	// only use the first four #s of the year string incase it's something dumb like "1976-08-21"
 				SetCtrlVal(tab1Handle, TAB1_ALBUMSORTORDER, yearStr);
-				}
+			}
+			start = Timer();
 			for (i=0;i<numFiles;i++) {
 				GetFileAttrs(fileStruct[i].origName, &readOnly, &system, &hidden, &archive);
 				if (IsItemChecked(i) && !readOnly) {
 					switch (GetAudioFileType(fileStruct[i].origName)) {
 						case kFileMP3:
 							SetID3v2Tag(panel, fileStruct[i].origName, fileStruct[i].newName, i);
-							if (doID3v1) 
+							if (doID3v1) {																																																										 
 								SetID3v1Tag(panel, fileStruct[i].origName, fileStruct[i].newName, i);
+							}
 							break;
 						case kFileAC3:
 						case kFileDTS:
@@ -1437,8 +1443,10 @@ int CVICALLBACK SetID3Tag (int panel, int control, int event,
 				} else if (readOnly) {
 					error = readOnly;
 				}
+				ProcessSystemEvents();
 				ProgressBar_AdvanceMilestone(progressHandle, PROGRESS_PROGRESSBAR, 0);
-				}
+			}
+			ErrorPrintf("Time to write ID3 tags: %f\n", Timer() - start);
 			ProgressBar_End(progressHandle, PROGRESS_PROGRESSBAR, NULL, 0);
 			Delay(0.15);
 			HidePanel(progressHandle);
