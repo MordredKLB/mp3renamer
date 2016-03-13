@@ -31,7 +31,9 @@ void InitUIAttrs(void)
 	SetCtrlAttribute(tab1Handle, TAB1_USBUTTON, ATTR_HEIGHT, 13);
 	SetCtrlAttribute(tab1Handle, TAB1_GUESSBUTTON, ATTR_HEIGHT, 21);
 	SetCtrlAttribute(tab1Handle, TAB1_GUESSBUTTON, ATTR_WIDTH, 40);
-	SetTreeColumnAttribute(tab3Handle, TAB3_EXTENDEDTAGS, 2, ATTR_COLUMN_VISIBLE, 0);
+#if !_CVI_DEBUG_
+	SetTreeColumnAttribute(tab3Handle, TAB3_EXTENDEDTAGS, kUnhandledTreeColOrigValue, ATTR_COLUMN_VISIBLE, 0);
+#endif
 	SetCtrlAttribute(panelHandle, PANEL_IMAGERING, ATTR_FRAME_COLOR, VAL_TRANSPARENT);
 	SetCtrlAttribute(panelHandle, PANEL_DLARTWORKBUTTON, ATTR_TOOLTIP_DELAY, 500);
 	SetCtrlAttribute(panelHandle, PANEL_IMAGERING, ATTR_TOOLTIP_DELAY, 500);

@@ -81,6 +81,12 @@ enum {
 };
 
 enum {
+	kUnhandledTreeColFieldName = 0,
+	kUnhandledTreeColValue,
+	kUnhandledTreeColOrigValue,
+};
+
+enum {
 	kAlbTreeColArtist = 0,
 	kAlbTreeColAlbum,
 	kAlbTreeColNumTracks,

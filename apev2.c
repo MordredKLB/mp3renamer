@@ -187,9 +187,9 @@ void ApeItem_handle_field(struct ApeItem *item)
 		if (found==-1) {
 			InsertTreeItem(tab3Handle, TAB3_EXTENDEDTAGS, VAL_SIBLING, 0, VAL_LAST, item->key, NULL, NULL, numItems);
 			SetTreeItemAttribute (tab3Handle, TAB3_EXTENDEDTAGS, numItems, ATTR_MARK_STATE, 1);
-			//SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, 2, ATTR_LABEL_TEXT, "TXXX");
 
-			SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, 1, ATTR_LABEL_TEXT, string);
+			SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, kUnhandledTreeColValue, ATTR_LABEL_TEXT, string);
+			SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, kUnhandledTreeColOrigValue, ATTR_LABEL_TEXT, string);
 			SetCtrlVal(panelHandle, PANEL_TABVALS2, 1);
 		}
 	}
@@ -320,9 +320,9 @@ int SetAPETagUnhandledFields(struct ApeTag *tag, int index)
 		GetTreeItemAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, ATTR_MARK_STATE, &checked);
 		if (!checked) {
 			// remove this field!
-			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, 0, ATTR_LABEL_TEXT_LENGTH, &len);
+			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT_LENGTH, &len);
 			key = malloc(sizeof(char) * len + 1);
-			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, 0, ATTR_LABEL_TEXT, key);
+			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT, key);
 			ApeTag_remove_item(tag, key);				 
 			if (key) {
 				free(key);
