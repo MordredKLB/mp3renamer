@@ -131,6 +131,21 @@ Error:
 	return found;
 }
 
+void UnescapeQuotes(char *string)
+{
+	char 	*ptr, *temp = NULL;
+	size_t	len;
+	
+	len = strlen(string);
+	temp = malloc(sizeof(char) * len + 1);
+	while (ptr = strstr(string, "\\\"")) {
+		strcpy(temp, ptr+1);	// skip the backslash
+		strcpy(ptr, temp);
+	}
+	if (temp)
+		free (temp);
+}
+
 size_t SearchJSONForKey(jsmntok_t *tokens, char *pmapJSON, char *frameType, char **string)
 {
 	int i=0;
@@ -143,10 +158,12 @@ size_t SearchJSONForKey(jsmntok_t *tokens, char *pmapJSON, char *frameType, char
 			len = strlen(json_token_tostr(pmapJSON, t));
 			*string = malloc(sizeof(char) * len + 1);
 			strcpy(*string, json_token_tostr(pmapJSON, t));
+			UnescapeQuotes(*string);
 			break;
 		}
 		t = &tokens[++i];
 	}
+	
 	return len;
 }
 
@@ -276,16 +293,17 @@ int GetUnhandledFields(jsmntok_t *tokens, char *pmapJSON, int index)
 				len = strlen(json_token_tostr(pmapJSON, t));
 				string = malloc(sizeof(char) * len + 1);
 				strcpy(string, json_token_tostr(pmapJSON, t));
+				UnescapeQuotes(string);
 			
 				GetNumListItems(tab3Handle, TAB3_EXTENDEDTAGS, &numItems);
 				if (numItems) {
 					GetTreeItemFromLabel(tab3Handle, TAB3_EXTENDEDTAGS, VAL_ALL, 0, 0, VAL_NEXT_PLUS_SELF, 0, frameType, &found);
 				}
-				if (found==-1) {
+				if (found==-1) {	// only insert fields into tree if they don't already exist
 					InsertTreeItem(tab3Handle, TAB3_EXTENDEDTAGS, VAL_SIBLING, 0, VAL_LAST, frameType, NULL, NULL, numItems);
 					SetTreeItemAttribute (tab3Handle, TAB3_EXTENDEDTAGS, numItems, ATTR_MARK_STATE, 1);
-					SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, 2, ATTR_LABEL_TEXT, "TXXX");
 					SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, 1, ATTR_LABEL_TEXT, string);
+					SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, 2, ATTR_LABEL_TEXT, string);
 					SetCtrlVal(panelHandle, PANEL_TABVALS2, 1);
 				}
 				free(string);

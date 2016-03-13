@@ -43,11 +43,14 @@ extern int tab3Handle;
 extern int numFiles;
 extern int firstFile;
 
+#define false	FALSE
+#define true	TRUE
 
 //==============================================================================
 // Global functions
 
 //int Declare_Your_Functions_Here (int x);
+void UnescapeQuotes(char *string);
 
 #ifdef __cplusplus
     }
