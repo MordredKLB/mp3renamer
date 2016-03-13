@@ -7,8 +7,6 @@
 #include "ID3v2.h"
 #include "toolbox.h"
 
-#include "id3tag.h"
-#include "file.h"
 #include "globals.h"
 
 #include "tag_c.h"
@@ -31,19 +29,8 @@ int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int cont
 size_t SearchJSONForKey(jsmntok_t *tokens, char *pmapJSON, char *frameType, char **string);
 
 
-//int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index);
 int SetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control, int updateCtrl, int index, int multi);
 int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int index);
-
-int SetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index);
-int SetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int clearCtrl);
-int SetExtendedFields(id3_Tag *id3tag, int index);
-int SetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control, int updatePanel, int updateCtrl, int index);
-int RemoveTextInformation(id3_Tag *id3tag, char *textDescription);
-
-int RemoveFrame(id3_Tag *id3tag, char *frameType);
-id3frame* NewFrame(id3_Tag *id3tag, char *frameType);
-void GetFileName(char *buf);
 
 int isHandledFrameType(char *id);
 
@@ -553,11 +540,6 @@ Error:
 	return error;
 }
 
-void GetFileName(char *buf)
-{
-	strcpy(buf, gFilename);
-}
-
 #define kMaxMultipleValues	10
 
 //int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index)
@@ -808,183 +790,6 @@ Error:
 	return error;
 }
 
-
-int SetPictureData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int clearCtrl)
-{
-	int 			error, update, clear, bitmap=0;
-//	id3frame 		*frame = NULL;
-//	union id3_field	*field;
-
-	errChk(GetCtrlVal(panel, updateCtrl, &update));
-	errChk(GetCtrlVal(panel, clearCtrl, &clear));
-
-	if (update) {
-		if (clear)
-			RemoveFrame(id3tag, frameType);
-#if 0
-		RemoveFrame(id3tag, frameType);		// always remove artwork
-		if (!clear) {
-			GetCtrlBitmap(tab2Handle, TAB2_ARTWORK, 0, &bitmap);
-			if (!bitmap)
-				errChk(-1);
-			//SaveBitmapToJPEGFile(bitmap, "temporaryJPGFile.jpg",
-			frame = NewFrame(id3tag, frameType);
-	/* APIC STRUCTURE
-		FIELDS(APIC) = {
-		  ID3_FIELD_TYPE_TEXTENCODING,		    // Text encoding      $xx
-		  ID3_FIELD_TYPE_LATIN1,				// MIME type          <text string> $00
-		  ID3_FIELD_TYPE_INT8,					// Picture type       $xx
-		  ID3_FIELD_TYPE_STRING,				// Description        <text string according to encoding> $00 (00)
-		  ID3_FIELD_TYPE_BINARYDATA				// Picture data       <binary data>
-		}; */
-
-			field = id3_frame_field(frame, 1);	// MIME Type
-			field = id3_frame_field(frame, 2);	// Picture Type
-			field = id3_frame_field(frame, 3);	// Description
-			field = id3_frame_field(frame, 4);	// Picture data
-			}
-#endif
-
-		}
-Error:
-	if (bitmap)
-		DiscardBitmap(bitmap);
-	return 0;
-}
-
-int SetCommentsData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index)
-{
-	int				len, i=0, j, error, update, found=0;
-	char 			*data = NULL, *string = NULL;
- 	id3frame 		*frame = NULL;
-	union id3_field	*field = {0};
-	id3_ucs4_t const *ucs4temp;
-	id3_ucs4_t 		*ucs4Str = NULL;
-
-	errChk(GetCtrlVal(panel, updateCtrl, &update));
-	if (!update)
-		goto Error;
-	else
-		GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
-
-	nullChk(data = calloc(len+1, sizeof(char)));
-	errChk(GetCtrlVal(panel, control, data));
-
-Start:
-	while(!found && (frame = id3_tag_findframe(id3tag, frameType, i++))) {
-		if (!frame) {
-			frame = NewFrame(id3tag, frameType);
-			id3_field_setlanguage(&frame->fields[1], "eng");
-			}
-
-		for (j=1;j<frame->nfields;j++) {
-			field = id3_frame_field(frame, j);	// do we always want the 2nd field?
-			if (!field)
-				return 0;
-
-			if (field->type == ID3_FIELD_TYPE_STRING) { /* should be description field */
-				ucs4temp = id3_field_getstring(field);
-				string = (char *)id3_ucs4_latin1duplicate(ucs4temp);
-				if (stristr(string, "iTunPGAP") ||
-					stristr(string, "iTunSMPB") ||
-					stristr(string, "iTunNORM"))
-					j = frame->nfields;	// don't do anything with iTunes Comment Frames
-				free(string);
-				string = NULL;
-				}
-			else if (field->type == ID3_FIELD_TYPE_STRINGFULL) {
-				found = 1;
-				break;
-				}
-			}
-
-		}
-
-	if (len) {
-		if (found && field->type == ID3_FIELD_TYPE_STRINGFULL) {
-			ucs4Str = id3_latin1_ucs4duplicate((id3_latin1_t *)data);
-			free(string);
-			string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-			id3_field_setfullstring(field, ucs4Str);
-			}
-		if (!found) {
-			/* there were comment frames, but they weren't general comments */
-			frame = id3_frame_new(frameType);
-			id3_tag_attachframe(id3tag, frame);
-			id3_field_settextencoding(&frame->fields[0], ID3_FIELD_TEXTENCODING_UTF_8);
-			id3_field_setlanguage(&frame->fields[1], "eng");
-			}
-		}
-	else if (found) {
-		id3_tag_detachframe(id3tag, frame);
-		id3_frame_delete(frame);
-		}
-
-Error:
-	if (ucs4Str)
-		free(ucs4Str);
-	if (data)
-		free(data);
-	if (string)
-		free(string);
-
-	return error;
-}
-
-
-/* currently this can only be used to set the "ALBUM ARTIST" TXXX field */
-int SetTextInformation(id3_Tag *id3tag, char *descString, int panel, int control, int updatePanel, int updateCtrl, int index)
-{
-	int  			len, error, update, style;
-	char			*data = NULL;
-	id3frame 		*frame;
-	union id3_field	*field;
-	id3_ucs4_t 		*ucs4desc = NULL;
-	id3_ucs4_t 		*ucs4data = NULL;
-
-	errChk(GetCtrlVal(updatePanel, updateCtrl, &update));
-	if (!update)
-		goto Error;
-
-	GetCtrlAttribute(panel, control, ATTR_CTRL_STYLE, &style);
-	if (style == CTRL_TABLE_LS)
-		GetTableCellValLength(panel, control, tagCell, &len);
-	else
-		GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
-	nullChk(data = calloc(len+1, sizeof(char)));
-	if (style == CTRL_TABLE_LS)
-		errChk(GetTableCellVal(panel, control, tagCell, data))
-	else
-		errChk(GetCtrlVal(panel, control, data));
-
-	// we are setting this field so we need to remove it first
-	RemoveTextInformation(id3tag, descString);
-	frame = NewFrame(id3tag, "TXXX");
-	field = id3_frame_field(frame, 1);
-	if (!field)
-		errChk(-1);
-	if (field->type == ID3_FIELD_TYPE_STRING) {
-		ucs4desc = id3_latin1_ucs4duplicate((id3_latin1_t *)descString);
-		id3_field_setstring(field, ucs4desc);
-		}
-	field = id3_frame_field(frame, 2);
-	if (!field)
-		errChk(-1);
-	if (field->type == ID3_FIELD_TYPE_STRING) {
-		ucs4data = id3_latin1_ucs4duplicate((id3_latin1_t *)data);
-		id3_field_setstring(field, ucs4data);
-		}
-
-Error:
-	if (data)
-		free(data);
-	if (ucs4desc)
-		free(ucs4desc);
-	if (ucs4data)
-		free(ucs4data);
-	return error;
-}
-
 int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int index)
 {
 	int i, numItems, checked, len;
@@ -1025,145 +830,9 @@ int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int inde
 	return 1;
 }
 
-int SetExtendedFields(id3_Tag *id3tag, int index)
-{
-	int	i, numItems, checked, descLen;
-	char *description=NULL, fieldType[255];
-
-	GetNumListItems(tab3Handle, TAB3_EXTENDEDTAGS, &numItems);
-	for (i=0;i<numItems;i++) {
-		GetTreeItemAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, ATTR_MARK_STATE, &checked);
-		if (!checked) {
-			// remove this field!
-			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, 0, ATTR_LABEL_TEXT_LENGTH, &descLen);
-			description = malloc(sizeof(char) * descLen + 1);
-			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, 0, ATTR_LABEL_TEXT, description);
-			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, 2, ATTR_LABEL_TEXT, fieldType);
-			if (!strcmp(fieldType, "TXXX")) {
-				RemoveTextInformation(id3tag, description);
-				}
-			if (description)
-				free(description);
-			description = NULL;
-			}
-		}
-
-	return 1;
-}
-
-int RemoveTextInformation(id3_Tag *id3tag, char *textDescription)
-{
-	int				i=0, j, found=0;
-	char 			*string = NULL;
- 	id3frame 		*frame;
-	union id3_field	*field;
-	id3_ucs4_t const *ucs4Str;
-
-	while(!found && (frame = id3_tag_findframe(id3tag, "TXXX", i++))) {
-		if (!frame)
-			return 0;
-		if (frame->nfields < 2)
-			Breakpoint();
-		for (j=1;j<frame->nfields;j++) {
-			field = id3_frame_field(frame, j);	// do we always want the 2nd field?
-			if (!field)
-				return 0;
-
-			if (field->type == ID3_FIELD_TYPE_STRING) { /* should be description field */
-				ucs4Str = id3_field_getstring(field);
-				string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-				if (!stricmp(string, textDescription)) {
-					free(string);
-					string = NULL;
-
-#if _CVI_DEBUG_
-					field = id3_frame_field(frame, j+1);	/* just so we can see what we're about to delete */
-					if (field) {
-						ucs4Str = id3_field_getstring(field);
-						string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-						j=frame->nfields;
-						}
-#endif /* _CVI_DEBUG_ */
-					id3_tag_detachframe(id3tag, frame);
-					id3_frame_delete(frame);
-					goto Error;
-					}
-				else {
-					free(string);
-					string = NULL;
-					j=frame->nfields;	// skip this frame
-					}
-				}
-			}
-
-		}
-
-
-Error:
-	if (string)
-		free(string);
-	return found;
-}
-
 /****************************************/
 
-int RemoveFrame(id3_Tag *id3tag, char *frameType)
-{
-	int			removed = 0;
-	id3frame 	*frame;
-
-	while (frame = id3_tag_findframe(id3tag, frameType, 0)) {
-		if (frame) {
-			id3_tag_detachframe(id3tag, frame);
-			id3_frame_delete(frame);
-			removed++;
-			}
-		}
-	return removed;
-}
-
-/* Remove a TXXX field with description == descString */ /***** UNTESTED!!!! *****/
-int RemoveTextInformationFrame(id3_Tag *id3tag, char *descString)
-{
-	int				i=0, j, removed = 0, found=0;
-	char 			*string = NULL;
- 	id3frame 		*frame;
-	union id3_field	*field;
-	id3_ucs4_t const *ucs4Str;
-
-	while((frame = id3_tag_findframe(id3tag, "TXXX", i++)) && !found) {
-		if (frame) {
-			for (j=1;j<frame->nfields;j++) {
-				field = id3_frame_field(frame, j);	// do we always want the 2nd field?
-				if (field && field->type == ID3_FIELD_TYPE_STRING) { /* should be description field */
-					ucs4Str = id3_field_getstring(field);
-					string = (char *)id3_ucs4_latin1duplicate(ucs4Str);
-					if (!stricmp(string, descString)) {
-						id3_tag_detachframe(id3tag, frame);
-						id3_frame_delete(frame);
-						removed++;
-						found = 1;
-					}
-				}
-			}
-		}
-	}
-	if (string)
-		free(string);
-	return removed;
-}
-
-id3frame* NewFrame(id3_Tag *id3tag, char *frameType)
-{
-	id3frame *frame = NULL;
-
-	frame = id3_frame_new(frameType);
-	id3_tag_attachframe(id3tag, frame);
-	id3_field_settextencoding(&frame->fields[0], ID3_FIELD_TEXTENCODING_UTF_8);
-
-	return frame;
-}
-
+// CheckForDuplicates was used in the ArtistFilter to prevent the same artist showing up twice
 int CheckForDuplicates(char **stringVals, int nStrings) {
 	int i, j, k;
 	char *comma;
