@@ -31,6 +31,7 @@ size_t SearchJSONForKey(jsmntok_t *tokens, char *pmapJSON, char *frameType, char
 
 int SetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control, int updateCtrl, int index, int multi);
 int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int index);
+int SetPictureData(TagLib_File *taglibfile, int panel, int control, int updateCtrl, int clearCtrl);
 
 int isHandledFrameType(char *id);
 
@@ -528,6 +529,7 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index)
 	SetTextData(taglibfile, "ORIGINALARTIST", tab2Handle, TAB2_ORIGARTIST, TAB2_UPDATEORIGARTIST, index, true);
 	SetTextData(taglibfile, "RELEASETYPE", tab1Handle, TAB1_RELTYPE, TAB1_UPDATERELTYPE, index, false);
 	SetTextData(taglibfile, "URL", tab2Handle, TAB2_URL, TAB2_UPDATEURL, index, true);
+	SetPictureData(taglibfile, tab2Handle, TAB2_ARTWORK, TAB2_UPDATEARTWORK, TAB2_CLEARARTWORK);
 	SetUnhandledFields(taglibfile, tab3Handle, TAB3_EXTENDEDTAGS, index);
 	
 	error = taglib_file_save(taglibfile);
@@ -829,6 +831,26 @@ int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int inde
 		free(origVal);
 	return 1;
 }
+
+// currently just removes frame
+// TODO: Ability to set pictures
+int SetPictureData(TagLib_File *taglibfile, int panel, int control, int updateCtrl, int clearCtrl)
+{
+	int 			error, update, clear;
+
+	errChk(GetCtrlVal(panel, updateCtrl, &update));
+	errChk(GetCtrlVal(panel, clearCtrl, &clear));
+
+	if (update) {
+		if (clear) {
+			taglib_mp3_file_remove_picture(taglibfile);
+		}
+	}
+
+Error:
+	return 0;
+}
+
 
 /****************************************/
 
