@@ -59,8 +59,6 @@ ssize_t	folderImageFileSize;
 
 char pathName[MAX_PATHNAME_LEN];
 
-int gUseMetaDataDiscVal;		// when saving disk vals, should we use the meta data?
-
 char replaceChar[10];	// list of unuseable characters replacement values
 
 enum {

@@ -2,6 +2,7 @@
 #include <userint.h>
 #include <ansi_c.h>
 #include "config.h"
+#include "globals.h"
 #include "ID3v2.h"
 #include "mp3renamer.h"
 
@@ -12,8 +13,6 @@
 							"field which is the more accepted standard.\n\n" \
 							"You can toggle between the two modes using the\n" \
 							"\"Use Winamp style Album Artist\" checkbox.\0"
-
-extern Point tagCell;
 
 void InitUIAttrs(void)
 {
@@ -618,6 +617,7 @@ int CVICALLBACK TagCB (int panel, int control, int event,
 						break;
 					case TAB1_ARTISTFILTER:
 						led = TAB1_ARTISTFILTERLED;
+						gUseMetaArtistFilter = FALSE;
 						break;
 					case TAB1_GENRE:
 						led = TAB1_GENRELED;

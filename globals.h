@@ -28,6 +28,9 @@
 #define kNumTab2Controls		4
 #define kNumTab3Controls		2
 		
+#define false	FALSE
+#define true	TRUE
+
 //==============================================================================
 // Types
 
@@ -43,8 +46,11 @@ extern int tab3Handle;
 extern int numFiles;
 extern int firstFile;
 
-#define false	FALSE
-#define true	TRUE
+//==============================================================================
+// Global variables
+
+int gUseMetaDataDiscVal;		// when saving disk vals, should we use the meta data?
+int gUseMetaArtistFilter;		// when saving artist filter vals, should we use the meta data?
 
 //==============================================================================
 // Global functions

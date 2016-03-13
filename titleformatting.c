@@ -4,6 +4,7 @@
 #include "titleformatting.h"
 #include "ID3v2.h"
 #include "mp3renamer.h"
+#include "globals.h"
 #include <stdarg.h>
 
 int GetMetaDataDiscNum(const int panel, const int control, const int column, const int index, char *retVal)

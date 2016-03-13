@@ -6,6 +6,7 @@
 #include "mp3renamer.h"
 #include "ID3v2.h"
 #include "xmlHelper.h"
+#include "globals.h"
 #include <wininet.h>
 
 void GetMetaData(int panel, int control);

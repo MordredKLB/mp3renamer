@@ -254,6 +254,7 @@ int CVICALLBACK BrowseCB (int panel, int control, int event,
 			ClearID3DataStruct(numFiles);
 			ClearFileList();	// clear after ClearID3DataStructure, because this resets numFiles
 			gUseMetaDataDiscVal = FALSE;
+			gUseMetaArtistFilter = FALSE;
 			if (callbackData) {
 				char filename[MAX_FILENAME_LEN];
 				
