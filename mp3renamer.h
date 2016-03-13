@@ -170,12 +170,12 @@
 #define  PANEL_GETID3BUTTON               29      /* control type: command, callback function: GetID3Tag */
 #define  PANEL_ID3BUTTON                  30      /* control type: command, callback function: SetID3Tag */
 #define  PANEL_PREVIEWBUTTON              31      /* control type: command, callback function: PreviewNames */
-#define  PANEL_FANART                     32      /* control type: command, callback function: RetrieveFanart */
-#define  PANEL_REVERTBUTTON               33      /* control type: command, callback function: RevertNames */
-#define  PANEL_SETBUTTON                  34      /* control type: command, callback function: SetNamesCB */
+#define  PANEL_REVERTBUTTON               32      /* control type: command, callback function: RevertNames */
+#define  PANEL_SETBUTTON                  33      /* control type: command, callback function: SetNamesCB */
+#define  PANEL_FANART                     34      /* control type: command, callback function: RetrieveFanart */
 #define  PANEL_RENAMEFOLDER               35      /* control type: command, callback function: RenameFolderCB */
-#define  PANEL_IMAGERING                  36      /* control type: ring, callback function: ImageRingCB */
-#define  PANEL_DLARTWORKBUTTON            37      /* control type: command, callback function: DownloadArtworkCB */
+#define  PANEL_DLARTWORKBUTTON            36      /* control type: command, callback function: DownloadArtworkCB */
+#define  PANEL_IMAGERING                  37      /* control type: ring, callback function: ImageRingCB */
 #define  PANEL_QUITBUTTON                 38      /* control type: command, callback function: QuitCallback */
 #define  PANEL_EXPLORECURRENT             39      /* control type: command, callback function: ExploreCurrentCB */
 #define  PANEL_UPDATEARTIST               40      /* control type: radioButton, callback function: (none) */
@@ -223,20 +223,20 @@
 #define  TAB1_UPDATEGENRE                 21      /* control type: radioButton, callback function: (none) */
 #define  TAB1_UPDATECOMMENT               22      /* control type: radioButton, callback function: (none) */
 #define  TAB1_UPDATEYEAR                  23      /* control type: radioButton, callback function: (none) */
-#define  TAB1_UPDATEDISCNUM               24      /* control type: radioButton, callback function: (none) */
-#define  TAB1_UPDATEEDITION               25      /* control type: radioButton, callback function: (none) */
-#define  TAB1_UPDATEPUBLISHER             26      /* control type: radioButton, callback function: (none) */
+#define  TAB1_UPDATECOMPOSER              24      /* control type: radioButton, callback function: (none) */
+#define  TAB1_UPDATEPUBLISHER             25      /* control type: radioButton, callback function: (none) */
+#define  TAB1_UPDATEEDITION               26      /* control type: radioButton, callback function: (none) */
 #define  TAB1_UPDATECOUNTRY               27      /* control type: radioButton, callback function: (none) */
 #define  TAB1_UPDATERELTYPE               28      /* control type: radioButton, callback function: (none) */
 #define  TAB1_UPDATEALBUMARTIST           29      /* control type: radioButton, callback function: (none) */
 #define  TAB1_UPDATEARTISTFILTER          30      /* control type: radioButton, callback function: (none) */
 #define  TAB1_UPDATEPERFSORT              31      /* control type: radioButton, callback function: (none) */
-#define  TAB1_UPDATEALBUMSORT             32      /* control type: radioButton, callback function: (none) */
-#define  TAB1_GENRELED                    33      /* control type: LED, callback function: (none) */
-#define  TAB1_COMMENTLED                  34      /* control type: LED, callback function: (none) */
-#define  TAB1_YEARLED                     35      /* control type: LED, callback function: (none) */
-#define  TAB1_UPDATEALBUMGAIN             36      /* control type: radioButton, callback function: (none) */
-#define  TAB1_UPDATECOMPOSER              37      /* control type: radioButton, callback function: (none) */
+#define  TAB1_UPDATEALBUMGAIN             32      /* control type: radioButton, callback function: (none) */
+#define  TAB1_UPDATEDISCNUM               33      /* control type: radioButton, callback function: (none) */
+#define  TAB1_UPDATEALBUMSORT             34      /* control type: radioButton, callback function: (none) */
+#define  TAB1_GENRELED                    35      /* control type: LED, callback function: (none) */
+#define  TAB1_COMMENTLED                  36      /* control type: LED, callback function: (none) */
+#define  TAB1_YEARLED                     37      /* control type: LED, callback function: (none) */
 #define  TAB1_RELTYPELED                  38      /* control type: LED, callback function: (none) */
 #define  TAB1_ALBUMARTISTLED              39      /* control type: LED, callback function: (none) */
 #define  TAB1_EDITIONLED                  40      /* control type: LED, callback function: (none) */
@@ -253,11 +253,11 @@
      /* tab page panel controls */
 #define  TAB2_ORIGARTIST                  2       /* control type: string, callback function: TagCB */
 #define  TAB2_URL                         3       /* control type: string, callback function: TagCB */
-#define  TAB2_ORIGARTISTLED               4       /* control type: LED, callback function: (none) */
-#define  TAB2_UPDATEORIGARTIST            5       /* control type: radioButton, callback function: (none) */
-#define  TAB2_ARTWORKLED                  6       /* control type: LED, callback function: (none) */
-#define  TAB2_COPYRIGHT                   7       /* control type: string, callback function: TagCB */
-#define  TAB2_ENCODED                     8       /* control type: string, callback function: TagCB */
+#define  TAB2_COPYRIGHT                   4       /* control type: string, callback function: TagCB */
+#define  TAB2_ENCODED                     5       /* control type: string, callback function: TagCB */
+#define  TAB2_ORIGARTISTLED               6       /* control type: LED, callback function: (none) */
+#define  TAB2_UPDATEORIGARTIST            7       /* control type: radioButton, callback function: (none) */
+#define  TAB2_ARTWORKLED                  8       /* control type: LED, callback function: (none) */
 #define  TAB2_URLLED                      9       /* control type: LED, callback function: (none) */
 #define  TAB2_CLEARARTWORK                10      /* control type: radioButton, callback function: ClearArtworkCB */
 #define  TAB2_UPDATEARTWORK               11      /* control type: radioButton, callback function: (none) */
@@ -273,15 +273,15 @@
 #define  TAB2_ENCODEDLED                  21      /* control type: LED, callback function: (none) */
 
      /* tab page panel controls */
-#define  TAB3_EXTENDEDTAGS                2       /* control type: tree, callback function: (none) */
-#define  TAB3_ADDFIELD                    3       /* control type: command, callback function: (none) */
-#define  TAB3_REID                        4       /* control type: string, callback function: TagCB */
-#define  TAB3_ARTISTMBID                  5       /* control type: string, callback function: TagCB */
-#define  TAB3_UPDATEMBID                  6       /* control type: radioButton, callback function: (none) */
-#define  TAB3_UPDATEREID                  7       /* control type: radioButton, callback function: (none) */
-#define  TAB3_MUSICBRAINZ_RELEASE         8       /* control type: pictButton, callback function: LaunchMBCB */
-#define  TAB3_FANARTBUTTON                9       /* control type: pictButton, callback function: OpenArtistPageCB */
-#define  TAB3_MUSICBRAINZ_ARTIST          10      /* control type: pictButton, callback function: LaunchMBCB */
+#define  TAB3_ARTISTMBID                  2       /* control type: string, callback function: TagCB */
+#define  TAB3_REID                        3       /* control type: string, callback function: TagCB */
+#define  TAB3_EXTENDEDTAGS                4       /* control type: tree, callback function: (none) */
+#define  TAB3_MUSICBRAINZ_ARTIST          5       /* control type: pictButton, callback function: LaunchMBCB */
+#define  TAB3_FANARTBUTTON                6       /* control type: pictButton, callback function: OpenArtistPageCB */
+#define  TAB3_MUSICBRAINZ_RELEASE         7       /* control type: pictButton, callback function: LaunchMBCB */
+#define  TAB3_UPDATEMBID                  8       /* control type: radioButton, callback function: (none) */
+#define  TAB3_UPDATEREID                  9       /* control type: radioButton, callback function: (none) */
+#define  TAB3_ADDFIELD                    10      /* control type: command, callback function: (none) */
 
 
      /* Control Arrays: */
