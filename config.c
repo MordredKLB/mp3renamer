@@ -9,7 +9,7 @@ void ReadConfigOptions(int restrictedRead)
 	int	status;
 	unsigned long autoRevert=0, autoGetTag=1, extensions=1, showLength=1, ignoreDisc=0, skipAlbArtist=0, 
 				  populateAlbumOrder=0, autoCapitalize=1, smartCaps=1, renameUsePerf=1, showReplayGain=0, 
-				  saveID3v1=1, saveV1Comments=0, winampStyle=0, replaceUnicodeApostrophe=1;
+				  saveID3v1=1, saveV1Comments=0, replaceUnicodeApostrophe=1;
 	IniText cfg;
 	
 	cfg = Ini_New(0);
@@ -22,7 +22,6 @@ void ReadConfigOptions(int restrictedRead)
 			Ini_PutInt(cfg, kIniGeneralOptions, "UseSmartCaps", smartCaps);
 			Ini_PutInt(cfg, kIniGeneralOptions, "SaveID3v1Tags", saveID3v1);
 			Ini_PutInt(cfg, kIniGeneralOptions, "SaveCommentsInID3v1", saveV1Comments);
-			Ini_PutInt(cfg, kIniGeneralOptions, "WinampStyleAlbumArtist", winampStyle);
 			
 			Ini_PutInt(cfg, kIniGeneralOptions, "AutoGetTag", autoGetTag);
 			Ini_PutInt(cfg, kIniGeneralOptions, "AutoRevert", autoRevert);
@@ -56,7 +55,6 @@ void ReadConfigOptions(int restrictedRead)
 	Ini_GetInt(cfg, kIniGeneralOptions, "UseSmartCaps", &smartCaps);
 	Ini_GetInt(cfg, kIniGeneralOptions, "SaveID3v1Tags", &saveID3v1);
 	Ini_GetInt(cfg, kIniGeneralOptions, "SaveCommentsInID3v1", &saveV1Comments);
-	Ini_GetInt(cfg, kIniGeneralOptions, "WinampStyleAlbumArtist", &winampStyle);
 	
 	Ini_GetInt(cfg, kIniGeneralOptions, "AutoGetTag", &autoGetTag);
 	Ini_GetInt(cfg, kIniGeneralOptions, "AutoRevert", &autoRevert);
@@ -77,8 +75,7 @@ void ReadConfigOptions(int restrictedRead)
 		SetCtrlVal(panelHandle, PANEL_SMARTCAPS, smartCaps);
 		SetCtrlVal(panelHandle, PANEL_DOID3V1, saveID3v1);
 		SetCtrlVal(panelHandle, PANEL_ID3V1COMMENTS, saveV1Comments);
-		SetCtrlVal(panelHandle, PANEL_USEWINAMPALBUMARTIST, winampStyle);
-		}
+	}
 	SetCtrlVal(configHandle, OPTIONS_PATH, startFolder);
 	SetCtrlVal(configHandle, OPTIONS_FANART_APIKEY, fanartPersonalAPIKey);
 	SetCtrlVal(configHandle, OPTIONS_AUTOGETTAG, autoGetTag);
@@ -139,7 +136,7 @@ int CVICALLBACK OptionsOKCB (int panel, int control, int event,
 		void *callbackData, int eventData1, int eventData2)
 {
 	unsigned long autoRevert, autoGetTag, extensions, showLength, ignoreDisc, skipAlbArtist, populateAlbumOrder,
-				  autoCap, smartCaps, renameUsePerf, showReplayGain, saveID3v1, saveV1Comments, winampStyle, replaceUnicodeApostrophe;
+				  autoCap, smartCaps, renameUsePerf, showReplayGain, saveID3v1, saveV1Comments, replaceUnicodeApostrophe;
 	char 	saveChar[2] = {0,0};
 	IniText cfg=0;
 	
@@ -164,7 +161,6 @@ int CVICALLBACK OptionsOKCB (int panel, int control, int event,
 			GetCtrlVal(panelHandle, PANEL_SMARTCAPS, &smartCaps);
 			GetCtrlVal(panelHandle, PANEL_DOID3V1, &saveID3v1);
 			GetCtrlVal(panelHandle, PANEL_ID3V1COMMENTS, &saveV1Comments);
-			GetCtrlVal(panelHandle, PANEL_USEWINAMPALBUMARTIST, &winampStyle);
 			GetReplacementChars();
 			Ini_PutRawString(cfg, kIniGeneralOptions, "Initial Search Directory", startFolder);
 			Ini_PutRawString(cfg, kIniExternalPrograms, "Album Art Downloader", albumArtDLPath);
@@ -175,7 +171,6 @@ int CVICALLBACK OptionsOKCB (int panel, int control, int event,
 			Ini_PutInt(cfg, kIniGeneralOptions, "UseSmartCaps", smartCaps);
 			Ini_PutInt(cfg, kIniGeneralOptions, "SaveID3v1Tags", saveID3v1);
 			Ini_PutInt(cfg, kIniGeneralOptions, "SaveCommentsInID3v1", saveV1Comments);
-			Ini_PutInt(cfg, kIniGeneralOptions, "WinampStyleAlbumArtist", winampStyle);
 			Ini_PutInt(cfg, kIniGeneralOptions, "AutoGetTag", autoGetTag);			
 			Ini_PutInt(cfg, kIniGeneralOptions, "AutoRevert", autoRevert);
 			Ini_PutInt(cfg, kIniGeneralOptions, "LowerCaseExtensions", extensions);
