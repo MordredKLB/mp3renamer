@@ -48,9 +48,7 @@ void SetToolTipInfo(void)
 	SetCtrlAttribute(panelHandle, PANEL_RENUMBERBUTTON, ATTR_TOOLTIP_TEXT, 
 		"Renumbers tracks starting from 01 in the\nsame order they are currently listed.\0");
 	SetCtrlAttribute(tab1Handle, TAB1_ALBUMARTIST, ATTR_TOOLTIP_TEXT, kAlbumArtistMsg);
-	SetCtrlAttribute(panelHandle, PANEL_USEWINAMPALBUMARTIST, ATTR_TOOLTIP_TEXT, kAlbumArtistMsg);
 	SetCtrlAttribute(tab1Handle, TAB1_ALBUMARTIST, ATTR_TOOLTIP_DELAY, 250);
-	SetCtrlAttribute(tab1Handle, PANEL_USEWINAMPALBUMARTIST, ATTR_TOOLTIP_DELAY, 250);
 	SetCtrlAttribute(configHandle, OPTIONS_SHOWREPLAYGAIN, ATTR_TOOLTIP_TEXT, 
 		"When an MP3 has ReplayGain info it is\nfiltered out of the \"Extended Tags\"\ntab by default.\0");
 }

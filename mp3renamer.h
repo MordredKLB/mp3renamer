@@ -160,7 +160,7 @@
 #define  PANEL_UPDATETITLE                19      /* control type: radioButton, callback function: (none) */
 #define  PANEL_DOID3V1                    20      /* control type: radioButton, callback function: ID3v1CB */
 #define  PANEL_SHOWTRACKARTISTS           21      /* control type: radioButton, callback function: ShowTrackArtistCB */
-#define  PANEL_USEWINAMPALBUMARTIST       22      /* control type: radioButton, callback function: (none) */
+#define  PANEL_UPDATETRACKNUM             22      /* control type: radioButton, callback function: (none) */
 #define  PANEL_ID3V1COMMENTS              23      /* control type: radioButton, callback function: (none) */
 #define  PANEL_GUESSTITLES                24      /* control type: command, callback function: GuessTitlesCB */
 #define  PANEL_RENUMBERBUTTON             25      /* control type: command, callback function: RenumberTracks */

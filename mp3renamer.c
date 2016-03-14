@@ -69,7 +69,7 @@ char tab1LEDList[kNumTab1Controls] = {TAB1_GENRELED, TAB1_COMMENTLED, TAB1_YEARL
 						TAB1_ARTISTFILTERLED, TAB1_PERFSORTLED, TAB1_ALBUMGAINLED, TAB1_ALBUMSORTLED};
 char tab2LEDList[kNumTab2Controls] = {TAB2_ORIGARTISTLED, TAB2_URLLED, TAB2_COPYRIGHTLED, TAB2_ENCODEDLED};
 
-char panelUpdateList[2] = {PANEL_UPDATEARTIST, PANEL_UPDATEALBUM};
+char panelUpdateList[4] = {PANEL_UPDATEARTIST, PANEL_UPDATEALBUM, PANEL_UPDATETITLE, PANEL_UPDATETRACKNUM};
 char tab1UpdateList[kNumTab1Controls] = {TAB1_UPDATEGENRE, TAB1_UPDATECOMMENT, TAB1_UPDATEYEAR, TAB1_UPDATEDISCNUM, TAB1_UPDATECOMPOSER, 
 										 TAB1_UPDATEPUBLISHER, TAB1_UPDATEALBUMARTIST, TAB1_UPDATEARTISTFILTER, TAB1_UPDATEEDITION, 
 										 TAB1_UPDATECOUNTRY, TAB1_UPDATERELTYPE, TAB1_UPDATEPERFSORT, TAB1_UPDATEALBUMGAIN, TAB1_UPDATEALBUMSORT};
@@ -451,16 +451,16 @@ void ClearLEDs()
 void CheckUpdateBoxes()
 {
 	int i;
-	for (i=0;i<sizeof(panelLEDList);i++) {
+	for (i=0;i<sizeof(panelUpdateList);i++) {
 		SetCtrlVal(panelHandle, panelUpdateList[i], 1);
 		}
-	for (i=0;i<sizeof(tab1LEDList);i++) {
+	for (i=0;i<sizeof(tab1UpdateList);i++) {
 		SetCtrlVal(tab1Handle, tab1UpdateList[i], 1);
 		}
-	for (i=0;i<sizeof(tab2LEDList);i++) {
+	for (i=0;i<sizeof(tab2UpdateList);i++) {
 		SetCtrlVal(tab2Handle, tab2UpdateList[i], 1);
 		}
-	for (i=0;i<kNumTab3Controls;i++) {
+	for (i=0;i<sizeof(tab3UpdateList);i++) {
 		SetCtrlVal(tab3Handle, tab3UpdateList[i], 1);
 		}
 }

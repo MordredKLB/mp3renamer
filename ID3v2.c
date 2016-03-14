@@ -507,7 +507,7 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index)
 	strcpy(gFilename, filename);	// needed for file.c
 
 	SetTextData(taglibfile, "TITLE", panel, PANEL_TREE, PANEL_UPDATETITLE, index, false);
-	SetTextData(taglibfile, "TRACKNUMBER", panel, PANEL_ALBUM, PANEL_TREE, index, false);
+	SetTextData(taglibfile, "TRACKNUMBER", panel, PANEL_TREE, PANEL_UPDATETRACKNUM, index, false);
 	SetTextData(taglibfile, "ALBUM", panel, PANEL_ALBUM, PANEL_UPDATEALBUM, index, false);
 	SetTextData(taglibfile, "ALBUMARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_UPDATEALBUMARTIST, index, true);
 	SetTextData(taglibfile, "ALBUMSORT", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_UPDATEALBUMSORT, index, false);
@@ -812,7 +812,7 @@ int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int inde
 				GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT_LENGTH, &len);
 				key = malloc(sizeof(char) * len + 1);
 				GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT, key);
-				taglib_file_set_property(taglibfile, key, "", true);
+				taglib_file_set_property(taglibfile, key, val, false);
 			}
 		} else {
 			// remove this field!
@@ -821,14 +821,17 @@ int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int inde
 			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT, key);
 			taglib_file_set_property(taglibfile, key, "", false);  // clears field
 		}
+		if (val)
+			free(val);
+		val = NULL;
+		if (origVal)
+			free(origVal);
+		origVal = NULL;
+		if (key)
+			free(key);
+		key = NULL;
 	}
 
-	if (key)
-		free(key);
-	if (val)
-		free(val);
-	if (origVal)
-		free(origVal);
 	return 1;
 }
 
