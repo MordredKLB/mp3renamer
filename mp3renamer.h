@@ -194,8 +194,8 @@
 #define  PANEL_TEXTMSG_2                  53      /* control type: textMsg, callback function: (none) */
 #define  PANEL_TEXTMSG_3                  54      /* control type: textMsg, callback function: (none) */
 #define  PANEL_VSPLITTER                  55      /* control type: splitter, callback function: (none) */
-#define  PANEL_TEXTMSG_4                  56      /* control type: textMsg, callback function: (none) */
-#define  PANEL_LOG                        57      /* control type: textBox, callback function: (none) */
+#define  PANEL_LOG                        56      /* control type: textBox, callback function: (none) */
+#define  PANEL_TEXTMSG_4                  57      /* control type: textMsg, callback function: (none) */
 
 #define  PROGRESS                         8
 #define  PROGRESS_PROGRESSBAR             2       /* control type: scale, callback function: (none) */
@@ -275,13 +275,13 @@
      /* tab page panel controls */
 #define  TAB3_ARTISTMBID                  2       /* control type: string, callback function: TagCB */
 #define  TAB3_REID                        3       /* control type: string, callback function: TagCB */
-#define  TAB3_EXTENDEDTAGS                4       /* control type: tree, callback function: (none) */
+#define  TAB3_EXTENDEDTAGS                4       /* control type: tree, callback function: ExtendedTreeCB */
 #define  TAB3_MUSICBRAINZ_ARTIST          5       /* control type: pictButton, callback function: LaunchMBCB */
 #define  TAB3_FANARTBUTTON                6       /* control type: pictButton, callback function: OpenArtistPageCB */
 #define  TAB3_MUSICBRAINZ_RELEASE         7       /* control type: pictButton, callback function: LaunchMBCB */
 #define  TAB3_UPDATEMBID                  8       /* control type: radioButton, callback function: (none) */
 #define  TAB3_UPDATEREID                  9       /* control type: radioButton, callback function: (none) */
-#define  TAB3_ADDFIELD                    10      /* control type: command, callback function: (none) */
+#define  TAB3_ADDFIELD                    10      /* control type: command, callback function: AddFieldCB */
 
 
      /* Control Arrays: */
@@ -301,6 +301,7 @@
 
      /* Callback Prototypes: */
 
+int  CVICALLBACK AddFieldCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK AlbumArtDownloaderSearchCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK AlbumCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK AlbumPanelOKCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
@@ -320,6 +321,7 @@ int  CVICALLBACK DeleteXMLFilesCB(int panel, int control, int event, void *callb
 int  CVICALLBACK DownloadArtworkCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 void CVICALLBACK DownloadFanartCB(int menubar, int menuItem, void *callbackData, int panel);
 int  CVICALLBACK ExploreCurrentCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
+int  CVICALLBACK ExtendedTreeCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK FanartCancelCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK FanartOKCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK FanartPanelCB(int panel, int event, void *callbackData, int eventData1, int eventData2);

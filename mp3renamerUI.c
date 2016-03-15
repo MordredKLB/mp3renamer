@@ -392,6 +392,44 @@ int CVICALLBACK TreeCB (int panel, int control, int event,
 	return swallowed;
 }
 
+int CVICALLBACK ExtendedTreeCB (int panel, int control, int event,
+								void *callbackData, int eventData1, int eventData2)
+{
+	int index, column;
+	int swallowed = 0;
+	
+	switch (event)
+	{
+		case EVENT_COMMIT:
+			//ErrorPrintf("eventData1: %d, eventData2 %d", eventData1, eventData2);
+			if (eventData1 == LABEL_CHANGE) {
+				SetTreeCellAttribute(panel, control, eventData2, 1, ATTR_TREE_RUN_STATE, VAL_EDIT_STATE);
+			}
+			break;
+		case EVENT_KEYPRESS:
+			GetActiveTreeCell(panel, control, &index, &column);
+			if (eventData1 == VAL_TAB_VKEY && column == 0) {
+				ExtendedTreeCB(panel, control, EVENT_COMMIT, NULL, LABEL_CHANGE, index);
+				swallowed = 1;
+			}
+			break;
+		case EVENT_EDIT_MODE_STATE_CHANGE:
+			GetActiveTreeCell(panel, control, &index, NULL);
+			if (eventData1 == VAL_SELECT_STATE) {
+				char buf[255];
+				GetTreeCellAttribute(panel, control, index, 0, ATTR_LABEL_TEXT, buf);
+				if (!strcmp(buf, "FRAMETYPE")) {
+					DeleteListItem(panel, control, eventData2, 1);
+				}
+			}
+			break;
+		default:
+			//ErrorPrintf("%d", event);
+			break;
+	}
+	return swallowed;
+}
+
 
 void CenterPopupPanel(int parent, int child)
 {
@@ -1035,3 +1073,22 @@ int CVICALLBACK VinylArtCB (int panel, int control, int event, void *callbackDat
 	}
 	return 0;
 }
+
+int CVICALLBACK AddFieldCB (int panel, int control, int event,
+							void *callbackData, int eventData1, int eventData2)
+{
+	int numItems;
+	switch (event)
+	{
+		case EVENT_COMMIT:
+			GetNumListItems(panel, TAB3_EXTENDEDTAGS, &numItems);
+			InsertTreeItem(panel, TAB3_EXTENDEDTAGS, VAL_SIBLING, 0, VAL_LAST, "FRAMETYPE", NULL, NULL, numItems);
+			SetTreeItemAttribute (panel, TAB3_EXTENDEDTAGS, numItems, ATTR_MARK_STATE, 1);
+			SetTreeCellAttribute(panel, TAB3_EXTENDEDTAGS, numItems, 1, ATTR_LABEL_TEXT, "val");
+			SetActiveCtrl(panel, TAB3_EXTENDEDTAGS);
+			SetTreeCellAttribute(panel, TAB3_EXTENDEDTAGS, numItems, 0, ATTR_TREE_RUN_STATE, VAL_EDIT_STATE);
+			break;
+	}
+	return 0;
+}
+

@@ -82,6 +82,7 @@ enum {
 	kUnhandledTreeColFieldName = 0,
 	kUnhandledTreeColValue,
 	kUnhandledTreeColOrigValue,
+	kUnhandledTreeColOrigField,
 };
 
 enum {

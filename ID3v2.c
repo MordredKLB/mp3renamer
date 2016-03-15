@@ -292,8 +292,9 @@ int GetUnhandledFields(jsmntok_t *tokens, char *pmapJSON, int index)
 				if (found==-1) {	// only insert fields into tree if they don't already exist
 					InsertTreeItem(tab3Handle, TAB3_EXTENDEDTAGS, VAL_SIBLING, 0, VAL_LAST, frameType, NULL, NULL, numItems);
 					SetTreeItemAttribute (tab3Handle, TAB3_EXTENDEDTAGS, numItems, ATTR_MARK_STATE, 1);
-					SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, 1, ATTR_LABEL_TEXT, string);
-					SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, 2, ATTR_LABEL_TEXT, string);
+					SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, kUnhandledTreeColValue, ATTR_LABEL_TEXT, string);
+					SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, kUnhandledTreeColOrigValue, ATTR_LABEL_TEXT, string);
+					SetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, numItems, kUnhandledTreeColOrigField, ATTR_LABEL_TEXT, frameType);
 					SetCtrlVal(panelHandle, PANEL_TABVALS2, 1);
 				}
 				free(string);
@@ -795,11 +796,14 @@ Error:
 int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int index)
 {
 	int i, numItems, checked, len;
-	char *key=NULL, *val=NULL, *origVal=NULL;
+	char *key=NULL, *val=NULL, *origVal=NULL, *origKey=NULL;
 	
 	GetNumListItems(panel, control, &numItems);
 	for (i=0;i<numItems;i++) {
 		GetTreeItemAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, ATTR_MARK_STATE, &checked);
+		GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColOrigField, ATTR_LABEL_TEXT_LENGTH, &len);	// name might have changed so use origKey
+		origKey = malloc(sizeof(char) * len + 1);
+		GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColOrigField, ATTR_LABEL_TEXT, origKey);
 		if (checked) {
 			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColValue, ATTR_LABEL_TEXT_LENGTH, &len);
 			val = malloc(sizeof(char) * len + 1);
@@ -807,29 +811,29 @@ int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int inde
 			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColOrigValue, ATTR_LABEL_TEXT_LENGTH, &len);
 			origVal = malloc(sizeof(char) * len + 1);
 			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColOrigValue, ATTR_LABEL_TEXT, origVal);
-			if (strcmp(val, origVal)) {
+			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT_LENGTH, &len);
+			key = malloc(sizeof(char) * len + 1);
+			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT, key);
+			if (strcmp(key, origKey)) {
+				taglib_file_set_property(taglibfile, origKey, "", false);
+			}
+			if (strcmp(val, origVal) || strcmp(key, origKey)) {
 				// val was changed, so update in tags
-				GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT_LENGTH, &len);
-				key = malloc(sizeof(char) * len + 1);
-				GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT, key);
 				taglib_file_set_property(taglibfile, key, val, false);
 			}
 		} else {
 			// remove this field!
-			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT_LENGTH, &len);
-			key = malloc(sizeof(char) * len + 1);
-			GetTreeCellAttribute(tab3Handle, TAB3_EXTENDEDTAGS, i, kUnhandledTreeColFieldName, ATTR_LABEL_TEXT, key);
-			taglib_file_set_property(taglibfile, key, "", false);  // clears field
+			taglib_file_set_property(taglibfile, origKey, "", false);  // clears field
 		}
 		if (val)
 			free(val);
-		val = NULL;
 		if (origVal)
 			free(origVal);
-		origVal = NULL;
 		if (key)
 			free(key);
-		key = NULL;
+		if (origKey)
+			free(origKey);
+		val = origVal = key = origKey = NULL;
 	}
 
 	return 1;
