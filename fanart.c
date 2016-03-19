@@ -134,7 +134,7 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 				jsmntok_t *tokens = json_tokenise(buf, len);
 				i=0;
 				jsmntok_t *t = &tokens[i];
-				while (t->type >= JSMN_OBJECT && t->type <= JSMN_STRING) {
+				while (t->type > JSMN_UNDEFINED) {
 					if (t->type == JSMN_STRING && json_token_streq(buf, t, "url")) {
 						t = &tokens[++i];
 						if (strstr(json_token_tostr(buf, t), "hdmusiclogo")) {

@@ -142,7 +142,7 @@ size_t SearchJSONForKey(jsmntok_t *tokens, char *pmapJSON, char *frameType, char
 	size_t len = 0;
 	
 	jsmntok_t *t = &tokens[i];
-	while (t->type > JSMN_PRIMITIVE) {
+	while (t->type > JSMN_UNDEFINED) {
 		if (t->type == JSMN_STRING && json_token_streq(pmapJSON, t, frameType)) {
 			t = &tokens[++i];	// value of key
 			len = strlen(json_token_tostr(pmapJSON, t));
