@@ -135,20 +135,26 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 				i=0;
 				jsmntok_t *t = &tokens[i];
 				while (t->type > JSMN_UNDEFINED) {
-					if (t->type == JSMN_STRING && json_token_streq(buf, t, "url")) {
+					if (t->type == JSMN_STRING && json_token_streq(buf, t, "hdmusiclogo")) {
 						t = &tokens[++i];
-						if (strstr(json_token_tostr(buf, t), "hdmusiclogo")) {
-							if (numLogos+logoExists < kMaxLogos) {
-								strcpy(url[numLogos+logoExists], json_token_tostr(buf, t));
+						int end = t->end;
+						while (t->type > JSMN_UNDEFINED && t->start < end) {
+							if (t->type == JSMN_STRING && json_token_streq(buf, t, "url")) {
+								t = &tokens[++i];
+								if (strstr(json_token_tostr(buf, t), "hdmusiclogo")) {	// if the url is a hdlogo, "hdmusiclogo" will be in the URL's path
+									if (numLogos+logoExists < kMaxLogos) {
+										strcpy(url[numLogos+logoExists], json_token_tostr(buf, t));
+									}
+									numLogos++;
+								}
 							}
-							numLogos++;
+							t = &tokens[++i];
 						}
 					}
 					t = &tokens[++i];
 				}
 				free(buf);
 				free(tokens);
-				
 				
 				ProgressBar_GetPercentage(panel, ALBUMPANEL_PROGRESSBAR, &percent);
 				if (percent < 15.0)
@@ -162,6 +168,7 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 						RetrieveFileFromURL(connection, previewUrl, fileName, TRUE);
 						SetCtrlAttribute(hdlogoPanHandle, logoControls[i], ATTR_VISIBLE, 1);
 						SetCtrlAttribute(hdlogoPanHandle, logoControls[i], ATTR_IMAGE_FILE, fileName);
+						ProcessSystemEvents();
 					}
 					InternetCloseHandle(connection);
 				}
@@ -187,8 +194,8 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 			}
 			
 			if (strlen(relGroupMBID) > 16) {
-				sprintf(queryBuf, kNewCDartQuery, relGroupMBID, aKey, clientAPIKey);
-				sprintf(fileName, "tempFanart\\%s-cdart.json", relGroupMBID);
+				sprintf(queryBuf, kNewArtistQuery, artistMBID, aKey, clientAPIKey);
+				sprintf(fileName, "tempFanart\\%s-hdlogo.json", artistMBID);
 				DownloadFileIfNotExists(queryBuf, fileName);
 				
 				FILE *f = fopen(fileName, "r");
@@ -205,14 +212,21 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 				jsmntok_t *tokens = json_tokenise(buf, len);
 				int i = 0;
 				jsmntok_t *t = &tokens[i];
-				while (t->type >= JSMN_OBJECT && t->type <= JSMN_STRING) {
-					if (t->type == JSMN_STRING && json_token_streq(buf, t, "url")) {
+				while (t->type > JSMN_UNDEFINED) {
+					if (t->type == JSMN_STRING && json_token_streq(buf, t, relGroupMBID)) {
 						t = &tokens[++i];
-						if (strstr(json_token_tostr(buf, t), "cdart")) {	// if the url is a cdart, it will be in the URL's path
-							if (numCdArt+cdExists < kMaxCdArt) { 
-								strcpy(cdUrl[numCdArt+cdExists], json_token_tostr(buf, t));
+						int end = t->end;
+						while (t->type > JSMN_UNDEFINED && t->start < end) {
+							if (t->type == JSMN_STRING && json_token_streq(buf, t, "url")) {
+								t = &tokens[++i];
+								if (strstr(json_token_tostr(buf, t), "cdart")) {	// if the url is a cdart, "cdart" will be in the URL's path
+									if (numCdArt+cdExists < kMaxCdArt) { 
+										strcpy(cdUrl[numCdArt+cdExists], json_token_tostr(buf, t));
+									}
+									numCdArt++;
+								}
 							}
-							numCdArt++;
+							t = &tokens[++i];
 						}
 					}
 					t = &tokens[++i];
@@ -232,7 +246,8 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 						RetrieveFileFromURL(connection, previewUrl, fileName, TRUE);
 						SetCtrlAttribute(cdartPanHandle, cdartCtrls[i], ATTR_VISIBLE, 1);
 						SetCtrlAttribute(cdartPanHandle, cdartCtrls[i], ATTR_IMAGE_FILE, fileName);
-				    }
+				   		ProcessSystemEvents();
+					}
 					InternetCloseHandle(connection);
 				}
 				if (numCdArt+cdExists > 3) {
@@ -433,6 +448,7 @@ void FreeCdArtPaths(void)
 {
 	for (int i=0; i<kMaxCdArt; i++) {
 		free(cdArtPaths[i]);
+		cdArtPaths[i] = NULL;
 	}
 }
 
@@ -709,6 +725,7 @@ int CVICALLBACK FanartPanelCB (int panel, int event, void *callbackData,
 		case EVENT_CLOSE:
 			SetCtrlAttribute(hdlogoPanHandle, HDLOGO_PREVIEWTIMER, ATTR_ENABLED, 0);
 			SetCtrlAttribute(cdartPanHandle, CDART_PREVIEWTIMER, ATTR_ENABLED, 0);
+			FreeCdArtPaths();
 			RemovePopup(0);
 			break;
 		case EVENT_GOT_FOCUS:
