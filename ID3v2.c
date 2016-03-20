@@ -555,12 +555,24 @@ int SetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control
 	if (!update)
 		goto Error;
 
-	if (!strcmp(frameType, "DISCNUMBER") && gUseMetaDataDiscVal && dataHandle.discPtr[index]) {	// disc num
-		if (!strcmp(dataHandle.discPtr[index], "1/1"))
-			goto Error;	// don't save "1/1" strings
-		len = strlen(dataHandle.discPtr[index]);
-		nullChk(data = calloc(len+3, sizeof(char)));
-		sprintf(data, "%s\0", dataHandle.discPtr[index]);
+	if (!strcmp(frameType, "DISCNUMBER")) {
+		if (gUseMetaDataDiscVal && dataHandle.discPtr[index]) {	// disc num
+			len = strlen(dataHandle.discPtr[index]);
+			nullChk(data = calloc(len+1, sizeof(char)));
+			strcpy(data, dataHandle.discPtr[index]);
+		} else {
+			GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
+			nullChk(data = malloc(len+1));
+			GetCtrlVal(panel, control, data);
+			free(dataHandle.discPtr[index]);
+			nullChk(dataHandle.discPtr[index] = malloc(len+1));
+			strcpy(dataHandle.discPtr[index], data);
+			gUseMetaDataDiscVal = true;
+		}
+		if (!strcmp(dataHandle.discPtr[index], "1/1") || !strcmp(dataHandle.discPtr[index], "01/01")) {
+			strcpy(data, "");	// don't save 1/1 discs
+			SetCtrlVal(panel, control, "");
+		}
 	} else if (!stricmp(frameType, "TITLE")) {
 		GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColTrackName, ATTR_LABEL_TEXT_LENGTH, &len);
 		nullChk(data = calloc(len+1, sizeof(char)));
@@ -644,144 +656,6 @@ Default:
 
 	taglib_file_set_property(taglibfile, frameType, data, multi);
 	
-#if 0
-	for (i=0;i<kMaxMultipleValues;i++) {
-		ucs4Str[i] = NULL;
-		stringVals[i] = NULL;
-	}
-	errChk(GetCtrlVal(panel, updateCtrl, &update));
-	if (!update)
-		goto Error;
-
-	if (!strcmp(frameType, "TPOS") && gUseMetaDataDiscVal && dataHandle.discPtr[index]) {	// disc num
-		if (!strcmp(dataHandle.discPtr[index], "1/1"))
-			goto Error;	// don't save "1/1" strings
-		len = strlen(dataHandle.discPtr[index]);
-		nullChk(data = calloc(len+3, sizeof(char)));
-		sprintf(data, "%s\0", dataHandle.discPtr[index]);
-	} else if (!stricmp(frameType, "TPE3")) {			// If we're setting the custom "Artist Filter" check to see if Album Artist is VA/Soundtrack and add that, along with Artist
-		GetCtrlAttribute(tab1Handle, TAB1_ALBUMARTIST, ATTR_STRING_TEXT_LENGTH, &len);
-		nullChk(data = calloc(len+1, sizeof(char)));
-		GetCtrlVal(tab1Handle, TAB1_ALBUMARTIST, data);
-		if (stristr(data, "Various Artists")) {	// album artist
-			type = 1;
-		} else if (stristr(data, "Soundtrack")) {
-			type = 2;
-		}
-		free(data);
-		GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
-		nullChk(data = calloc(len+3, sizeof(char)));
-		nullChk(tmpStr = calloc(len+3, sizeof(char)));
-		errChk(GetCtrlVal(panel, control, data));
-		if (type > 0) {
-			len++;	// we have to do something here whether anything was entered in "Artist Filter" field or not
-		}
-	} else {		// handle everything but disc num and Artist Filter
-		int val;
-		GetCtrlVal(panelHandle, PANEL_SHOWTRACKARTISTS, &val);
-		if (!stricmp(frameType, "TPE1") && val == TRUE) {
-			GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT_LENGTH, &len);
-			nullChk(data = calloc(len+3, sizeof(char)));
-			nullChk(tmpStr = calloc(len+3, sizeof(char)));
-			errChk(GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT, data));
-		} else {
-			GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
-			nullChk(data = calloc(len+3, sizeof(char)));
-			nullChk(tmpStr = calloc(len+3, sizeof(char)));
-			errChk(GetCtrlVal(panel, control, data));
-		}
-	}
-
-	frame = id3_tag_findframe(id3tag, frameType, 0);
-	if (len) {	// add/update tag
-		if (!frame) {
-			frame = NewFrame(id3tag, frameType);
-			if (stristr(frameType, "WXXX")) {
-				//id3_field_set
-			}
-		}
-		/* update existing frame */
-		if (frame->nfields < 2)
-			Breakpoint();
-		field = id3_frame_field(frame, frame->nfields-1);	// I think we always want the last field in the frame
-		if (!field)
-			return 0;
-		switch (field->type) {
-			case ID3_FIELD_TYPE_STRINGLIST:
-				if (type > 0) {		// various artists or soundtrack
-					nStrings = 0;
-					GetCtrlVal(panelHandle, PANEL_UPDATEARTIST, &update);
-					GetCtrlVal(panelHandle, PANEL_SHOWTRACKARTISTS, &trackArtists);
-					if (update && !trackArtists) {
-						GetCtrlAttribute(tab1Handle, TAB1_PERFORMERSORTORDER, ATTR_STRING_TEXT_LENGTH, &len);
-						if (len > 0) {
-							nullChk(strVal = calloc(len+2, sizeof(char)));	// +2 so we can add a comma if needed
-							errChk(GetCtrlVal(tab1Handle, TAB1_PERFORMERSORTORDER, strVal));
-						} else {
-							GetCtrlAttribute(panelHandle, PANEL_ARTIST, ATTR_STRING_TEXT_LENGTH, &len);
-							nullChk(strVal = calloc(len+2, sizeof(char)));
-							errChk(GetCtrlVal(panelHandle, PANEL_ARTIST, strVal));
-						}
-						ptr = strVal;
-					} else {
-						GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT_LENGTH, &len);
-						if (len > 0) {
-							nullChk(strVal = calloc(len+2, sizeof(char)));	// +2 so we can add a comma if needed
-							errChk(GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT, strVal));
-							ptr = strVal;
-						} else {
-							ptr = dataHandle.artistPtr[index];
-						}
-					}
-					if (!strncmp("The ", ptr, 4) || !strncmp("the ", ptr, 4)) {
-						memmove(ptr, ptr+4, strlen(ptr)-3);	// include NULL
-						strcat(ptr, ", The");
-					}
-					AllocAndCopyStr(&stringVals[nStrings++], ptr);
-					/* get values already in Artist Filter */
-					if (strlen(data) > 0) {	// if Artist Filter was empty at start don't attempt to add names
-						start = ptr = data;
-						while (ptr = strchr(start, ';')) {
-							strncpy(tmpStr, start, ptr-start);
-							tmpStr[ptr-start] = '\0';
-							AllocAndCopyStr(&stringVals[nStrings++], tmpStr);
-							start = ptr+2;	// skip the "; "
-						}
-						AllocAndCopyStr(&stringVals[nStrings++], start);
-					}
-
-					/* add in VA/Soundtrack string to the very end */
-					if (type == 1)
-						AllocAndCopyStr(&stringVals[nStrings++], "Various Artists");
-					else
-						AllocAndCopyStr(&stringVals[nStrings++], "Soundtrack");
-				} else {
-					nStrings = 0;
-					start = ptr = data;
-					while (ptr = strchr(start, ';')) {
-						strncpy(tmpStr, start, ptr-start);
-						tmpStr[ptr-start] = '\0';
-						AllocAndCopyStr(&stringVals[nStrings++], tmpStr);
-						start = ptr+2;	// skip the "; "
-					}
-					AllocAndCopyStr(&stringVals[nStrings++], start);
-				}
-				nStrings = CheckForDuplicates(stringVals, nStrings);
-				for (i=0;i<nStrings;i++) {
-					ucs4Str[i] = id3_latin1_ucs4duplicate(stringVals[i]);
-				}
-				id3_field_setstrings(field, nStrings, ucs4Str);
-				break;
-			case ID3_FIELD_TYPE_LATIN1:
-				id3_field_setlatin1(field, (id3_latin1_t *)data);
-				break;
-		}
-	} else if (frame) {
-		id3_tag_detachframe(id3tag, frame);
-		id3_frame_delete(frame);
-	}
-#endif
-
 Error:
 	if (data)
 		free(data);
