@@ -62,34 +62,29 @@ int GetID3v2Tag(int panel, char *filename, int index)
 	GetTitleData(tokens,pmapJSON, "TITLE", panel, PANEL_TREE, index);
 	GetTextData(tokens, pmapJSON, "ALBUM", panel, PANEL_ALBUM, PANEL_ALBUMLED, index);
 	GetTextData(tokens, pmapJSON, "ARTIST", panel, PANEL_ARTIST, PANEL_ARTISTLED, index);
-	GetTextData(tokens, pmapJSON, "TRACKNUMBER", panel, PANEL_TRACKNUM, PANEL_TRACKNUMLED, index);
-	GetTextData(tokens, pmapJSON, "ENCODEDBY", tab2Handle, TAB2_ENCODED, TAB2_ENCODEDLED, index);
+	GetTextData(tokens, pmapJSON, "ALBUMSORT", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_ALBUMSORTLED, index);
+	GetTextData(tokens, pmapJSON, "ALBUMARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);
+	GetTextData(tokens, pmapJSON, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, TAB1_COUNTRYLED, index);
+	GetTextData(tokens, pmapJSON, "ARTISTFILTER", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
+	GetTextData(tokens, pmapJSON, "ARTISTSORT", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_PERFSORTLED, index);
 	GetTextData(tokens, pmapJSON, "COPYRIGHT", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
 	GetTextData(tokens, pmapJSON, "COMMENT", tab1Handle, TAB1_COMMENT, TAB1_COMMENTLED, index);
 	GetTextData(tokens, pmapJSON, "COMPOSER", tab1Handle, TAB1_COMPOSER, TAB1_COMPOSERLED, index);
-	GetTextData(tokens, pmapJSON, "DISCNUMBER", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
-	GetTextData(tokens, pmapJSON, "LABEL", tab1Handle, TAB1_PUBLISHER, TAB1_PUBLISHERLED, index);
-	GetTextData(tokens, pmapJSON, "ORIGINALARTIST", tab2Handle, TAB2_ORIGARTIST, TAB2_ORIGARTISTLED, index);
-	GetTextData(tokens, pmapJSON, "URL", tab2Handle, TAB2_URL, TAB2_URLLED, index);
-	GetTextData(tokens, pmapJSON, "ARTISTSORT", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_PERFSORTLED, index);
-	GetTextData(tokens, pmapJSON, "ALBUMSORT", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_ALBUMSORTLED, index);
-	GetTextData(tokens, pmapJSON, "ARTISTFILTER", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
 	GetTextData(tokens, pmapJSON, "DATE", tab1Handle, TAB1_YEAR, TAB1_YEARLED, index);
-	GetTextData(tokens, pmapJSON, "ALBUMARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);
-	GetTextData(tokens, pmapJSON, "GENRE", tab1Handle, TAB1_GENRE, TAB1_GENRELED, index);
-
-	GetTextData(tokens, pmapJSON, "replaygain_album_gain", tab1Handle, TAB1_ALBUMGAIN, TAB1_ALBUMGAINLED, index);
-	GetTextData(tokens, pmapJSON, "RELEASETYPE", tab1Handle, TAB1_RELTYPE, TAB1_RELTYPELED, index);
-	GetTextData(tokens, pmapJSON, "MUSICBRAINZ_RELEASEGROUPID", tab3Handle, TAB3_REID, 0, index);
-	GetTextData(tokens, pmapJSON, "MUSICBRAINZ_ARTISTID", tab3Handle, TAB3_ARTISTMBID, 0, index);
-	GetTextData(tokens, pmapJSON, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, TAB1_COUNTRYLED, index);
+	GetTextData(tokens, pmapJSON, "DISCNUMBER", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
 	GetTextData(tokens, pmapJSON, "EDITION", tab1Handle, TAB1_EDITION, TAB1_EDITIONLED, index);
+	GetTextData(tokens, pmapJSON, "ENCODEDBY", tab2Handle, TAB2_ENCODED, TAB2_ENCODEDLED, index);
+	GetTextData(tokens, pmapJSON, "GENRE", tab1Handle, TAB1_GENRE, TAB1_GENRELED, index);
+	GetTextData(tokens, pmapJSON, "PUBLISHER", tab1Handle, TAB1_PUBLISHER, TAB1_PUBLISHERLED, index);
+	GetTextData(tokens, pmapJSON, "LABEL", tab1Handle, TAB1_PUBLISHER, TAB1_PUBLISHERLED, index);
+	GetTextData(tokens, pmapJSON, "MUSICBRAINZ_ARTISTID", tab3Handle, TAB3_ARTISTMBID, 0, index);
+	GetTextData(tokens, pmapJSON, "MUSICBRAINZ_RELEASEGROUPID", tab3Handle, TAB3_REID, 0, index);
+	GetTextData(tokens, pmapJSON, "ORIGINALARTIST", tab2Handle, TAB2_ORIGARTIST, TAB2_ORIGARTISTLED, index);
+	GetTextData(tokens, pmapJSON, "RELEASETYPE", tab1Handle, TAB1_RELTYPE, TAB1_RELTYPELED, index);
 	GetTextData(tokens, pmapJSON, "REPLAYGAIN_ALBUM_GAIN", tab1Handle, TAB1_ALBUMGAIN, TAB1_ALBUMGAINLED, index);
+	GetTextData(tokens, pmapJSON, "TRACKNUMBER", panel, PANEL_TRACKNUM, PANEL_TRACKNUMLED, index);
+	GetTextData(tokens, pmapJSON, "URL", tab2Handle, TAB2_URL, TAB2_URLLED, index);
 	
-	//GetCtrlVal(panel, PANEL_USEWINAMPALBUMARTIST, &useTPE2);
-	//if (useTPE2)
-	//else
-	//	GetTextInformation(id3tag, "ALBUM ARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);// foobar style
 	GetPictureData(taglibfile, "APIC", tab2Handle, TAB2_ARTWORK, TAB2_ARTWORKLED, index);
 	GetUnhandledFields(tokens, pmapJSON, index);
 	free(tokens);
@@ -212,24 +207,6 @@ Error:
 	if (string)
 		free(string);
 	return found;
-}
-
-int isHandledFrameType(char *id) {
-	/* do not include TXXX here, because we only handle some cases */
-	if (!strcmp("TALB", id) || !strcmp("TPE1", id) ||
-		!strcmp("TRCK", id) || !strcmp("TENC", id) ||
-		!strcmp("TCOP", id) || !strcmp("TCOM", id) ||
-		!strcmp("TPOS", id) || !strcmp("TPUB", id) ||
-		!strcmp("TOPE", id) || !strcmp("TPE2", id) ||
-		!strcmp("WXXX", id) || !strcmp("TSOP", id) ||
-		!strcmp("TSOA", id) || !strcmp("TYER", id) ||
-		!strcmp("TDRC", id) || !strcmp("COMM", id) ||
-		!strcmp("APIC", id) || !strcmp("TIT2", id) ||
-		!strcmp("TCON", id))
-		return 1;
-	else
-		return 0;
-
 }
 
 int isHandledFrame(char *key)
