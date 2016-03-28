@@ -385,7 +385,8 @@ Error:
 
 void StoreDataVals(int panel, int control, char *string, int index)
 {
-	size_t size;
+	size_t size, len;
+	char *val = NULL;
 
 	size = strlen(string)+1;
 	if (panel == panelHandle) {
@@ -444,6 +445,13 @@ void StoreDataVals(int panel, int control, char *string, int index)
 			case TAB1_ALBUMARTIST:
 				dataHandle.albumArtistPtr[index] = calloc(size, sizeof(char));
 				strcpy(dataHandle.albumArtistPtr[index], string);
+				GetCtrlAttribute(panelHandle, PANEL_ARTIST, ATTR_STRING_TEXT_LENGTH, &len);
+				val = malloc(sizeof(char) * len + 1);
+				GetCtrlVal(panelHandle, PANEL_ARTIST, val);
+				if (!stricmp(val, string) && stricmp(val, "Various Artists")) {
+					SetCtrlVal(panel, control, "");	// clear out album artist because artist is already set to same value
+					SetCtrlVal(panel, TAB1_ALBUMARTISTLED, false);
+				}
 				break;
 			case TAB1_PERFORMERSORTORDER:
 				dataHandle.perfSortOrderPtr[index] = calloc(size, sizeof(char));
@@ -488,6 +496,9 @@ void StoreDataVals(int panel, int control, char *string, int index)
 		}
 		SetCtrlVal(panelHandle, PANEL_TABVALS, 1);	// always set this
 	}
+	
+	if (val)
+		free(val);
 }
 
 /**************************************************/
