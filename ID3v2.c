@@ -274,7 +274,7 @@ int GetUnhandledFields(jsmntok_t *tokens, char *pmapJSON, int index)
 	char	*string = NULL;
 	jsmntok_t *t = &tokens[i];
 
-	while (t->type > JSMN_PRIMITIVE) {
+	while (t->type > JSMN_UNDEFINED) {
 		if (t->type == JSMN_STRING) {
 			strcpy(frameType, json_token_tostr(pmapJSON, t));
 			if (!isHandledFrame(frameType)) {
