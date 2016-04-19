@@ -989,6 +989,7 @@ int CVICALLBACK AutoArtistCountryCB (int panel, int control, int event,
 			}
 			SetActiveCtrl(panel, TAB1_COUNTRY);
 			TagCB(panel, TAB1_ALBUMARTIST, EVENT_KEYPRESS, NULL, 0, 0);
+			SetCtrlAttribute(panel, TAB1_COUNTRYERROR, ATTR_VISIBLE, false);
 			break;
 	}
 	return 0;

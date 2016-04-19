@@ -92,6 +92,8 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 	char 		queryBuf[256], previewUrl[264], fileName[256], artist[128];
 	int			i, numLogos=0, numCdArt=0;
 	double		percent;
+	char 		*buf = NULL;
+	size_t		len = 0;
     HINTERNET	connection;
 	CVIXMLElement   curElem = 0;
 	CVIXMLDocument	doc = 0;
@@ -121,60 +123,66 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 				sprintf(fileName, "tempFanart\\%s-hdlogo.json", artistMBID);
 				DownloadFileIfNotExists(queryBuf, fileName);
 				
-				FILE *f = fopen(fileName, "r");
-				fseek(f, 0, SEEK_END);
-				size_t len = (unsigned long)ftell(f);
-				fseek(f, 0, SEEK_SET);
-				const char *buf;
-				buf = malloc(len * sizeof(char) + 1);
-				fread(buf, sizeof(char), len, f);
-				fclose(f);
-				//js = ...;
-
+				if (FileExists(fileName, 0)) {
+					FILE *f = fopen(fileName, "r");
+					fseek(f, 0, SEEK_END);
+					len = (unsigned long)ftell(f);
+					fseek(f, 0, SEEK_SET);
+					buf = malloc(len * sizeof(char) + 1);
+					fread(buf, sizeof(char), len, f);
+					fclose(f);
+				}
+			
 				jsmntok_t *tokens = json_tokenise(buf, len);
-				i=0;
-				jsmntok_t *t = &tokens[i];
-				while (t->type > JSMN_UNDEFINED) {
-					if (t->type == JSMN_STRING && json_token_streq(buf, t, "hdmusiclogo")) {
-						t = &tokens[++i];
-						int end = t->end;
-						while (t->type > JSMN_UNDEFINED && t->start < end) {
-							if (t->type == JSMN_STRING && json_token_streq(buf, t, "url")) {
-								t = &tokens[++i];
-								if (strstr(json_token_tostr(buf, t), "hdmusiclogo")) {	// if the url is a hdlogo, "hdmusiclogo" will be in the URL's path
-									if (numLogos+logoExists < kMaxLogos) {
-										strcpy(url[numLogos+logoExists], json_token_tostr(buf, t));
-									}
-									numLogos++;
-								}
-							}
+				if (tokens[0].type == JSMN_UNDEFINED) {
+					DeleteFile(fileName);	// not a JSON file so delete
+					SetCtrlAttribute(fanartPanHandle, FANART_LOGOERROR_ICON, ATTR_VISIBLE, true); 
+				} else {
+					SetCtrlAttribute(fanartPanHandle, FANART_LOGOERROR_ICON, ATTR_VISIBLE, false); 
+					i=0;
+					jsmntok_t *t = &tokens[i];
+					while (t->type > JSMN_UNDEFINED) {
+						if (t->type == JSMN_STRING && json_token_streq(buf, t, "hdmusiclogo")) {
 							t = &tokens[++i];
+							int end = t->end;
+							while (t->type > JSMN_UNDEFINED && t->start < end) {
+								if (t->type == JSMN_STRING && json_token_streq(buf, t, "url")) {
+									t = &tokens[++i];
+									if (strstr(json_token_tostr(buf, t), "hdmusiclogo")) {	// if the url is a hdlogo, "hdmusiclogo" will be in the URL's path
+										if (numLogos+logoExists < kMaxLogos) {
+											strcpy(url[numLogos+logoExists], json_token_tostr(buf, t));
+										}
+										numLogos++;
+									}
+								}
+								t = &tokens[++i];
+							}
 						}
+						t = &tokens[++i];
 					}
-					t = &tokens[++i];
-				}
-				free(buf);
-				free(tokens);
+					free(buf);
 				
-				ProgressBar_GetPercentage(panel, ALBUMPANEL_PROGRESSBAR, &percent);
-				if (percent < 15.0)
-					ProgressBar_AdvanceMilestone(fanartPanHandle, FANART_PROGRESSBAR, 0);			
-				if (numLogos > 0) {
-					connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-					for (i=logoExists;i<numLogos+logoExists && i<kMaxLogos;i++) {
-						sprintf(previewUrl, "http://assets.fanart.tv/preview/%s", url[i] + 31);
+					ProgressBar_GetPercentage(panel, ALBUMPANEL_PROGRESSBAR, &percent);
+					if (percent < 15.0)
+						ProgressBar_AdvanceMilestone(fanartPanHandle, FANART_PROGRESSBAR, 0);			
+					if (numLogos > 0) {
+						connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+						for (i=logoExists;i<numLogos+logoExists && i<kMaxLogos;i++) {
+							sprintf(previewUrl, "http://assets.fanart.tv/preview/%s", url[i] + 31);
 						
-						sprintf(fileName, "tempFanart\\%s", logoName[i]);
-						RetrieveFileFromURL(connection, previewUrl, fileName, TRUE);
-						SetCtrlAttribute(hdlogoPanHandle, logoControls[i], ATTR_VISIBLE, 1);
-						SetCtrlAttribute(hdlogoPanHandle, logoControls[i], ATTR_IMAGE_FILE, fileName);
-						ProcessSystemEvents();
+							sprintf(fileName, "tempFanart\\%s", logoName[i]);
+							RetrieveFileFromURL(connection, previewUrl, fileName, TRUE);
+							SetCtrlAttribute(hdlogoPanHandle, logoControls[i], ATTR_VISIBLE, 1);
+							SetCtrlAttribute(hdlogoPanHandle, logoControls[i], ATTR_IMAGE_FILE, fileName);
+							ProcessSystemEvents();
+						}
+						InternetCloseHandle(connection);
 					}
-					InternetCloseHandle(connection);
+					if (numLogos+logoExists > 6) {
+						SetPanelAttribute(hdlogoPanHandle, ATTR_SCROLL_BARS, VAL_VERT_SCROLL_BAR);
+					}
 				}
-				if (numLogos+logoExists > 6) {
-					SetPanelAttribute(hdlogoPanHandle, ATTR_SCROLL_BARS, VAL_VERT_SCROLL_BAR);
-				}
+				free(tokens);
 			}
 			ProgressBar_GetPercentage(panel, ALBUMPANEL_PROGRESSBAR, &percent);
 			if (percent < 50.0)
@@ -198,61 +206,66 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 				sprintf(fileName, "tempFanart\\%s-hdlogo.json", artistMBID);
 				DownloadFileIfNotExists(queryBuf, fileName);
 				
-				FILE *f = fopen(fileName, "r");
-				fseek(f, 0, SEEK_END);
-				size_t len = (unsigned long)ftell(f);
-				fseek(f, 0, SEEK_SET);
-				char *buf;
-				buf = malloc(len * sizeof(char) + 1);
-				fread(buf, sizeof(char), len, f);
-				buf[len] = '\0';
-				fclose(f);
-				//js = ...;
-
+				if (FileExists(fileName, 0)) {
+					FILE *f = fopen(fileName, "r");
+					fseek(f, 0, SEEK_END);
+					len = (unsigned long)ftell(f);
+					fseek(f, 0, SEEK_SET);
+					buf = malloc(len * sizeof(char) + 1);
+					fread(buf, sizeof(char), len, f);
+					buf[len] = '\0';
+					fclose(f);
+				}
+				
 				jsmntok_t *tokens = json_tokenise(buf, len);
-				int i = 0;
-				jsmntok_t *t = &tokens[i];
-				while (t->type > JSMN_UNDEFINED) {
-					if (t->type == JSMN_STRING && json_token_streq(buf, t, relGroupMBID)) {
-						t = &tokens[++i];
-						int end = t->end;
-						while (t->type > JSMN_UNDEFINED && t->start < end) {
-							if (t->type == JSMN_STRING && json_token_streq(buf, t, "url")) {
-								t = &tokens[++i];
-								if (strstr(json_token_tostr(buf, t), "cdart")) {	// if the url is a cdart, "cdart" will be in the URL's path
-									if (numCdArt+cdExists < kMaxCdArt) { 
-										strcpy(cdUrl[numCdArt+cdExists], json_token_tostr(buf, t));
-									}
-									numCdArt++;
-								}
-							}
+				if (tokens[0].type == JSMN_UNDEFINED) {
+					DeleteFile(fileName);	// not a JSON file so delete
+					SetCtrlAttribute(fanartPanHandle, FANART_CDARTERROR_ICON, ATTR_VISIBLE, true); 
+				} else {
+					SetCtrlAttribute(fanartPanHandle, FANART_CDARTERROR_ICON, ATTR_VISIBLE, false); 
+					int i = 0;
+					jsmntok_t *t = &tokens[i];
+					while (t->type > JSMN_UNDEFINED) {
+						if (t->type == JSMN_STRING && json_token_streq(buf, t, relGroupMBID)) {
 							t = &tokens[++i];
+							int end = t->end;
+							while (t->type > JSMN_UNDEFINED && t->start < end) {
+								if (t->type == JSMN_STRING && json_token_streq(buf, t, "url")) {
+									t = &tokens[++i];
+									if (strstr(json_token_tostr(buf, t), "cdart")) {	// if the url is a cdart, "cdart" will be in the URL's path
+										if (numCdArt+cdExists < kMaxCdArt) { 
+											strcpy(cdUrl[numCdArt+cdExists], json_token_tostr(buf, t));
+										}
+										numCdArt++;
+									}
+								}
+								t = &tokens[++i];
+							}
 						}
+						t = &tokens[++i];
 					}
-					t = &tokens[++i];
-				}
-				free(buf);
-				free(tokens);
-					
+					free(buf);
 
-				ProgressBar_GetPercentage(panel, ALBUMPANEL_PROGRESSBAR, &percent);
-				if (percent < 65.0)
-					ProgressBar_AdvanceMilestone(fanartPanHandle, FANART_PROGRESSBAR, 0);
-				if (numCdArt > 0) {
-					connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-					for (i=cdExists;i<numCdArt+cdExists && i<kMaxCdArt;i++) {
-						sprintf(previewUrl, "http://assets.fanart.tv/preview/%s", cdUrl[i] + 31);
-						sprintf(fileName, "tempFanart\\%s", cdName[i]);
-						RetrieveFileFromURL(connection, previewUrl, fileName, TRUE);
-						SetCtrlAttribute(cdartPanHandle, cdartCtrls[i], ATTR_VISIBLE, 1);
-						SetCtrlAttribute(cdartPanHandle, cdartCtrls[i], ATTR_IMAGE_FILE, fileName);
-				   		ProcessSystemEvents();
+					ProgressBar_GetPercentage(panel, ALBUMPANEL_PROGRESSBAR, &percent);
+					if (percent < 65.0)
+						ProgressBar_AdvanceMilestone(fanartPanHandle, FANART_PROGRESSBAR, 0);
+					if (numCdArt > 0) {
+						connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+						for (i=cdExists;i<numCdArt+cdExists && i<kMaxCdArt;i++) {
+							sprintf(previewUrl, "http://assets.fanart.tv/preview/%s", cdUrl[i] + 31);
+							sprintf(fileName, "tempFanart\\%s", cdName[i]);
+							RetrieveFileFromURL(connection, previewUrl, fileName, TRUE);
+							SetCtrlAttribute(cdartPanHandle, cdartCtrls[i], ATTR_VISIBLE, 1);
+							SetCtrlAttribute(cdartPanHandle, cdartCtrls[i], ATTR_IMAGE_FILE, fileName);
+					   		ProcessSystemEvents();
+						}
+						InternetCloseHandle(connection);
 					}
-					InternetCloseHandle(connection);
+					if (numCdArt+cdExists > 3) {
+						SetPanelAttribute(cdartPanHandle, ATTR_SCROLL_BARS, VAL_VERT_SCROLL_BAR);
+					}
 				}
-				if (numCdArt+cdExists > 3) {
-					SetPanelAttribute(cdartPanHandle, ATTR_SCROLL_BARS, VAL_VERT_SCROLL_BAR);
-				}
+				free(tokens);
 			}
 			ProgressBar_GetPercentage(panel, ALBUMPANEL_PROGRESSBAR, &percent);
 			if (percent < 99.0)

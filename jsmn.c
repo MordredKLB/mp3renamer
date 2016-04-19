@@ -1,5 +1,7 @@
 #include "jsmn.h"
 
+#define JSMN_STRICT 1
+
 /**
  * Allocates a fresh unused token from the token pull.
  */
