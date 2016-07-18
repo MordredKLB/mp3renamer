@@ -1200,21 +1200,10 @@ int IsWordInList(char *word, int len)
 
 void DoSmartCaps(char *string)
 {
-	/* Smart Capitalization Rules:
-		Capitalize first word and last word of a title - The is the The 
-		Do not capitalize little words within titles such as:
-			a, an, the, but, as, if, and, or, nor, or prepositions, regardless of their length.
-		Prepositions: "about," "above," "across," "after," "against," "along," "among," "around," 
-			"at," "before," "behind," "below," "beneath," "beside," "between," "beyond," "but," 
-			"by," "despite," "down," "during," "except," "for," "from," "in," "inside," "into," 
-			"like," "near," "of," "off," "on," "onto," "out," "outside," "over," "past," "since," 
-			"through," "throughout," "till," "to," "toward," "under," "underneath," "until," "up," 
-			"upon," "with," "within," and "without."*/
 	int i=0;
 	int spaces[200] = {0}; // maximum of 200 words
 	int numSpaces=0;
 	char *pos;
-	
 	
 	pos = string;
 	for (i=0;i<strlen(string);i++)
