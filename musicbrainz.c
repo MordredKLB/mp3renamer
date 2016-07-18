@@ -1186,14 +1186,17 @@ int CVICALLBACK OffsetCB (int panel, int control, int event,
 int CVICALLBACK AlbumPanelOKCB (int panel, int control, int event,
 		void *callbackData, int eventData1, int eventData2)
 {
-	int index, selectedItem;
+	int count, index, selectedItem;
 	
 	switch (event)
 	{
 		case EVENT_COMMIT:
-			GetCtrlVal(panel, ALBUMPANEL_ALBUMTREE, &selectedItem);
-			GetIndexFromValue(panel, ALBUMPANEL_ALBUMTREE, &index, selectedItem);
-			GetMetaTrackData(panel, index);
+			GetNumListItems(panel, ALBUMPANEL_ALBUMTREE, &count);
+			if (count > 0) {
+				GetCtrlVal(panel, ALBUMPANEL_ALBUMTREE, &selectedItem);
+				GetIndexFromValue(panel, ALBUMPANEL_ALBUMTREE, &index, selectedItem);
+				GetMetaTrackData(panel, index);
+			}
 			lastAlbumSelected = -1;
 			ExitDialog();
 			break;
