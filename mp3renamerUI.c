@@ -668,6 +668,10 @@ int CVICALLBACK TagCB (int panel, int control, int event,
 					case TAB1_ALBUMSORTORDER:
 						led = TAB1_ALBUMSORTLED;
 						break;
+					case TAB1_COUNTRY:
+						led = TAB1_COUNTRYLED;
+						SetCtrlAttribute(panel, TAB1_COUNTRYERROR, ATTR_VISIBLE, false);
+						break;
 					}
 			else if (panel == tab2Handle)
 				switch (control) {
@@ -1093,3 +1097,14 @@ int CVICALLBACK AddFieldCB (int panel, int control, int event,
 	return 0;
 }
 
+int CVICALLBACK CountryErrorCB (int panel, int control, int event,
+								void *callbackData, int eventData1, int eventData2)
+{
+	switch (event) {
+		case EVENT_LEFT_CLICK:
+		case EVENT_LEFT_DOUBLE_CLICK:
+			SetActiveCtrl(panel, TAB1_COUNTRY);
+			break;
+	}
+	return 0;
+}

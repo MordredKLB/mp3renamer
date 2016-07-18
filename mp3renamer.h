@@ -250,7 +250,7 @@
 #define  TAB1_DISCNUMLED                  46      /* control type: LED, callback function: (none) */
 #define  TAB1_ALBUMSORTLED                47      /* control type: LED, callback function: (none) */
 #define  TAB1_COMPOSERLED                 48      /* control type: LED, callback function: (none) */
-#define  TAB1_COUNTRYERROR                49      /* control type: textMsg, callback function: (none) */
+#define  TAB1_COUNTRYERROR                49      /* control type: textMsg, callback function: CountryErrorCB */
 
      /* tab page panel controls */
 #define  TAB2_ORIGARTIST                  2       /* control type: string, callback function: TagCB */
@@ -319,6 +319,7 @@ int  CVICALLBACK CDPreviewTimerCB(int panel, int control, int event, void *callb
 int  CVICALLBACK CharReplaceCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK ClearArtworkCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK ColorCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
+int  CVICALLBACK CountryErrorCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK DeleteXMLFilesCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK DownloadArtworkCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 void CVICALLBACK DownloadFanartCB(int menubar, int menuItem, void *callbackData, int panel);
