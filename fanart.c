@@ -284,23 +284,33 @@ Error:
 	return 0;
 }
 
+#define kNumRetries		3
 void RetrieveFileFromURL(HINTERNET connection, char *url, char *fileName, int binary)
 {
-	HINTERNET	resource;
+	HINTERNET	resource = NULL;
 	FILE		*file;
 	char		data[4096];
-	unsigned long bytes_read;
+	unsigned long bytes_read, i;
 
-	resource = InternetOpenUrl(connection, url, NULL, 0, INTERNET_FLAG_NO_CACHE_WRITE, 0);
-	if (resource != NULL) {
-		file = fopen(fileName, binary ? "wb" : "w");
-		if (file) {
-	        while (InternetReadFile(resource, data, sizeof(data) - 1, &bytes_read) && (bytes_read > 0))
-	            fwrite(data, sizeof(char), bytes_read, file);
-			fclose(file);
-			file = NULL;
+	//LPWSTR headers = L"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36\0";
+	
+	for (i=0; i < kNumRetries && !resource; i++) {
+		resource = InternetOpenUrl(connection, url, NULL, 0, INTERNET_FLAG_NO_CACHE_WRITE, 0);
+		// resource = InternetOpenUrl(connection, url, headers, -1, INTERNET_FLAG_NO_CACHE_WRITE, 0);
+		if (resource != NULL) {
+			file = fopen(fileName, binary ? "wb" : "w");
+			if (file) {
+		        while (InternetReadFile(resource, data, sizeof(data) - 1, &bytes_read) && (bytes_read > 0))
+		            fwrite(data, sizeof(char), bytes_read, file);
+				fclose(file);
+				file = NULL;
+			}
+			InternetCloseHandle(resource);
+		} else {
+			if (i < kNumRetries - 1) {
+				Sleep(1000);
+			}
 		}
-        InternetCloseHandle(resource);
 	}
 }
 
