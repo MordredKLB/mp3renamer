@@ -292,11 +292,12 @@ void RetrieveFileFromURL(HINTERNET connection, char *url, char *fileName, int bi
 	char		data[4096];
 	unsigned long bytes_read, i;
 
-	//LPWSTR headers = L"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36\0";
-	
+	// LPWSTR headers = L"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36\r\n\r\n";
+	// LPWSTR headers = L"User-Agent: mp3renamer\r\n\r\n";
+
 	for (i=0; i < kNumRetries && !resource; i++) {
-		resource = InternetOpenUrl(connection, url, NULL, 0, INTERNET_FLAG_NO_CACHE_WRITE, 0);
-		// resource = InternetOpenUrl(connection, url, headers, -1, INTERNET_FLAG_NO_CACHE_WRITE, 0);
+		// resource = InternetOpenUrl(connection, url, NULL, 0, INTERNET_FLAG_NO_CACHE_WRITE, 0);
+		resource = InternetOpenUrl(connection, url, "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36\r\n\r\n", -1, 0, 0);
 		if (resource != NULL) {
 			file = fopen(fileName, binary ? "wb" : "w");
 			if (file) {
@@ -307,6 +308,7 @@ void RetrieveFileFromURL(HINTERNET connection, char *url, char *fileName, int bi
 			}
 			InternetCloseHandle(resource);
 		} else {
+			ErrorPrintf("Error: %d", GetLastError());
 			if (i < kNumRetries - 1) {
 				Sleep(1000);
 			}
