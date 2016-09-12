@@ -40,6 +40,9 @@ Artist:  http://www.musicbrainz.org/ws/2/artist/?query=arid:65f4f0c5-ef9e-490c-a
 // kArtistQuery is used to retrieve the country code
 #define kArtistQuery	"http://musicbrainz.org/ws/2/artist/%s"
 
+// kDiscIDQuery is used to retrieve the disc subtitle
+#define kDiscIDQuery	"http://musicbrainz.org/ws/2/release/%s?inc=discids"
+
 #define kRelQueryBase	"http://musicbrainz.org/ws/2/release/?limit=100&offset=%d&query="
 #define kRelArtist		"artist:\"%s\""
 #define kRelAlbum		"release:\"%s\""
@@ -379,6 +382,9 @@ void BuildFileNameFromQuery(char *query, char *fileName) {
 		if (ptr) {
 			ptr[0] = '-';
 		}
+		while (ptr = strchr(temp, '?')) {
+			ptr[0] = '-';
+		}
 		ptr = strrchr(temp, '/');	// find 2nd to last '/'
 		strcat(fileName, ptr + 1);
 		free(temp);
@@ -624,6 +630,53 @@ Error:
 	return;
 }
 
+void GetDiscSubtitles(int panel, int albumIndex)
+{
+	HRESULT			loadError = S_OK, error = S_OK;
+	char			val[512], reid[40], queryBuf[512], fileName[MAX_PATHNAME_LEN];
+	int				numDiscs = 0;
+	CVIXMLElement   curElem = 0;
+	CVIXMLDocument	doc = 0;
+	CVIXMLAttribute curAttr = 0;
+	
+	GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColREID, ATTR_LABEL_TEXT, reid);
+	SetCtrlVal(tab3Handle, TAB3_REID, reid);
+	
+	sprintf(queryBuf, kDiscIDQuery, reid);	// artist
+	BuildFileNameFromQuery(queryBuf, fileName);	// create filename to save XML in
+	DownloadFileIfNotExists(queryBuf, fileName);
+	loadError = CVIXMLLoadDocument(fileName, &doc);
+	if (loadError == S_OK) {
+		hrChk (CVIXMLGetRootElement (doc, &curElem));
+		CVIXMLGetElementTag(curElem, val);
+		if (!strcmp(val, "error")) {
+			loadError = S_FALSE;
+		} else {
+			GetChildElementByTag(&curElem, "release");
+			GetChildElementByTag(&curElem, "medium-list");
+			CVIXMLGetAttributeByName(curElem, "count", &curAttr);
+			hrChk(CVIXMLGetAttributeValue(curAttr, val));
+			numDiscs = strtol(val, NULL, 10);	
+			for (int i=0; i<numDiscs; i++) {
+				GetChildElementByIndex(&curElem, i);	// "medium"
+				GetChildElementByTag(&curElem, "title");
+				hrChk(CVIXMLGetElementValue(curElem, val));
+				GetParentElement(&curElem);
+				GetParentElement(&curElem);
+				// ErrorPrintf("%s", val);
+			}
+		}
+	}
+Error:
+	if (curElem)
+		CVIXMLDiscardElement (curElem);
+	if (curAttr)
+		CVIXMLDiscardAttribute (curAttr);
+	if (doc)
+    	CVIXMLDiscardDocument (doc);
+	return;
+}
+
 /* Copies MetaData from the AlbumPanel to the main panel and populates the TrackTitle Tree */
 void GetMetaTrackData(int panel, int albumIndex)
 {
@@ -720,6 +773,8 @@ void GetMetaTrackData(int panel, int albumIndex)
 			SetCtrlAttribute(tab1Handle, TAB1_COUNTRYERROR, ATTR_VISIBLE, TRUE);
 			DeleteFile(fileName);
 		}
+		
+		GetDiscSubtitles(panel, albumIndex);
 		
 		for (i=0;i<gAlbumInfo[albumIndex].numTracks;i++) {
 			char *ptr;

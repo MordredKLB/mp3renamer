@@ -56,8 +56,8 @@
 #define  ALBUMPANEL_TEXTMSG_6             41      /* control type: textMsg, callback function: (none) */
 #define  ALBUMPANEL_TXTBARCODE            42      /* control type: textMsg, callback function: (none) */
 #define  ALBUMPANEL_TXTTYPE               43      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG_7             44      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TXTLABEL              45      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TXTLABEL              44      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TEXTMSG_7             45      /* control type: textMsg, callback function: (none) */
 #define  ALBUMPANEL_ERROR_ICON            46      /* control type: picture, callback function: (none) */
 
 #define  CDART                            2       /* callback function: FanartPanelCB */

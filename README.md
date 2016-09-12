@@ -1,0 +1,7 @@
+# mp3renamer
+
+This was a project I started back in the 2004-05 timeframe when I was a developer at National Instruments working on the LabWindows CVI team. It was originally intended to just rename mp3s so that I didn't have to do it manually, and was a quick and dirty application I banged out over a weekend. As new features were added it quickly spiraled out of control, and became a convenient testing project for the CVI team (many a bug was uncovered and fixed because of it). The ability to read/tag files was added, then artwork downloads, then metadata retrieval from musicbrainz, then fanart downloads, APE support, etc. [id3lib](https://sourceforge.net/projects/id3lib/files/) was the tagging library I used for years, but it was terrible and unmodified since 2003, and I finally switched to a modified version of [taglib](https://taglib.github.io/) back in early 2016.
+
+This project is written in [LabWindows CVI](http://www.ni.com/lwcvi/), an ANSI C development environment. This means that A) It's probably not of much interest to anyone, and B) the code is *really* ugly. It should have been refactored and rewritten years ago, but I just never had the time/interest to do so. It should not be taken as indicative of my work.
+
+It was stored in many different SCC sites over the years and finally came to rest here at github after all the other ones folded or lost popularity.
