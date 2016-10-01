@@ -25,7 +25,7 @@
 
 #define kNumPanelControls		2
 #define kNumTab1Controls		14
-#define kNumTab2Controls		4
+#define kNumTab2Controls		5
 #define kNumTab3Controls		2
 		
 #define false	FALSE
@@ -50,6 +50,7 @@ extern int firstFile;
 // Global variables
 
 int gUseMetaDataDiscVal;		// when saving disk vals, should we use the meta data?
+int gUseMetaDataDiscSubtitleVal;// when saving disk subtitle vals, should we use the meta data?
 int gUseMetaArtistFilter;		// when saving artist filter vals, should we use the meta data?
 
 //==============================================================================

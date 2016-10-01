@@ -60,7 +60,7 @@ void ClearID3Fields(void)
 	SetTableCellVal(tab1Handle, TAB1_RELTYPE, tagCell, "");
 	SetCtrlVal (tab1Handle, TAB1_YEAR, "");
 	SetCtrlVal (tab1Handle, TAB1_DISCNUM, "");
-	SetCtrlVal (tab1Handle, TAB1_COMPOSER, "");
+	SetCtrlVal (tab1Handle, TAB2_COMPOSER, "");
 	SetCtrlVal (tab1Handle, TAB1_PUBLISHER, "");
 	SetCtrlVal (tab1Handle, TAB1_EDITION, "");
 	SetCtrlVal (tab1Handle, TAB1_COUNTRY, "");
@@ -642,9 +642,6 @@ int CVICALLBACK TagCB (int panel, int control, int event,
 						led = TAB1_YEARLED;
 						SetCtrlAttribute(panelHandle, PANEL_RENAMEFOLDER, ATTR_DIMMED, 0);
 						break;
-					case TAB1_COMPOSER:
-						led = TAB1_COMPOSERLED;
-						break;
 					case TAB1_EDITION:
 						led = TAB1_EDITIONLED;
 						break;
@@ -662,6 +659,10 @@ int CVICALLBACK TagCB (int panel, int control, int event,
 						led = TAB1_DISCNUMLED;
 						gUseMetaDataDiscVal = FALSE;
 						break;
+					case TAB1_DISCSUBTITLE:
+						led = TAB1_DISCSUBTITLELED;
+						gUseMetaDataDiscSubtitleVal = FALSE;
+						break;
 					case TAB1_PUBLISHER:
 						led = TAB1_PUBLISHERLED;
 						break;
@@ -675,17 +676,20 @@ int CVICALLBACK TagCB (int panel, int control, int event,
 					}
 			else if (panel == tab2Handle)
 				switch (control) {
-					case TAB2_ORIGARTIST:
-						led = TAB2_ORIGARTISTLED;
-						break;
-					case TAB2_URL:
-						led = TAB2_URLLED;
+					case TAB2_COMPOSER:
+						led = TAB2_COMPOSERLED;
 						break;
 					case TAB2_COPYRIGHT:
 						led = TAB2_COPYRIGHTLED;
 						break;
 					case TAB2_ENCODED:
 						led = TAB2_ENCODEDLED;
+						break;
+					case TAB2_ORIGARTIST:
+						led = TAB2_ORIGARTISTLED;
+						break;
+					case TAB2_URL:
+						led = TAB2_URLLED;
 						break;
 					}
 			if (led)

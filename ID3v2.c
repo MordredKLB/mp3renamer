@@ -69,9 +69,10 @@ int GetID3v2Tag(int panel, char *filename, int index)
 	GetTextData(tokens, pmapJSON, "ARTISTSORT", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_PERFSORTLED, index);
 	GetTextData(tokens, pmapJSON, "COPYRIGHT", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
 	GetTextData(tokens, pmapJSON, "COMMENT", tab1Handle, TAB1_COMMENT, TAB1_COMMENTLED, index);
-	GetTextData(tokens, pmapJSON, "COMPOSER", tab1Handle, TAB1_COMPOSER, TAB1_COMPOSERLED, index);
+	GetTextData(tokens, pmapJSON, "COMPOSER", tab2Handle, TAB2_COMPOSER, TAB2_COMPOSERLED, index);
 	GetTextData(tokens, pmapJSON, "DATE", tab1Handle, TAB1_YEAR, TAB1_YEARLED, index);
 	GetTextData(tokens, pmapJSON, "DISCNUMBER", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
+	GetTextData(tokens, pmapJSON, "DISCSUBTITLE", tab1Handle, TAB1_DISCSUBTITLE, TAB1_DISCSUBTITLELED, index);
 	GetTextData(tokens, pmapJSON, "EDITION", tab1Handle, TAB1_EDITION, TAB1_EDITIONLED, index);
 	GetTextData(tokens, pmapJSON, "ENCODEDBY", tab2Handle, TAB2_ENCODED, TAB2_ENCODEDLED, index);
 	GetTextData(tokens, pmapJSON, "GENRE", tab1Handle, TAB1_GENRE, TAB1_GENRELED, index);
@@ -225,6 +226,7 @@ int isHandledFrame(char *key)
 		!stricmp("COMPOSER", key) ||
 		!stricmp("DATE", key) ||
 		!stricmp("DISCNUMBER", key) ||
+		!stricmp("DISCSUBTITLE", key) ||
 		!stricmp("EDITION", key) ||
 		!stricmp("GENRE", key) ||
 		!stricmp("LABEL", key) ||
@@ -389,10 +391,6 @@ void StoreDataVals(int panel, int control, char *string, int index)
 				dataHandle.genrePtr[index] = calloc(size, sizeof(char));
 				strcpy(dataHandle.genrePtr[index], string);
 				break;
-			case TAB1_COMPOSER:
-				dataHandle.composerPtr[index] = calloc(size, sizeof(char));
-				strcpy(dataHandle.composerPtr[index], string);
-				break;
 			case TAB1_YEAR:
 				dataHandle.yearPtr[index] = calloc(size, sizeof(char));
 				strcpy(dataHandle.yearPtr[index], string);
@@ -400,6 +398,11 @@ void StoreDataVals(int panel, int control, char *string, int index)
 			case TAB1_DISCNUM:
 				dataHandle.discPtr[index] = calloc(size, sizeof(char));
 				strcpy(dataHandle.discPtr[index], string);
+				gUseMetaDataDiscVal = TRUE;
+				break;
+			case TAB1_DISCSUBTITLE:
+				dataHandle.discSubtitlePtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.discSubtitlePtr[index], string);
 				gUseMetaDataDiscVal = TRUE;
 				break;
 			case TAB1_ARTISTFILTER:
@@ -454,6 +457,10 @@ void StoreDataVals(int panel, int control, char *string, int index)
 		}
 	else if (panel == tab2Handle) {
 		switch (control) {
+			case TAB2_COMPOSER:
+				dataHandle.composerPtr[index] = calloc(size, sizeof(char));
+				strcpy(dataHandle.composerPtr[index], string);
+				break;
 			case TAB2_COPYRIGHT:
 				dataHandle.copyrightPtr[index] = calloc(size, sizeof(char));
 				strcpy(dataHandle.copyrightPtr[index], string);
@@ -504,11 +511,12 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index)
 	SetTextData(taglibfile, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, TAB1_UPDATECOUNTRY, index, true);
 	SetTextData(taglibfile, "ARTISTSORT", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_UPDATEPERFSORT, index, false);
 	SetTextData(taglibfile, "COMMENT", tab1Handle, TAB1_COMMENT, TAB1_UPDATECOMMENT, index, false);
-	SetTextData(taglibfile, "COMPOSER", tab1Handle, TAB1_COMPOSER, TAB1_UPDATECOMPOSER, index, true);
-	SetTextData(taglibfile, "ARTISTFILTER", tab1Handle, TAB1_ARTISTFILTER, TAB1_UPDATEARTISTFILTER, index, true); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
+	SetTextData(taglibfile, "COMPOSER", tab2Handle, TAB2_COMPOSER, TAB2_UPDATECOMPOSER, index, true);
+	SetTextData(taglibfile, "ARTISTFILTER", tab1Handle, TAB1_ARTISTFILTER, TAB1_UPDATEARTISTFILTER, index, true);
 	SetTextData(taglibfile, "COPYRIGHT", tab2Handle, TAB2_COPYRIGHT, TAB2_UPDATECOPYRIGHT, index, true);
 	SetTextData(taglibfile, "DATE", tab1Handle, TAB1_YEAR, TAB1_UPDATEYEAR, index, false);
 	SetTextData(taglibfile, "DISCNUMBER", tab1Handle, TAB1_DISCNUM, TAB1_UPDATEDISCNUM, index, false);
+	SetTextData(taglibfile, "DISCSUBTITLE", tab1Handle, TAB1_DISCSUBTITLE, TAB1_UPDATEDISCSUBTITLE, index, false);
 	SetTextData(taglibfile, "EDITION", tab1Handle, TAB1_EDITION, TAB1_UPDATEEDITION, index, false);
 	SetTextData(taglibfile, "ENCODEDBY", tab2Handle, TAB2_ENCODED, TAB2_UPDATEENCODED, index, true);
 	SetTextData(taglibfile, "GENRE", tab1Handle, TAB1_GENRE, TAB1_UPDATEGENRE, index, true);
@@ -533,7 +541,6 @@ Error:
 
 #define kMaxMultipleValues	10
 
-//int SetTextData(id3_Tag *id3tag, char *frameType, int panel, int control, int updateCtrl, int index)
 int SetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control, int updateCtrl, int index, int multi)
 {
 	int 			error, len, update, needsVarious=0, style;
@@ -555,11 +562,23 @@ int SetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control
 			free(dataHandle.discPtr[index]);
 			nullChk(dataHandle.discPtr[index] = malloc(len+1));
 			strcpy(dataHandle.discPtr[index], data);
-			gUseMetaDataDiscVal = true;
 		}
 		if (!strcmp(dataHandle.discPtr[index], "1/1") || !strcmp(dataHandle.discPtr[index], "01/01")) {
 			strcpy(data, "");	// don't save 1/1 discs
 			SetCtrlVal(panel, control, "");
+		}
+	} else if (!stricmp(frameType, "DISCSUBTITLE")) {
+		if (gUseMetaDataDiscSubtitleVal && dataHandle.discSubtitlePtr[index]) {
+			len = strlen(dataHandle.discSubtitlePtr[index]);
+			nullChk(data = calloc(len+1, sizeof(char)));
+			strcpy(data, dataHandle.discSubtitlePtr[index]);
+		} else {
+			GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
+			nullChk(data = malloc(len+1));
+			GetCtrlVal(panel, control, data);
+			free(dataHandle.discSubtitlePtr[index]);
+			nullChk(dataHandle.discSubtitlePtr[index] = malloc(len+1));
+			strcpy(dataHandle.discSubtitlePtr[index], data);
 		}
 	} else if (!stricmp(frameType, "TITLE")) {
 		GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColTrackName, ATTR_LABEL_TEXT_LENGTH, &len);
@@ -794,7 +813,7 @@ int CVICALLBACK StringCompare(void *item1, void *item2)
 	return strcmp(item1, item2);
 }
 
-/* Turns on the "conflict" LED and populates a tooltip with the conflict values */
+/* The "conflict" LED is set when data is read, so if one is set populate a tooltip with the conflict values */
 void SetConflictTooltips(panel)
 {
 	char 		***dataPtr = NULL;
@@ -842,7 +861,7 @@ void SetConflictTooltips(panel)
 	dataPtr[kNumPanelControls + 1] 						= dataHandle.commentPtr;
 	dataPtr[kNumPanelControls + 2] 						= dataHandle.yearPtr;
 	dataPtr[kNumPanelControls + 3] 						= dataHandle.discPtr;
-	dataPtr[kNumPanelControls + 4] 						= dataHandle.composerPtr;
+	dataPtr[kNumPanelControls + 4] 						= dataHandle.discSubtitlePtr;
 	dataPtr[kNumPanelControls + 5] 						= dataHandle.publisherPtr;
 	dataPtr[kNumPanelControls + 6] 						= dataHandle.editionPtr;
 	dataPtr[kNumPanelControls + 7]						= dataHandle.countryPtr;
@@ -857,6 +876,7 @@ void SetConflictTooltips(panel)
 	dataPtr[kNumPanelControls + kNumTab1Controls + 1] 	= dataHandle.urlPtr;
 	dataPtr[kNumPanelControls + kNumTab1Controls + 2]	= dataHandle.copyrightPtr;
 	dataPtr[kNumPanelControls + kNumTab1Controls + 3]	= dataHandle.encodedPtr;
+	dataPtr[kNumPanelControls + kNumTab1Controls + 4] 	= dataHandle.composerPtr;
 
 	for (i=0;i<kEndOfList;i++)
 		if (ledList[i]) {

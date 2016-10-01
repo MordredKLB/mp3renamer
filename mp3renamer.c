@@ -64,16 +64,16 @@ extern const Point tagCell;
 static int gRetrievedFolderJpgData = 0;
 
 char panelLEDList[2] = {PANEL_ARTISTLED, PANEL_ALBUMLED};
-char tab1LEDList[kNumTab1Controls] = {TAB1_GENRELED, TAB1_COMMENTLED, TAB1_YEARLED, TAB1_DISCNUMLED, TAB1_COMPOSERLED, 
+char tab1LEDList[kNumTab1Controls] = {TAB1_GENRELED, TAB1_COMMENTLED, TAB1_YEARLED, TAB1_DISCNUMLED, TAB1_DISCSUBTITLELED, 
 						TAB1_PUBLISHERLED, TAB1_EDITIONLED, TAB1_COUNTRYLED, TAB1_RELTYPELED, TAB1_ALBUMARTISTLED, 
 						TAB1_ARTISTFILTERLED, TAB1_PERFSORTLED, TAB1_ALBUMGAINLED, TAB1_ALBUMSORTLED};
-char tab2LEDList[kNumTab2Controls] = {TAB2_ORIGARTISTLED, TAB2_URLLED, TAB2_COPYRIGHTLED, TAB2_ENCODEDLED};
+char tab2LEDList[kNumTab2Controls] = {TAB2_ORIGARTISTLED, TAB2_URLLED, TAB2_COPYRIGHTLED, TAB2_ENCODEDLED, TAB2_COMPOSERLED};
 
 char panelUpdateList[4] = {PANEL_UPDATEARTIST, PANEL_UPDATEALBUM, PANEL_UPDATETITLE, PANEL_UPDATETRACKNUM};
-char tab1UpdateList[kNumTab1Controls] = {TAB1_UPDATEGENRE, TAB1_UPDATECOMMENT, TAB1_UPDATEYEAR, TAB1_UPDATEDISCNUM, TAB1_UPDATECOMPOSER, 
+char tab1UpdateList[kNumTab1Controls] = {TAB1_UPDATEGENRE, TAB1_UPDATECOMMENT, TAB1_UPDATEYEAR, TAB1_UPDATEDISCNUM, TAB1_UPDATEDISCSUBTITLE, 
 										 TAB1_UPDATEPUBLISHER, TAB1_UPDATEALBUMARTIST, TAB1_UPDATEARTISTFILTER, TAB1_UPDATEEDITION, 
 										 TAB1_UPDATECOUNTRY, TAB1_UPDATERELTYPE, TAB1_UPDATEPERFSORT, TAB1_UPDATEALBUMGAIN, TAB1_UPDATEALBUMSORT};
-char tab2UpdateList[kNumTab2Controls] = {TAB2_UPDATEORIGARTIST, TAB2_UPDATEURL, TAB2_UPDATECOPYRIGHT, TAB2_UPDATEENCODED};
+char tab2UpdateList[kNumTab2Controls] = {TAB2_UPDATEORIGARTIST, TAB2_UPDATEURL, TAB2_UPDATECOPYRIGHT, TAB2_UPDATEENCODED, TAB2_UPDATECOMPOSER};
 char tab3UpdateList[kNumTab3Controls] = {TAB3_UPDATEMBID, TAB3_UPDATEREID};
 
 #define kNumWords			21
@@ -475,6 +475,7 @@ void initID3DataStruct(int numSongs)
 	dataHandle.commentPtr = calloc(numFiles, sizeof(char *));
 	dataHandle.yearPtr = calloc(numFiles, sizeof(char *));
 	dataHandle.discPtr = calloc(numFiles, sizeof(char *));
+	dataHandle.discSubtitlePtr = calloc(numFiles, sizeof(char *));
 	dataHandle.composerPtr = calloc(numFiles, sizeof(char *));
 	dataHandle.copyrightPtr = calloc(numFiles, sizeof(char *));
 	dataHandle.urlPtr = calloc(numFiles, sizeof(char *));
@@ -491,6 +492,15 @@ void initID3DataStruct(int numSongs)
 	dataHandle.perfSortOrderPtr = calloc(numFiles, sizeof(char *));
 }
 
+void* FreeDataPtrs(int numSongs, void **dataPtr)
+{
+	// TODO: Implement this -- it'll be better than the crap below.
+	for (int i=0; i<numSongs; i++) {
+		free(dataPtr[i]);
+	}
+	return NULL;
+}
+
 void ClearID3DataStruct(int numSongs)
 {
 	int i;
@@ -505,6 +515,7 @@ void ClearID3DataStruct(int numSongs)
 		free(dataHandle.commentPtr[i]);
 		free(dataHandle.yearPtr[i]);
 		free(dataHandle.discPtr[i]);
+		free(dataHandle.discSubtitlePtr[i]);
 		free(dataHandle.composerPtr[i]);
 		free(dataHandle.copyrightPtr[i]);
 		free(dataHandle.urlPtr[i]);
@@ -527,6 +538,7 @@ void ClearID3DataStruct(int numSongs)
 	free(dataHandle.commentPtr);
 	free(dataHandle.yearPtr);
 	free(dataHandle.discPtr);
+	free(dataHandle.discSubtitlePtr);
 	free(dataHandle.composerPtr);
 	free(dataHandle.copyrightPtr);
 	free(dataHandle.urlPtr);
@@ -542,8 +554,8 @@ void ClearID3DataStruct(int numSongs)
 	free(dataHandle.albSortOrderPtr);
 	free(dataHandle.perfSortOrderPtr);
 	dataHandle.artistPtr = dataHandle.albumPtr = dataHandle.genrePtr = dataHandle.commentPtr = dataHandle.yearPtr =
-		dataHandle.discPtr = dataHandle.composerPtr = dataHandle.copyrightPtr = dataHandle.publisherPtr = 
-		dataHandle.urlPtr = dataHandle.encodedPtr = dataHandle.countryPtr = dataHandle.relTypePtr = 
+		dataHandle.discPtr = dataHandle.discSubtitlePtr = dataHandle.composerPtr = dataHandle.copyrightPtr = 
+		dataHandle.publisherPtr = dataHandle.urlPtr = dataHandle.encodedPtr = dataHandle.countryPtr = dataHandle.relTypePtr = 
 		dataHandle.origArtistPtr = dataHandle.albumArtistPtr = dataHandle.trackNumPtr = dataHandle.albumGainPtr = 
 		dataHandle.albSortOrderPtr = dataHandle.artistFilterPtr = dataHandle.perfSortOrderPtr = dataHandle.editionPtr = NULL;
 }

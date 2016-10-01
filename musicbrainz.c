@@ -630,7 +630,7 @@ Error:
 	return;
 }
 
-void GetDiscSubtitles(int panel, int albumIndex)
+void GetDiscSubtitles(int panel, int albumIndex, char **subtitles)
 {
 	HRESULT			loadError = S_OK, error = S_OK;
 	char			val[512], reid[40], queryBuf[512], fileName[MAX_PATHNAME_LEN];
@@ -661,10 +661,17 @@ void GetDiscSubtitles(int panel, int albumIndex)
 				GetChildElementByIndex(&curElem, i);	// "medium"
 				GetChildElementByTag(&curElem, "title");
 				hrChk(CVIXMLGetElementValue(curElem, val));
+				subtitles[i] = malloc(strlen(val) + 1);
+				strcpy(subtitles[i], val);
 				GetParentElement(&curElem);
 				GetParentElement(&curElem);
-				// ErrorPrintf("%s", val);
+				// ErrorPrintf("%s", subtitles[i]);
+				if (numDiscs > 1 && i && strcmp(subtitles[0], subtitles[i])) {
+					// if subtitles are different enable conflict LED
+					SetCtrlVal(tab1Handle, TAB1_DISCSUBTITLELED, 1);
+				}
 			}
+			gUseMetaDataDiscSubtitleVal = TRUE;
 		}
 	}
 Error:
@@ -682,6 +689,7 @@ void GetMetaTrackData(int panel, int albumIndex)
 {
 	HRESULT 		loadError = S_OK, error = S_OK;
 	char			val[512], reid[40], queryBuf[512], discNum[10], offset[10], fileName[MAX_PATHNAME_LEN];
+	char			*discSubtitles[99] = { NULL };
 	int				len, releaseDiscs, i, k, count, numTracks, disc, trackNum;
 	int 			oldYear, newYear, replaceUnicodeApostrophe;
 	CVIXMLElement   curElem = 0;
@@ -774,7 +782,8 @@ void GetMetaTrackData(int panel, int albumIndex)
 			DeleteFile(fileName);
 		}
 		
-		GetDiscSubtitles(panel, albumIndex);
+		GetDiscSubtitles(panel, albumIndex, discSubtitles);
+		SetCtrlVal(tab1Handle, TAB1_DISCSUBTITLE, discSubtitles[0]);
 		
 		for (i=0;i<gAlbumInfo[albumIndex].numTracks;i++) {
 			char *ptr;
@@ -798,6 +807,11 @@ void GetMetaTrackData(int panel, int albumIndex)
 				else
 					ptr = "1";
 				if (trackNum == count && !strncmp(ptr, gAlbumInfo[albumIndex].tracks[i].discNum, strlen(gAlbumInfo[albumIndex].tracks[i].discNum))) {
+					// We found the correct track, now save the values for it
+					if (dataHandle.discSubtitlePtr[k])
+						free(dataHandle.discSubtitlePtr[k]);
+					dataHandle.discSubtitlePtr[k] = malloc(strlen(discSubtitles[disc-1]) + 1);
+					strcpy(dataHandle.discSubtitlePtr[k], discSubtitles[disc-1]);
 					SetTreeCellAttribute(panelHandle, PANEL_TREE, k, kTreeColTrackName, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].title);
 					SetTreeCellAttribute(panelHandle, PANEL_TREE, k, kTreeColArtistName, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].artist);
 					if (releaseDiscs > 1) {		// get an accurate value while we can here because it's used in file renaming
@@ -810,7 +824,16 @@ void GetMetaTrackData(int panel, int albumIndex)
 				}
 			}
 		}
+		for (i=0; i<99; i++) {
+			if (discSubtitles[i] != NULL) {
+				free(discSubtitles[i]);
+			}
+		}
+		if (releaseDiscs > 0) {
+			SetConflictTooltips(panelHandle);	// we just updated so show "conflicts"
+		}
 	}
+
 Error:
 	if (curElem)
 		CVIXMLDiscardElement (curElem);

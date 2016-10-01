@@ -44,6 +44,7 @@ struct {
 	char **commentPtr;
 	char **yearPtr;
 	char **discPtr;
+	char **discSubtitlePtr;
 	char **composerPtr;
 	char **copyrightPtr;
 	char **artistFilterPtr;
@@ -67,7 +68,7 @@ enum {
 	kComment,
 	kYear,
 	kDisc,
-	kComposer,
+	kDiscSubtitle,
 	kPublisher,
 	kEdition,
 	kArtistCountry,
@@ -81,7 +82,8 @@ enum {
 	kURL,
 	kCopyright,
 	kEncoded,
-	kEndOfList = kEncoded
+	kComposer,
+	kEndOfList = kComposer
 };
 
 typedef struct defFileStruct {

@@ -65,9 +65,10 @@ int LoadAPEv2Tag (int panel, char *fileName, int index)
 	GetAPETagData(tag, "artistfilter", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index);
 	GetAPETagData(tag, "artistsortorder", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_PERFSORTLED, index);
 	GetAPETagData(tag, "comment", tab1Handle, TAB1_COMMENT, TAB1_COMMENTLED, index);
-	GetAPETagData(tag, "composer", tab1Handle, TAB1_COMPOSER, TAB1_COMPOSERLED, index);
+	GetAPETagData(tag, "composer", tab2Handle, TAB2_COMPOSER, TAB2_COMPOSERLED, index);
 	GetAPETagData(tag, "copyright", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
 	GetAPETagData(tag, "disc", tab1Handle, TAB1_DISCNUM, TAB1_DISCNUMLED, index);
+	GetAPETagData(tag, "discsubtitle", tab1Handle, TAB1_DISCSUBTITLE, TAB1_DISCSUBTITLELED, index);
 	GetAPETagData(tag, "edition", tab1Handle, TAB1_EDITION, TAB1_EDITIONLED, index);
 	GetAPETagData(tag, "encoded", tab2Handle, TAB2_ENCODED, TAB2_ENCODEDLED, index);
 	GetAPETagData(tag, "genre", tab1Handle, TAB1_GENRE, TAB1_GENRELED, index);
@@ -288,9 +289,10 @@ int SetAPEv2Tag(int panel, char *filename, char *newname, int index)
 	UpdateAPETagItem(tag, "artistfilter", tab1Handle, TAB1_ARTISTFILTER, TAB1_UPDATEARTISTFILTER, dataHandle.artistFilterPtr, index, gUseMetaArtistFilter);
 	UpdateAPETagItem(tag, "artistsortorder", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_UPDATEPERFSORT, dataHandle.perfSortOrderPtr, index, FALSE);
 	UpdateAPETagItem(tag, "comment", tab1Handle, TAB1_COMMENT, TAB1_UPDATECOMMENT, dataHandle.commentPtr, index, FALSE);
-	UpdateAPETagItem(tag, "composer", tab1Handle, TAB1_COMPOSER, TAB1_UPDATECOMPOSER, dataHandle.composerPtr, index, FALSE);
+	UpdateAPETagItem(tag, "composer", tab2Handle, TAB2_COMPOSER, TAB2_UPDATECOMPOSER, dataHandle.composerPtr, index, FALSE);
 	UpdateAPETagItem(tag, "copyright", tab2Handle, TAB2_COPYRIGHT, TAB2_UPDATECOPYRIGHT, dataHandle.copyrightPtr, index, FALSE);
 	UpdateAPETagItem(tag, "disc", tab1Handle, TAB1_DISCNUM, TAB1_UPDATEDISCNUM, dataHandle.discPtr, index, gUseMetaDataDiscVal);
+	UpdateAPETagItem(tag, "discsubtitle", tab1Handle, TAB1_DISCSUBTITLE, TAB1_UPDATEDISCSUBTITLE, dataHandle.discPtr, index, gUseMetaDataDiscSubtitleVal);
 	UpdateAPETagItem(tag, "edition", tab1Handle, TAB1_EDITION, TAB1_UPDATEEDITION, dataHandle.editionPtr, index, FALSE);
 	UpdateAPETagItem(tag, "encoded", tab2Handle, TAB2_ENCODED, TAB2_UPDATEENCODED, dataHandle.encodedPtr, index, FALSE);
 	UpdateAPETagItem(tag, "genre", tab1Handle, TAB1_GENRE, TAB1_UPDATEGENRE, dataHandle.genrePtr, index, FALSE);
