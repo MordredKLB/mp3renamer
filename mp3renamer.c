@@ -1447,6 +1447,7 @@ int CVICALLBACK SetID3Tag (int panel, int control, int event,
 				ProcessSystemEvents();
 				ProgressBar_AdvanceMilestone(progressHandle, PROGRESS_PROGRESSBAR, 0);
 			}
+			gUseMetaDataDiscVal = gUseMetaDataDiscSubtitleVal = true;	// We just set these so re-enable as it's now meta data again
 			ErrorPrintf("Time to write ID3 tags: %f\n", Timer() - start);
 			ProgressBar_End(progressHandle, PROGRESS_PROGRESSBAR, NULL, 0);
 			Delay(0.15);
