@@ -817,12 +817,16 @@ int CVICALLBACK StringCompare(void *item1, void *item2)
 void SetConflictTooltips(panel)
 {
 	char 		***dataPtr = NULL;
-	char 		buf[(kTooltipLineLength+2)*numFiles];
+	char 		buf[(kTooltipLineLength+2)*numFiles+1];
 	char		str[kTooltipLineLength+1];
 	ListType	list;
 	size_t		offset=0;
 	int			i,j, val, blankLine;
 	int 		panelList[kEndOfList] = {0}, ledList[kEndOfList] = {0};
+	
+	if (!numFiles) {
+		return;
+	}
 
 	for (i=0,j=0;i<sizeof(panelLEDList);i++,j++) {
 		GetCtrlVal(panel, panelLEDList[i], &val);
