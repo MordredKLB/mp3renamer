@@ -640,7 +640,6 @@ void GetDiscSubtitles(int panel, int albumIndex, char **subtitles)
 	CVIXMLAttribute curAttr = 0;
 	
 	GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColREID, ATTR_LABEL_TEXT, reid);
-	SetCtrlVal(tab3Handle, TAB3_REID, reid);
 	
 	sprintf(queryBuf, kDiscIDQuery, reid);	// artist
 	BuildFileNameFromQuery(queryBuf, fileName);	// create filename to save XML in
@@ -653,25 +652,34 @@ void GetDiscSubtitles(int panel, int albumIndex, char **subtitles)
 			loadError = S_FALSE;
 		} else {
 			GetChildElementByTag(&curElem, "release");
+			if (!GetChildElementByTag(&curElem, "disambiguation")) {
+				hrChk(CVIXMLGetElementValue(curElem, val));
+				SetCtrlVal(tab1Handle, TAB1_EDITION, val);
+				GetParentElement(&curElem);
+			}
 			GetChildElementByTag(&curElem, "medium-list");
 			CVIXMLGetAttributeByName(curElem, "count", &curAttr);
 			hrChk(CVIXMLGetAttributeValue(curAttr, val));
 			numDiscs = strtol(val, NULL, 10);	
 			for (int i=0; i<numDiscs; i++) {
 				GetChildElementByIndex(&curElem, i);	// "medium"
-				GetChildElementByTag(&curElem, "title");
-				hrChk(CVIXMLGetElementValue(curElem, val));
-				subtitles[i] = malloc(strlen(val) + 1);
-				strcpy(subtitles[i], val);
-				GetParentElement(&curElem);
-				GetParentElement(&curElem);
-				// ErrorPrintf("%s", subtitles[i]);
-				if (numDiscs > 1 && i && strcmp(subtitles[0], subtitles[i])) {
-					// if subtitles are different enable conflict LED
-					SetCtrlVal(tab1Handle, TAB1_DISCSUBTITLELED, 1);
+				if (!GetChildElementByTag(&curElem, "title")) {
+					hrChk(CVIXMLGetElementValue(curElem, val));
+					subtitles[i] = malloc(strlen(val) + 1);
+					strcpy(subtitles[i], val);
+					GetParentElement(&curElem);	// "title"
+					// ErrorPrintf("%s", subtitles[i]);
+					if (numDiscs > 1 && i && strcmp(subtitles[0], subtitles[i])) {
+						// if subtitles are different enable conflict LED
+						SetCtrlVal(tab1Handle, TAB1_DISCSUBTITLELED, 1);
+					}
+					gUseMetaDataDiscSubtitleVal = TRUE;
+				} else {
+					subtitles[i] = malloc(1);
+					strcpy(subtitles[i], "");
 				}
+				GetParentElement(&curElem);	// "medium"
 			}
-			gUseMetaDataDiscSubtitleVal = TRUE;
 		}
 	}
 Error:
