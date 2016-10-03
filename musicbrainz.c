@@ -403,7 +403,6 @@ void GetMetaData(int panel, int control)
 	double			percent, time, delta;
 	CVIXMLElement   curElem = 0;
 	CVIXMLDocument	doc = 0;
-	CVIXMLAttribute	curAttr = 0;
 
 	
 	SetCtrlAttribute(panel, ALBUMPANEL_ALBUMTREE, ATTR_DIMMED, 0);
@@ -450,9 +449,7 @@ void GetMetaData(int panel, int control)
 			CVIXMLGetNumChildElements(curElem, &count);
 			if (count > 0) {
 				GetChildElementByIndex(&curElem, 0);	// release-list
-				hrChk (CVIXMLGetAttributeByName(curElem, kAttrCountStr, &curAttr));
-				hrChk (CVIXMLGetAttributeValue(curAttr, val));
-				CVIXMLDiscardAttribute(curAttr);
+				GetAttributeByName(curElem, kAttrCountStr, val);
 				totalCount = strtol(val, NULL, 10);
 				if (totalCount-offset > 100)
 					count = 100;
@@ -500,9 +497,7 @@ void GetMetaData(int panel, int control)
 			InsertTreeItem(albumPanHandle, ALBUMPANEL_ALBUMTREE, VAL_SIBLING, i-1, VAL_NEXT, "", NULL, NULL, i);
 			GetChildElementByIndex(&curElem, i);	// <-- release
 			
-			hrChk(CVIXMLGetAttributeByName(curElem, "id", &curAttr));
-			hrChk(CVIXMLGetAttributeValue(curAttr, val));
-			CVIXMLDiscardAttribute(curAttr);
+			GetAttributeByName(curElem, "id", val);
 			SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColREID, ATTR_LABEL_TEXT, val);
 			GetChildElementByTag(&curElem, kElemTitleStr);
 			hrChk(CVIXMLGetElementValue(curElem, val));
@@ -513,9 +508,7 @@ void GetMetaData(int panel, int control)
 			GetChildElementByTag(&curElem, kElemNameCredStr);
 			
 			GetChildElementByTag(&curElem, kElemArtistStr);
-			hrChk(CVIXMLGetAttributeByName(curElem, "id", &curAttr));
-			hrChk(CVIXMLGetAttributeValue(curAttr, val));
-			CVIXMLDiscardAttribute(curAttr);
+			GetAttributeByName(curElem, "id", val);
 			SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColArtistID, ATTR_LABEL_TEXT, val);
 			GetChildElementByTag(&curElem, kElemNameStr);
 			hrChk(CVIXMLGetElementValue(curElem, val));
@@ -527,18 +520,11 @@ void GetMetaData(int panel, int control)
 			GetParentElement(&curElem);	/* artist-credit */
 			
 			if (!GetChildElementByTag(&curElem, "release-group")) {
-				hrChk(CVIXMLGetAttributeByName(curElem, "id", &curAttr));	// release-group id
-				val[0] = '\0';
-				if (!CVIXMLGetAttributeValue(curAttr, val)) {
+				GetAttributeByName(curElem, "id", val);	   // release-group id
 					SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColRelGroupID, ATTR_LABEL_TEXT, val);
-					CVIXMLDiscardAttribute(curAttr);
-					}
-				hrChk(CVIXMLGetAttributeByName(curElem, "type", &curAttr));
-				val[0] = '\0';
-				if (!CVIXMLGetAttributeValue(curAttr, val)) {
+
+				GetAttributeByName(curElem, "type", val);
 					SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColType, ATTR_LABEL_TEXT, val);
-					CVIXMLDiscardAttribute(curAttr);
-					}
 				GetParentElement(&curElem); /* release-group */
 				}
 			if (!GetChildElementByTag(&curElem, "date")) {
@@ -582,9 +568,7 @@ void GetMetaData(int panel, int control)
 				GetParentElement(&curElem);	/* label-info-list */
 			}
 			GetChildElementByTag(&curElem, "medium-list");
-			hrChk(CVIXMLGetAttributeByName(curElem, "count", &curAttr));
-            hrChk(CVIXMLGetAttributeValue(curAttr, discStr));
-            CVIXMLDiscardAttribute(curAttr);
+			GetAttributeByName(curElem, "count", discStr);
             GetChildElementByTag(&curElem, "track-count");
 			hrChk(CVIXMLGetElementValue(curElem, val));
 			if (discStr[0] != '1') {
@@ -637,7 +621,6 @@ void GetDiscSubtitles(int panel, int albumIndex, char **subtitles)
 	int				numDiscs = 0;
 	CVIXMLElement   curElem = 0;
 	CVIXMLDocument	doc = 0;
-	CVIXMLAttribute curAttr = 0;
 	
 	GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColREID, ATTR_LABEL_TEXT, reid);
 	
@@ -658,8 +641,7 @@ void GetDiscSubtitles(int panel, int albumIndex, char **subtitles)
 				GetParentElement(&curElem);
 			}
 			GetChildElementByTag(&curElem, "medium-list");
-			CVIXMLGetAttributeByName(curElem, "count", &curAttr);
-			hrChk(CVIXMLGetAttributeValue(curAttr, val));
+			GetAttributeByName(curElem, "count", val);
 			numDiscs = strtol(val, NULL, 10);	
 			for (int i=0; i<numDiscs; i++) {
 				GetChildElementByIndex(&curElem, i);	// "medium"
@@ -921,7 +903,6 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 	int		done = FALSE, trackOffset=0;
 	CVIXMLDocument	doc = 0;
 	CVIXMLElement 	curElem = 0;
-	CVIXMLAttribute curAttr = 0;
 
 	SetCtrlAttribute(panel, ALBUMPANEL_ERROR_ICON, ATTR_VISIBLE, FALSE);
 	GetCtrlVal(configHandle, OPTIONS_REPLACEAPOSTROPHE, &replaceUnicodeApostrophe);
@@ -946,9 +927,7 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 			DeleteFile(fileName);
 		} else {
 			hrChk (GetChildElementByIndex(&curElem, 0));
-			hrChk (CVIXMLGetAttributeByName(curElem, kAttrCountStr, &curAttr));
-			hrChk (CVIXMLGetAttributeValue(curAttr, val));
-			CVIXMLDiscardAttribute(curAttr);
+			GetAttributeByName(curElem, kAttrCountStr, val);
 			numTracks = strtol(val, NULL, 10);	
 			GetChildElementByIndex(&curElem, 0);	// recording-list
 			if (numTracks != releaseTracks)
@@ -992,9 +971,7 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 					dupTrackCount = 0;
 					for (j=0;j<numChild;j++) {
 						GetChildElementByIndex(&curElem, j);	// release
-						CVIXMLGetAttributeByName(curElem, "id", &curAttr);
-						hrChk(CVIXMLGetAttributeValue(curAttr, val));
-						CVIXMLDiscardAttribute(curAttr);
+						GetAttributeByName(curElem, "id", val);
 						if (!strcmp(val, reid)) {
 							dupTrackCount++;
 							if (dupTrackCount > 1) {	// we have the same track on the same release multiple times
@@ -1007,9 +984,7 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 							CVIXMLGetElementValue(curElem, discStr);			// get the disc #
 							GetParentElement(&curElem);	/* position */
 							GetChildElementByTag(&curElem, "track-list");
-							hrChk(CVIXMLGetAttributeByName(curElem, "offset", &curAttr));
-							hrChk(CVIXMLGetAttributeValue(curAttr, offset));	// track #
-							CVIXMLDiscardAttribute(curAttr);
+							GetAttributeByName(curElem, "offset", offset);
 							GetChildElementByTag(&curElem, "track");
 							if (!GetChildElementByTag(&curElem, "title")) {
 								hrChk(CVIXMLGetElementValue(curElem, title));	// we got the title above, but typically this title supersedes the one above

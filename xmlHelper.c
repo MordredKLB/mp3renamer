@@ -38,7 +38,7 @@ int GetChildElementByTag(CVIXMLElement *currentElem, char *tag)
 	if (tempElem) {
 		CVIXMLDiscardElement(*currentElem);
 		*currentElem = tempElem;
-		}
+	}
 	else
 		error = S_FALSE;
 
@@ -47,6 +47,24 @@ Error:
 		if (tempElem)
 			CVIXMLDiscardElement(tempElem);
 		}
+	return error;
+}
+
+int GetAttributeByName(CVIXMLElement currentElem, char *attributeName, char *attrVal)
+{
+	HRESULT error = S_OK;
+	CVIXMLAttribute curAttr = 0;
+
+	hrChk(CVIXMLGetAttributeByName(currentElem, attributeName, &curAttr));
+	if (curAttr) {
+		CVIXMLGetAttributeValue(curAttr, attrVal);
+		CVIXMLDiscardAttribute(curAttr);
+	} else {
+		strcpy(attrVal, "");
+		error = S_FALSE;
+	}
+
+Error:
 	return error;
 }
 
