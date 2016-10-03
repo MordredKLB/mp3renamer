@@ -43,6 +43,8 @@ Artist:  http://www.musicbrainz.org/ws/2/artist/?query=arid:65f4f0c5-ef9e-490c-a
 // kDiscIDQuery is used to retrieve the disc subtitle
 #define kDiscIDQuery	"http://musicbrainz.org/ws/2/release/%s?inc=discids"
 
+#define kAreaIDQuery	"http://musicbrainz.org/ws/2/area/%s?inc=area-rels"
+
 #define kRelQueryBase	"http://musicbrainz.org/ws/2/release/?limit=100&offset=%d&query="
 #define kRelArtist		"artist:\"%s\""
 #define kRelAlbum		"release:\"%s\""
@@ -521,10 +523,10 @@ void GetMetaData(int panel, int control)
 			
 			if (!GetChildElementByTag(&curElem, "release-group")) {
 				GetAttributeByName(curElem, "id", val);	   // release-group id
-					SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColRelGroupID, ATTR_LABEL_TEXT, val);
+				SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColRelGroupID, ATTR_LABEL_TEXT, val);
 
 				GetAttributeByName(curElem, "type", val);
-					SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColType, ATTR_LABEL_TEXT, val);
+				SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColType, ATTR_LABEL_TEXT, val);
 				GetParentElement(&curElem); /* release-group */
 				}
 			if (!GetChildElementByTag(&curElem, "date")) {
@@ -569,7 +571,7 @@ void GetMetaData(int panel, int control)
 			}
 			GetChildElementByTag(&curElem, "medium-list");
 			GetAttributeByName(curElem, "count", discStr);
-            GetChildElementByTag(&curElem, "track-count");
+			GetChildElementByTag(&curElem, "track-count");
 			hrChk(CVIXMLGetElementValue(curElem, val));
 			if (discStr[0] != '1') {
 				strcat(val, " / ");
@@ -667,8 +669,131 @@ void GetDiscSubtitles(int panel, int albumIndex, char **subtitles)
 Error:
 	if (curElem)
 		CVIXMLDiscardElement (curElem);
-	if (curAttr)
-		CVIXMLDiscardAttribute (curAttr);
+	if (doc)
+    	CVIXMLDiscardDocument (doc);
+	return;
+}
+
+int GetCountryCode(CVIXMLElement *curElem, char *val)
+{
+	HRESULT error = S_OK;
+	int 	found = 0;
+
+	if (!GetChildElementByTag(curElem, "iso-3166-1-code-list") || !GetChildElementByTag(curElem, "iso-3166-2-code-list")) {
+		GetChildElementByTag(curElem, "iso-3166-1-code");
+		GetChildElementByTag(curElem, "iso-3166-2-code");	// both won't exist, so this should be safe because the first won't advance the pointer if it doesn't exist
+		hrChk(CVIXMLGetElementValue(*curElem, val));			// 2 character country value
+		val[2] = '\0';	// iso-3166-2 tags are of the form GB-NET, and we don't care about the exact area so lop off everything after the first two chars
+		GetParentElement(curElem);	// iso-3166-1/2-code
+		GetParentElement(curElem);	// iso-3166-1/2-code-list
+		found = 1;
+	}
+
+Error:
+	return found;
+}
+
+int GetAreaData(char *areaREID, char *val)
+{
+	HRESULT 		loadError = S_OK, error = S_OK;
+	char 			area[512], queryBuf[512], fileName[MAX_PATHNAME_LEN], direction[512];
+	int				found = 0, i = 0;
+	CVIXMLElement   curElem = 0;
+	CVIXMLDocument	doc = 0;
+
+	sprintf(queryBuf, kAreaIDQuery, areaREID);	// artist
+	BuildFileNameFromQuery(queryBuf, fileName);	// create filename to save XML in
+	DownloadFileIfNotExists(queryBuf, fileName);
+	loadError = CVIXMLLoadDocument(fileName, &doc);
+	if (loadError == S_OK) {
+		hrChk (CVIXMLGetRootElement (doc, &curElem));
+		GetChildElementByIndex(&curElem, 0);	// area
+		if (!(found = GetCountryCode(&curElem, val))) {
+			if (!GetChildElementByTag(&curElem, "relation-list")) {
+				while (!GetChildElementByIndex(&curElem, i)) {	// relation
+					if (!GetChildElementByTag(&curElem, "direction")) {
+						hrChk(CVIXMLGetElementValue(curElem, direction));
+						GetParentElement(&curElem);			// direction	
+						if (!strcmp(direction, "backward")) {
+							if (!GetChildElementByTag(&curElem, "area")) {
+								if (!GetAttributeByName(curElem, "id", area)) {
+									if (found = GetAreaData(area, val)) {
+										break;
+									}
+								}
+								GetParentElement(&curElem);	// area
+							}
+						}
+					}
+					i++;
+					GetParentElement(&curElem);				// relation
+				}
+			}
+		}
+	}
+Error:
+	if (curElem)
+		CVIXMLDiscardElement (curElem);
+	if (doc)
+    	CVIXMLDiscardDocument (doc);
+	return found;
+}
+
+void GetCountryFromArtist(char *reid) {
+	HRESULT 		loadError = S_OK, error = S_OK;
+	char 			val[512], area[512], queryBuf[512], fileName[MAX_PATHNAME_LEN];
+	CVIXMLElement   curElem = 0;
+	CVIXMLDocument	doc = 0;
+
+	
+	SetCtrlAttribute(tab1Handle, TAB1_COUNTRYERROR, ATTR_VISIBLE, FALSE);
+	SetCountryName("--");	// clear country
+	
+	sprintf(queryBuf, kArtistQuery, reid);	// artist
+	BuildFileNameFromQuery(queryBuf, fileName);	// create filename to save XML in
+	DownloadFileIfNotExists(queryBuf, fileName);
+	loadError = CVIXMLLoadDocument(fileName, &doc);
+	if (loadError == S_OK) {
+		hrChk (CVIXMLGetRootElement (doc, &curElem));
+		CVIXMLGetElementTag(curElem, val);
+		if (!strcmp(val, "error")) {
+			loadError = S_FALSE;
+		} else {
+			GetChildElementByIndex(&curElem, 0);	// artist
+			if (!GetChildElementByTag(&curElem, "country")) {	// does "country" exist?
+				hrChk(CVIXMLGetElementValue(curElem, val));	// 2 character country value
+				SetCountryName(val);
+				GetParentElement(&curElem);
+			} else {
+				const char * tags[] = {"area", "begin-area"};
+				for (int i=0; i < (sizeof (tags) / sizeof (const char *)); i++) {
+					if (!GetChildElementByTag(&curElem, tags[i])) {
+						if (GetCountryCode(&curElem, val)) {
+							SetCountryName(val);
+							GetParentElement(&curElem);	// area/begin-area
+							break;
+						} else {
+							GetAttributeByName(curElem, "id", area);
+							if (GetAreaData(area, val)) {
+								SetCountryName(val);
+								GetParentElement(&curElem);	// area/begin-area
+								break;
+							}
+						}
+					}
+				}
+			}
+			GetParentElement(&curElem);
+		}
+	}
+	if (loadError != S_OK) {
+		SetCtrlAttribute(tab1Handle, TAB1_COUNTRYERROR, ATTR_TEXT_COLOR, VAL_RED);
+		SetCtrlAttribute(tab1Handle, TAB1_COUNTRYERROR, ATTR_VISIBLE, TRUE);
+		DeleteFile(fileName);
+	}
+Error:
+	if (curElem)
+		CVIXMLDiscardElement (curElem);
 	if (doc)
     	CVIXMLDiscardDocument (doc);
 	return;
@@ -677,8 +802,7 @@ Error:
 /* Copies MetaData from the AlbumPanel to the main panel and populates the TrackTitle Tree */
 void GetMetaTrackData(int panel, int albumIndex)
 {
-	HRESULT 		loadError = S_OK, error = S_OK;
-	char			val[512], reid[40], queryBuf[512], discNum[10], offset[10], fileName[MAX_PATHNAME_LEN];
+	char			val[512], reid[40], discNum[10], offset[10];
 	char			*discSubtitles[99] = { NULL };
 	int				len, releaseDiscs, i, k, count, numTracks, disc, trackNum;
 	int 			oldYear, newYear, replaceUnicodeApostrophe;
@@ -726,51 +850,8 @@ void GetMetaTrackData(int panel, int albumIndex)
 		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColArtistID, ATTR_LABEL_TEXT, reid);
 		SetCtrlVal(tab3Handle, TAB3_ARTISTMBID, reid);
 		SetCtrlAttribute(panelHandle, PANEL_FANART, ATTR_DIMMED, 0);
-		SetCtrlAttribute(tab1Handle, TAB1_COUNTRYERROR, ATTR_VISIBLE, FALSE);
-		SetCountryName("--");	// clear country
-		
-		
-		sprintf(queryBuf, kArtistQuery, reid);	// artist
-		BuildFileNameFromQuery(queryBuf, fileName);	// create filename to save XML in
-		DownloadFileIfNotExists(queryBuf, fileName);
-		loadError = CVIXMLLoadDocument(fileName, &doc);
-		if (loadError == S_OK) {
-			hrChk (CVIXMLGetRootElement (doc, &curElem));
-			CVIXMLGetElementTag(curElem, val);
-			if (!strcmp(val, "error")) {
-				loadError = S_FALSE;
-			} else {
-				GetChildElementByIndex(&curElem, 0);	// artist
-				if (!GetChildElementByTag(&curElem, "country")) {	// does "country" exist?
-					hrChk(CVIXMLGetElementValue(curElem, val));	// 2 character country value
-					SetCountryName(val);
-					GetParentElement(&curElem);
-				} else {
-					const char * tags[] = {"area", "begin-area"};
-					for (int i=0; i < (sizeof (tags) / sizeof (const char *)); i++) {
-						if (!GetChildElementByTag(&curElem, tags[i])) {
-							if (!GetChildElementByTag(&curElem, "iso-3166-1-code-list") || !GetChildElementByTag(&curElem, "iso-3166-2-code-list")) {
-								GetChildElementByTag(&curElem, "iso-3166-1-code");
-								GetChildElementByTag(&curElem, "iso-3166-2-code");	// both won't exist, so this should be safe because the first won't advance the pointer if it doesn't exist
-								hrChk(CVIXMLGetElementValue(curElem, val));			// 2 character country value
-								val[2] = '\0';	// iso-3166-2 tags are of the form GB-NET, and we don't care about the exact area so lop off everything after the first two chars
-								SetCountryName(val);
-								GetParentElement(&curElem);	// iso-3166-1/2-code
-								GetParentElement(&curElem);	// iso-3166-1/2-code-list
-								break;
-							}
-							GetParentElement(&curElem);	// area
-						}
-					}
-				}
-				GetParentElement(&curElem);
-			}
-		}
-		if (loadError != S_OK) {
-			SetCtrlAttribute(tab1Handle, TAB1_COUNTRYERROR, ATTR_TEXT_COLOR, VAL_RED);
-			SetCtrlAttribute(tab1Handle, TAB1_COUNTRYERROR, ATTR_VISIBLE, TRUE);
-			DeleteFile(fileName);
-		}
+
+		GetCountryFromArtist(reid);
 		
 		GetDiscSubtitles(panel, albumIndex, discSubtitles);
 		SetCtrlVal(tab1Handle, TAB1_DISCSUBTITLE, discSubtitles[0]);
