@@ -150,8 +150,12 @@ int main (int argc, char *argv[])
 		BrowseCB(panelHandle, PANEL_BrowseButton, EVENT_COMMIT, &path, 0, 0);
 	}
 	
-	RunUserInterface ();
+	OpenAppInternetConnection();
 	
+	RunUserInterface();
+
+	CloseAppInternetConnection();
+
 	ProgressBar_Revert(progressHandle, PROGRESS_PROGRESSBAR);
 	ProgressBar_Revert(albumPanHandle, ALBUMPANEL_PROGRESSBAR);
 	DiscardMenuBar (pMenuHandle);

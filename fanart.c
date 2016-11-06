@@ -15,7 +15,7 @@ typedef struct {
 
 void SetupFanartPanel(void);
 static PanelControl* CurrentSelectedControl(void);
-void RetrieveFileFromURL(HINTERNET connection, char *url, char *fileName, int binary);
+void RetrieveFileFromURL(char *url, char *fileName, int binary);
 void FreeCdArtPaths(void);
 
 /* Fanart source is fanart.tv */
@@ -81,6 +81,9 @@ int  logoExists=0;
 int	 cdExists=0;
 int  hoverEnabled=1;
 
+HINTERNET	gInternetConnection;
+
+
 const char *cdArtNames[] = {"cd.png", "cd1.png", "cd2.png", "cd3.png", "cd4.png", "cd5.png", "cd6.png", "cd7.png", "cd8.png", "cd9.png", "cd10.png",
 							"vinyl.png", "vinylA.png", "vinylB.png", "vinylC.png", "vinylD.png", "vinylE.png", "vinylF.png", "vinylG.png", 
 							"vinylH.png", "vinylI.png", "vinylJ.png", "vinylK.png"};
@@ -94,7 +97,6 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 	double		percent;
 	char 		*buf = NULL;
 	size_t		len = 0;
-    HINTERNET	connection;
 	CVIXMLElement   curElem = 0;
 	CVIXMLDocument	doc = 0;
 	
@@ -166,17 +168,15 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 					if (percent < 15.0)
 						ProgressBar_AdvanceMilestone(fanartPanHandle, FANART_PROGRESSBAR, 0);			
 					if (numLogos > 0) {
-						connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 						for (i=logoExists;i<numLogos+logoExists && i<kMaxLogos;i++) {
 							sprintf(previewUrl, "http://assets.fanart.tv/preview/%s", url[i] + 31);
 						
 							sprintf(fileName, "tempFanart\\%s", logoName[i]);
-							RetrieveFileFromURL(connection, previewUrl, fileName, TRUE);
+							RetrieveFileFromURL(previewUrl, fileName, TRUE);
 							SetCtrlAttribute(hdlogoPanHandle, logoControls[i], ATTR_VISIBLE, 1);
 							SetCtrlAttribute(hdlogoPanHandle, logoControls[i], ATTR_IMAGE_FILE, fileName);
 							ProcessSystemEvents();
 						}
-						InternetCloseHandle(connection);
 					}
 					if (numLogos+logoExists > 6) {
 						SetPanelAttribute(hdlogoPanHandle, ATTR_SCROLL_BARS, VAL_VERT_SCROLL_BAR);
@@ -250,16 +250,14 @@ int CVICALLBACK RetrieveFanart (int panel, int control, int event,
 					if (percent < 65.0)
 						ProgressBar_AdvanceMilestone(fanartPanHandle, FANART_PROGRESSBAR, 0);
 					if (numCdArt > 0) {
-						connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 						for (i=cdExists;i<numCdArt+cdExists && i<kMaxCdArt;i++) {
 							sprintf(previewUrl, "http://assets.fanart.tv/preview/%s", cdUrl[i] + 31);
 							sprintf(fileName, "tempFanart\\%s", cdName[i]);
-							RetrieveFileFromURL(connection, previewUrl, fileName, TRUE);
+							RetrieveFileFromURL(previewUrl, fileName, TRUE);
 							SetCtrlAttribute(cdartPanHandle, cdartCtrls[i], ATTR_VISIBLE, 1);
 							SetCtrlAttribute(cdartPanHandle, cdartCtrls[i], ATTR_IMAGE_FILE, fileName);
 					   		ProcessSystemEvents();
 						}
-						InternetCloseHandle(connection);
 					}
 					if (numCdArt+cdExists > 3) {
 						SetPanelAttribute(cdartPanHandle, ATTR_SCROLL_BARS, VAL_VERT_SCROLL_BAR);
@@ -285,24 +283,24 @@ Error:
 }
 
 #define kNumRetries		3
-void RetrieveFileFromURL(HINTERNET connection, char *url, char *fileName, int binary)
+void RetrieveFileFromURL(char *url, char *fileName, int binary)
 {
 	HINTERNET	resource = NULL;
 	FILE		*file;
 	char		data[4096];
 	unsigned long bytes_read, i;
 
-	// LPWSTR headers = L"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36\r\n\r\n";
-	// LPWSTR headers = L"User-Agent: mp3renamer\r\n\r\n";
-
 	for (i=0; i < kNumRetries && !resource; i++) {
-		// resource = InternetOpenUrl(connection, url, NULL, 0, INTERNET_FLAG_NO_CACHE_WRITE, 0);
-		resource = InternetOpenUrl(connection, url, "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36\r\n\r\n", -1, 0, 0);
+		// resource = InternetOpenUrl(gInternetConnection, url, NULL, 0, INTERNET_FLAG_NO_CACHE_WRITE, 0);
+		resource = InternetOpenUrl(gInternetConnection, url, 
+						"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36\r\n\r\n",
+						-1, 0, 0);
 		if (resource != NULL) {
 			file = fopen(fileName, binary ? "wb" : "w");
 			if (file) {
-		        while (InternetReadFile(resource, data, sizeof(data) - 1, &bytes_read) && (bytes_read > 0))
+		        while (InternetReadFile(resource, data, sizeof(data) - 1, &bytes_read) && (bytes_read > 0)) {
 		            fwrite(data, sizeof(char), bytes_read, file);
+				}
 				fclose(file);
 				file = NULL;
 			}
@@ -316,14 +314,20 @@ void RetrieveFileFromURL(HINTERNET connection, char *url, char *fileName, int bi
 	}
 }
 
+void OpenAppInternetConnection(void)
+{
+	gInternetConnection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+}
+
+void CloseAppInternetConnection(void)
+{
+	InternetCloseHandle(gInternetConnection);
+}
+
 void DownloadFileIfNotExists(char *url, char *filename) 
 {
-    HINTERNET		connection;
-
 	if (!FileExists(filename, 0)) {
-		connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-		RetrieveFileFromURL(connection, url, filename, FALSE);
-		InternetCloseHandle(connection);
+		RetrieveFileFromURL(url, filename, FALSE);
 	}
 }
 
@@ -395,7 +399,6 @@ int CVICALLBACK FanartOKCB (int panel, int control, int event,
 {
 	int 		i, val, numDiscs=0, multiDiscs, vinyl;
 	char		artist[256], destPath[MAX_PATHNAME_LEN*2], path[MAX_PATHNAME_LEN*2];
-    HINTERNET	connection;
 	
 	switch (event)
 	{
@@ -411,9 +414,7 @@ int CVICALLBACK FanartOKCB (int panel, int control, int event,
 					if (FileExists(path, 0))
 						CopyFile(path, destPath);
 					else {
-						connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-						RetrieveFileFromURL(connection, url[i], destPath, TRUE);
-						InternetCloseHandle(connection);
+						RetrieveFileFromURL(url[i], destPath, TRUE);
 					}
 					break;
 				}
@@ -440,9 +441,7 @@ int CVICALLBACK FanartOKCB (int panel, int control, int event,
 					if (FileExists(path, 0)) {
 						CopyFile(path, destPath);
 					} else {
-						connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-						RetrieveFileFromURL(connection, cdUrl[i], destPath, TRUE);
-						InternetCloseHandle(connection);
+						RetrieveFileFromURL(cdUrl[i], destPath, TRUE);
 					}
 					if (!multiDiscs) break;
 				}
@@ -537,10 +536,7 @@ void DownloadFanartCB(int menubar, int menuItem, void *callbackData, int panel)
 					if (currPanCtrl->control == logoControls[i]) {
 						sprintf(path, "tempFanart\\full%s", logoName[i]);
 						if (!FileExists(path, 0)) {
-							HINTERNET	connection;
-							connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-							RetrieveFileFromURL(connection, url[i], path, TRUE);
-							InternetCloseHandle(connection);
+							RetrieveFileFromURL(url[i], path, TRUE);
 						}
 						break;
 					}
@@ -549,10 +545,7 @@ void DownloadFanartCB(int menubar, int menuItem, void *callbackData, int panel)
 					if (currPanCtrl->control == cdartCtrls[i]) {
 						sprintf(path, "tempFanart\\full%s", cdName[i]);
 						if (!FileExists(path, 0)) {
-							HINTERNET	connection;
-							connection = InternetOpen("MP3Renamer", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-							RetrieveFileFromURL(connection, cdUrl[i], path, TRUE);
-							InternetCloseHandle(connection);
+							RetrieveFileFromURL(cdUrl[i], path, TRUE);
 						}
 						break;
 					}

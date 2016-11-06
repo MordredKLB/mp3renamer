@@ -56,8 +56,9 @@ int gUseMetaArtistFilter;		// when saving artist filter vals, should we use the 
 //==============================================================================
 // Global functions
 
-//int Declare_Your_Functions_Here (int x);
 void UnescapeQuotes(char *string);
+void OpenAppInternetConnection(void);
+void CloseAppInternetConnection(void);
 
 #ifdef __cplusplus
     }

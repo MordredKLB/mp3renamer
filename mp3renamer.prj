@@ -486,10 +486,8 @@ Folder = "Not In A Folder"
 [File 0036]
 File Type = "Library"
 Res Id = 36
-Path Is Rel = True
-Path Rel To = "CVI"
-Path Rel Path = "sdk/lib/msvc/WinInet.Lib"
-Path = "/C/Program Files (x86)/Windows Kits/8.1/Lib/winv6.3/um/x86/WinInet.Lib"
+Path Is Rel = False
+Path = "/c/Program Files (x86)/Windows Kits/10/Lib/10.0.14393.0/um/x86/WinInet.Lib"
 Exclude = False
 Project Flags = 0
 Folder = "Not In A Folder"
