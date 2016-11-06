@@ -613,7 +613,7 @@ void SelectAllText (int panel, int control)
 int CVICALLBACK TagCB (int panel, int control, int event,
 		void *callbackData, int eventData1, int eventData2)
 {
-	int led = 0;
+	int led = 0, len;
 	
 	switch (event)
 		{
@@ -696,6 +696,13 @@ int CVICALLBACK TagCB (int panel, int control, int event,
 				SetCtrlVal(panel, led, 0);
 			if (eventData1 == (VAL_MENUKEY_MODIFIER | 'a') || eventData1 == (VAL_MENUKEY_MODIFIER | 'A')) {
 				SelectAllText(panel, control);
+			} else if (eventData1 == VAL_UP_ARROW_VKEY) {
+				SetCtrlAttribute(panel, control, ATTR_TEXT_SELECTION_START, 0);
+				SetCtrlAttribute(panel, control, ATTR_TEXT_SELECTION_LENGTH, 0);
+			} else if (eventData1 == VAL_DOWN_ARROW_VKEY) {
+				GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
+				SetCtrlAttribute(panel, control, ATTR_TEXT_SELECTION_START, len);
+				SetCtrlAttribute(panel, control, ATTR_TEXT_SELECTION_LENGTH, 0);
 			}
 			break;
 		}
