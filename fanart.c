@@ -288,18 +288,23 @@ void RetrieveFileFromURL(char *url, char *fileName, int binary)
 	HINTERNET	resource = NULL;
 	FILE		*file;
 	char		data[4096];
-	unsigned long bytes_read, i;
+	unsigned long bytes_read, i, error = false;
 
-	for (i=0; i < kNumRetries && !resource; i++) {
+	for (i=0; i < kNumRetries && !resource; i++, error = false) {
 		// resource = InternetOpenUrl(gInternetConnection, url, NULL, 0, INTERNET_FLAG_NO_CACHE_WRITE, 0);
 		resource = InternetOpenUrl(gInternetConnection, url, 
-						"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36\r\n\r\n",
+						//"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36\r\n\r\n",
+						"User-Agent: MP3Renamer\r\n\r\n",
 						-1, 0, 0);
 		if (resource != NULL) {
 			file = fopen(fileName, binary ? "wb" : "w");
 			if (file) {
-		        while (InternetReadFile(resource, data, sizeof(data) - 1, &bytes_read) && (bytes_read > 0)) {
-		            fwrite(data, sizeof(char), bytes_read, file);
+		        while (InternetReadFile(resource, data, sizeof(data) - 1, &bytes_read) && (bytes_read > 0) && !error) {
+					if (!strncmp(data, "{\"error\":", 9)) {
+						error = true;
+					} else {
+		            	fwrite(data, sizeof(char), bytes_read, file);
+					}
 				}
 				fclose(file);
 				file = NULL;
@@ -307,6 +312,11 @@ void RetrieveFileFromURL(char *url, char *fileName, int binary)
 			InternetCloseHandle(resource);
 		} else {
 			ErrorPrintf("Error: %d", GetLastError());
+			error = true;
+		}
+		if (error) {
+			DeleteFile(fileName);
+			resource = NULL;
 			if (i < kNumRetries - 1) {
 				Sleep(1000);
 			}

@@ -652,7 +652,6 @@ void GetDiscSubtitles(int panel, int albumIndex, char **subtitles)
 					subtitles[i] = malloc(strlen(val) + 1);
 					strcpy(subtitles[i], val);
 					GetParentElement(&curElem);	// "title"
-					// ErrorPrintf("%s", subtitles[i]);
 					if (numDiscs > 1 && i && strcmp(subtitles[0], subtitles[i])) {
 						// if subtitles are different enable conflict LED
 						SetCtrlVal(tab1Handle, TAB1_DISCSUBTITLELED, 1);
@@ -853,6 +852,7 @@ void GetMetaTrackData(int panel, int albumIndex)
 
 		GetCountryFromArtist(reid);
 		
+		discSubtitles[0] = "";	// in case GetDiscSubtitles fails we don't want the program to crash
 		GetDiscSubtitles(panel, albumIndex, discSubtitles);
 		SetCtrlVal(tab1Handle, TAB1_DISCSUBTITLE, discSubtitles[0]);
 		
