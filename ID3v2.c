@@ -181,7 +181,9 @@ int GetTextData(jsmntok_t *tokens, char *pmapJSON, char *frameType, int panel, i
 		}
 
 		if (!firstFile && (len!=strlen(string) || memcmp(origData, string, len))) {
-			SetCtrlVal(panel, conflict, 1);
+			if (conflict) {
+				SetCtrlVal(panel, conflict, 1);
+			}
 		} else {
 			switch (style) {
 				case CTRL_TEXT_BOX:
