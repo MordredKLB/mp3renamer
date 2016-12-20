@@ -16,6 +16,7 @@ void SetCheckMarks(int panel);
 void FreeAlbumInfo(void);
 int  GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albumIndex);
 void BuildFileNameFromQuery(char *query, char *fileName);
+int GetArtistName(CVIXMLElement *curElem, int index, char *artist, char *artistID, int replaceApostrophe, int sortName, int addJoinPhrase);
 
 
 int CVICALLBACK AlbumTreeSortCI(int panel, int control, int item1, int item2, int keyCol, void *callbackData);
@@ -58,9 +59,6 @@ Artist:  http://www.musicbrainz.org/ws/2/artist/?query=arid:65f4f0c5-ef9e-490c-a
 #define kRelFormat		"format:\"%s\""
 #define kRelCountry		"country:%s"
 #define kRelAnd			" AND "
-
-#define kElemArtistCredStr	"artist-credit"
-#define kElemNameCredStr	"name-credit"
 
 #define kAttrCountStr	"count"
 #define kElemTitleStr	"title"
@@ -124,17 +122,11 @@ typedef struct {
 	char	discNum[5];
 	char 	*title;
 	char	*artist;
+	char	*artistFilter;
 	char 	time[10];
 } TrackInfoStruct;
 
 typedef struct {
-	// we could store the commented out info here, or in the tree like we're currently doing. Leaving in the tree for now.
-	/*char 	*title;
-	char 	*releaseType;
-	char 	*label;
-	char 	*catalogNum;
-	char 	*ASIN;
-	char 	*barcode;*/
 	int 	numTracks;
 	TrackInfoStruct *tracks;
 } AlbumInfoStruct;
@@ -400,8 +392,8 @@ void BuildFileNameFromQuery(char *query, char *fileName) {
 void GetMetaData(int panel, int control)
 {
 	HRESULT 		error = S_OK;
-	char			val[512], *queryBuf = NULL, dateStr[5], discStr[10], fileName[MAX_PATHNAME_LEN] = "";
-	int				totalCount=0, numTracks, count=0, i;
+	char			val[512], artist[512], artistID[38], *queryBuf = NULL, dateStr[5], discStr[10], fileName[MAX_PATHNAME_LEN] = "";
+	int				totalCount=0, numTracks, count=0, i, numArtists, index;
 	double			percent, time, delta;
 	CVIXMLElement   curElem = 0;
 	CVIXMLDocument	doc = 0;
@@ -506,21 +498,20 @@ void GetMetaData(int panel, int control)
 			SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColAlbum, ATTR_LABEL_TEXT, val);
 			GetParentElement(&curElem);	/* title */
 			
-			GetChildElementByTag(&curElem, kElemArtistCredStr);
-			GetChildElementByTag(&curElem, kElemNameCredStr);
-			
-			GetChildElementByTag(&curElem, kElemArtistStr);
-			GetAttributeByName(curElem, "id", val);
-			SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColArtistID, ATTR_LABEL_TEXT, val);
-			GetChildElementByTag(&curElem, kElemNameStr);
-			hrChk(CVIXMLGetElementValue(curElem, val));
-			SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColArtist, ATTR_LABEL_TEXT, val);
-			GetParentElement(&curElem);	/* name */
-			GetParentElement(&curElem);	/* artist */
+			if (!GetChildElementByTag(&curElem, "artist-credit")) {
+				CVIXMLGetNumChildElements(curElem, &numArtists);
+				strcpy(artist, "");
+				for (index=0; index<numArtists; index++) {
+					GetArtistName(&curElem, index, val, artistID, true, false, true);
+					strcat(artist, val);
+				}
+				SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColArtistID, ATTR_LABEL_TEXT, artistID);
+				SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColArtist, ATTR_LABEL_TEXT, artist);
+				GetArtistName(&curElem, 0, val, NULL, true, true, false); // get sort-name without joinphrase
+				SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColArtistSortOrder, ATTR_LABEL_TEXT, val);
+				GetParentElement(&curElem); 	// artist-credit
+			}
 
-			GetParentElement(&curElem);	/* name-credit */
-			GetParentElement(&curElem);	/* artist-credit */
-			
 			if (!GetChildElementByTag(&curElem, "release-group")) {
 				GetAttributeByName(curElem, "id", val);	   // release-group id
 				SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColRelGroupID, ATTR_LABEL_TEXT, val);
@@ -832,16 +823,16 @@ void GetMetaTrackData(int panel, int albumIndex)
 			GetCtrlVal(tab1Handle, TAB1_YEAR, val);
 			oldYear = strtol(val, NULL, 10);
 		}
-		else
+		else {
 			oldYear = 9999;
+		}
 		GetCtrlVal(tab1Handle, TAB1_DISCNUM, discNum);
 		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColDate, ATTR_LABEL_TEXT, val);
 		newYear = strtol(val, NULL, 10);
-		if (newYear && newYear < oldYear)
+		if (newYear && newYear < oldYear) {
 			SetCtrlVal(tab1Handle, TAB1_YEAR, val);
-
-		//GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColNumTracks, ATTR_LABEL_TEXT, val);
-		//releaseTracks = strtol(val, NULL, 10);
+		}
+			
 		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColNumDiscs, ATTR_LABEL_TEXT, val);
 		releaseDiscs = strtol(val, NULL, 10);
 		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColRelGroupID, ATTR_LABEL_TEXT, reid);
@@ -871,12 +862,14 @@ void GetMetaTrackData(int panel, int albumIndex)
 				} else {
 					trackNum = k + 1;
 				}
-				if (dataHandle.discPtr[k] && gUseMetaDataDiscVal)
+				
+				if (dataHandle.discPtr[k] && gUseMetaDataDiscVal) {
 					ptr = dataHandle.discPtr[k];
-				else if (discNum && isdigit(discNum[0]))
+				} else if (discNum && isdigit(discNum[0])) {
 					ptr = discNum;
-				else
+				} else {
 					ptr = "1";
+				}
 				if (trackNum == count && !strncmp(ptr, gAlbumInfo[albumIndex].tracks[i].discNum, strlen(gAlbumInfo[albumIndex].tracks[i].discNum))) {
 					// We found the correct track, now save the values for it
 					if (dataHandle.discSubtitlePtr[k])
@@ -891,6 +884,21 @@ void GetMetaTrackData(int panel, int albumIndex)
 						dataHandle.discPtr[k] = calloc(6, sizeof(char));	// allows for "99/99\0"
 						sprintf(dataHandle.discPtr[k], releaseDiscs > 9 ? "%02d/%d\0" : "%d/%d" ,disc, releaseDiscs);
 					}
+					// copy artistFilter
+					if (dataHandle.artistFilterPtr[k])
+						free(dataHandle.artistFilterPtr[k]);
+					GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColArtistSortOrder, ATTR_LABEL_TEXT, val);
+					if (!strcmp(val, gAlbumInfo[albumIndex].tracks[i].artistFilter)) {
+						strcpy(gAlbumInfo[albumIndex].tracks[i].artistFilter, "");
+					}	
+					StoreDataVals(tab1Handle, TAB1_ARTISTFILTER, gAlbumInfo[albumIndex].tracks[i].artistFilter, k);
+					gUseMetaArtistFilter = true;
+					SetCtrlVal(tab1Handle, TAB1_ARTISTFILTER, gAlbumInfo[albumIndex].tracks[i].artistFilter);
+					if (strcmp(gAlbumInfo[albumIndex].tracks[0].artistFilter, gAlbumInfo[albumIndex].tracks[i].artistFilter) && 
+					    strlen(gAlbumInfo[albumIndex].tracks[i].artistFilter)) {
+						// compare current track artistFilter with first artistFilter and if they differ set conflict
+						SetCtrlVal(tab1Handle, TAB1_ARTISTFILTERLED, true);
+					}
 					break;
 				}
 			}
@@ -900,9 +908,7 @@ void GetMetaTrackData(int panel, int albumIndex)
 				free(discSubtitles[i]);
 			}
 		}
-		if (releaseDiscs > 0) {
-			SetConflictTooltips(panelHandle);	// we just updated so show "conflicts"
-		}
+		SetConflictTooltips(panelHandle);	// we just updated so show "conflicts"
 	}
 
 Error:
@@ -955,6 +961,9 @@ int GetAlbumTrackListing(int panel, int albumTree, int trackTree, int albumIndex
 					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackArtist, ATTR_LABEL_TEXT_LENGTH, &len);
 					gAlbumInfo[albumIndex].tracks[i].artist = malloc(sizeof(char) * (len + 1));
 					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackArtist, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].artist);
+					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackArtistFilter, ATTR_LABEL_TEXT_LENGTH, &len);
+					gAlbumInfo[albumIndex].tracks[i].artistFilter = malloc(sizeof(char) * (len + 1));
+					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackArtistFilter, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].artistFilter);
 				}
 			}
 		}
@@ -966,6 +975,7 @@ int GetAlbumTrackListing(int panel, int albumTree, int trackTree, int albumIndex
 				SetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackName, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].title);
 				SetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackLength, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].time);
 				SetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackArtist, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].artist);
+				SetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackArtistFilter, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].artistFilter);
 			}
 		}
 	}
@@ -975,14 +985,46 @@ Error:
 	return albumIndex;
 }
 
+int GetArtistName(CVIXMLElement *curElem, int index, char *artist, char *artistID, int replaceApostrophe, int sortName, int addJoinPhrase)
+{
+	char joinphrase[25];
+	HRESULT error = S_OK;
+
+	hrChk(GetChildElementByIndex(curElem, index));	// name-credit
+	hrChk(GetChildElementByTag(curElem, "artist"));
+	if (artistID) {	// can be NULL
+		GetAttributeByName(*curElem, "id", artistID);
+	}
+	if (sortName) {
+		hrChk(GetChildElementByTag(curElem, "sort-name"));
+	} else {
+		hrChk(GetChildElementByTag(curElem, "name"));
+	}
+	hrChk(CVIXMLGetElementValue(*curElem, artist));
+	if (replaceApostrophe)
+		ReplaceUnicodeApostrophe(artist);
+	GetParentElement(curElem);		// name or sort-name
+	GetParentElement(curElem);		// artist
+	if (addJoinPhrase) {
+		strcpy(joinphrase, "");
+		GetAttributeByName(*curElem, "joinphrase", joinphrase);
+		strcat(artist, joinphrase);
+	}
+	GetParentElement(curElem); 		// name-credit
+
+Error:
+	return error;
+}
+
+
 /* Requests and parses the XML file and then populates trackTree with the individual track information */
 int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albumIndex)
 {
 	HRESULT error = S_OK;
 	char	val[512], title[512], reid[40], queryBuf[512], artist[512], discStr[4], time[8], fileName[MAX_PATHNAME_LEN];
 	int		i, j, numTracks, mins, secs, replaceUnicodeApostrophe=0;
-	char	position[5];
-	int		numDiscs, count = 0;
+	char	position[5], artistFilter[512];
+	int		numDiscs, count = 0, numArtists = 0, index;
 	CVIXMLDocument	doc = 0;
 	CVIXMLElement 	curElem = 0;
 
@@ -1028,15 +1070,16 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 					
 					hrChk(GetChildElementByTag(&curElem, "recording"));
 					if (!GetChildElementByTag(&curElem, "artist-credit")) {
-						hrChk(GetChildElementByTag(&curElem, "name-credit"));
-						hrChk(GetChildElementByTag(&curElem, "artist"));
-						hrChk(GetChildElementByTag(&curElem, "name"));
-						hrChk(CVIXMLGetElementValue(curElem, artist));
-						if (replaceUnicodeApostrophe)
-							ReplaceUnicodeApostrophe(artist);
-						GetParentElement(&curElem);		// name
-						GetParentElement(&curElem);		// artist
-						GetParentElement(&curElem); 	// name-credit
+						CVIXMLGetNumChildElements(curElem, &numArtists);
+						GetArtistName(&curElem, 0, artist, NULL, replaceUnicodeApostrophe, false, false);
+						strcpy(artistFilter, "");
+						for (index=0; index<numArtists; index++) {
+							GetArtistName(&curElem, index, val, NULL, replaceUnicodeApostrophe, true, false);
+							strcat(artistFilter, val);
+							if (index+1 < numArtists) {
+								strcat(artistFilter, "; ");
+							}
+						}
 						GetParentElement(&curElem); 	// artist-credit
 					}
 					mins = secs = 0; 
@@ -1061,6 +1104,7 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 					SetTreeCellAttribute(panel, trackTree, count, kTrackTreeColTrackDisc, ATTR_LABEL_TEXT, discStr);
 					SetTreeCellAttribute(panel, trackTree, count, kTrackTreeColTrackName, ATTR_LABEL_TEXT, title);
 					SetTreeCellAttribute(panel, trackTree, count, kTrackTreeColTrackArtist, ATTR_LABEL_TEXT, artist);
+					SetTreeCellAttribute(panel, trackTree, count, kTrackTreeColTrackArtistFilter, ATTR_LABEL_TEXT, artistFilter);
 					sprintf(time, "%d:%02d\0", mins, secs);
 					SetTreeCellAttribute(panel, trackTree, count, kTrackTreeColTrackLength, ATTR_LABEL_TEXT, time);
 					count++;

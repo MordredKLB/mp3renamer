@@ -76,6 +76,7 @@ enum {
 	kTrackTreeColTrackName,
 	kTrackTreeColTrackLength,
 	kTrackTreeColTrackArtist,
+	kTrackTreeColTrackArtistFilter
 };
 
 enum {
@@ -98,6 +99,7 @@ enum {
 	kAlbTreeColCatalog,
 	kAlbTreeColLabel,
 	kAlbTreeColType,
+	kAlbTreeColArtistSortOrder,
 	kAlbTreeColArtistID,
 	kAlbTreeColRelGroupID,
 	kAlbTreeNumColumns	// insert above this

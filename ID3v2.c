@@ -591,50 +591,56 @@ int SetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control
 		nullChk(data = calloc(len+1, sizeof(char)));
 		errChk(GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColTrackNum, ATTR_LABEL_TEXT, data));
 	} else if (!stricmp(frameType, "ARTISTFILTER")) {			// If we're setting the custom "Artist Filter" check to see if Album Artist is VA/Soundtrack and add that, along with Artist
-		//GetCtrlVal(panelHandle, PANEL_SHOWTRACKARTISTS, &trackArtists);
 		GetCtrlAttribute(tab1Handle, TAB1_ALBUMARTIST, ATTR_STRING_TEXT_LENGTH, &len);
-		if (!len && gUseMetaArtistFilter) 
-			goto Error;	// don't update if no album artist
-		else if (!len && !gUseMetaArtistFilter)
-			goto Default;	// artist filter was explicitly edited, so set it
-		nullChk(data = calloc(len+1, sizeof(char)));
-		GetCtrlVal(tab1Handle, TAB1_ALBUMARTIST, data);
-		if (stristr(data, "Various Artists")) {
-			needsVarious = 1;
-		} else if (stristr(data, "Soundtrack")) {
-			needsVarious = 2;
-		}
-		free(data);
-		GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
-		if (len) {
-			nullChk(data = calloc(len+20, sizeof(char)));
-			errChk(GetCtrlVal(panel, control, data));
-		} else if (needsVarious) {
-			GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT_LENGTH, &len);
-			nullChk(data = calloc(len+20, sizeof(char)));
-			errChk(GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT, data));
-		} else {
-			GetCtrlAttribute(tab1Handle, TAB1_PERFORMERSORTORDER, ATTR_STRING_TEXT_LENGTH, &len);
-			if (len > 0) {
-				nullChk(data = calloc(len+20, sizeof(char)));	// +20 so we can add a comma & "; Various Artists" as needed
-				errChk(GetCtrlVal(tab1Handle, TAB1_PERFORMERSORTORDER, data));
+		if (!len && gUseMetaArtistFilter) {
+			// if no album artist 
+			if (len = strlen(dataHandle.artistFilterPtr[index])) {
+				nullChk(data = calloc(len+1, sizeof(char)));
+				strcpy(data, dataHandle.artistFilterPtr[index]);
 			} else {
-				GetCtrlAttribute(panelHandle, PANEL_ARTIST, ATTR_STRING_TEXT_LENGTH, &len);
+				goto Error;	// no artistFilterPtr data either, so abort	
+			}
+		} else {
+			if (!len && !gUseMetaArtistFilter) 
+				goto Default;	// artist filter was explicitly edited, so set it
+			nullChk(data = calloc(len+1, sizeof(char)));
+			GetCtrlVal(tab1Handle, TAB1_ALBUMARTIST, data);
+			if (stristr(data, "Various Artists")) {
+				needsVarious = 1;
+			} else if (stristr(data, "Soundtrack")) {
+				needsVarious = 2;
+			}
+			free(data);
+			GetCtrlAttribute(panel, control, ATTR_STRING_TEXT_LENGTH, &len);
+			if (len) {
 				nullChk(data = calloc(len+20, sizeof(char)));
-				errChk(GetCtrlVal(panelHandle, PANEL_ARTIST, data));
+				errChk(GetCtrlVal(panel, control, data));
+			} else if (needsVarious) {
+				GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT_LENGTH, &len);
+				nullChk(data = calloc(len+20, sizeof(char)));
+				errChk(GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColArtistName, ATTR_LABEL_TEXT, data));
+			} else {
+				GetCtrlAttribute(tab1Handle, TAB1_PERFORMERSORTORDER, ATTR_STRING_TEXT_LENGTH, &len);
+				if (len > 0) {
+					nullChk(data = calloc(len+20, sizeof(char)));	// +20 so we can add a comma & "; Various Artists" as needed
+					errChk(GetCtrlVal(tab1Handle, TAB1_PERFORMERSORTORDER, data));
+				} else {
+					GetCtrlAttribute(panelHandle, PANEL_ARTIST, ATTR_STRING_TEXT_LENGTH, &len);
+					nullChk(data = calloc(len+20, sizeof(char)));
+					errChk(GetCtrlVal(panelHandle, PANEL_ARTIST, data));
+				}
+			}
+			if (!strncmp("The ", data, 4) || !strncmp("the ", data, 4)) {
+				memmove(data, data+4, strlen(data)-3);	// include NULL
+				strcat(data, ", The");
+			}
+
+			if (needsVarious == 1 && !stristr(data, "Various Artists")) {
+				strcat(data, "; Various Artists");	
+			} else if (needsVarious == 2 && !stristr(data, "Soundtrack")) {
+				strcat(data, "; Soundtrack");	
 			}
 		}
-		if (!strncmp("The ", data, 4) || !strncmp("the ", data, 4)) {
-			memmove(data, data+4, strlen(data)-3);	// include NULL
-			strcat(data, ", The");
-		}
-
-		if (needsVarious == 1 && !stristr(data, "Various Artists")) {
-			strcat(data, "; Various Artists");	
-		} else if (needsVarious == 2 && !stristr(data, "Soundtrack")) {
-			strcat(data, "; Soundtrack");	
-		}
-		
 	} else {		// handle everything but disc num and Artist Filter
 Default:
 		int val;
