@@ -106,8 +106,8 @@ typedef struct {
 
 /*** Prototypes ***/
 
-int  GetID3v2Tag(int panel, char *filename, int index);
-int  SetID3v2Tag(int panel, char *filename, char *newname, int index);
+int  GetID3v2Tag(int panel, char *filename, int index, int filetype);
+int  SetID3v2Tag(int panel, char *filename, char *newname, int index, int filetype);
 void SetConflictTooltips(int panel);
 void PopulateGenreComboBox(int panel, int control);
 void DoSmartCaps(char *fileName);

@@ -24,14 +24,14 @@ char gFilename[MAX_FILENAME_LEN];	// needed to get filename from file.c
 int GetTitleData(jsmntok_t *tokens, char *pmapJSON, char *frameType, int panel, int control, int index);
 int GetTextData(jsmntok_t *tokens, char *pmapJSON, char *frameType, int panel, int control, int conflict, int index);
 int GetUnhandledFields(jsmntok_t *tokens, char *pmapJSON, int index);
-int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index);
+int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index, int filetype);
 
 size_t SearchJSONForKey(jsmntok_t *tokens, char *pmapJSON, char *frameType, char **string);
 
 
 int SetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control, int updateCtrl, int index, int multi);
 int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int index);
-int SetPictureData(TagLib_File *taglibfile, int panel, int control, int updateCtrl, int clearCtrl);
+int SetPictureData(TagLib_File *taglibfile, int panel, int control, int updateCtrl, int clearCtrl, int filetype);
 
 int isHandledFrameType(char *id);
 
@@ -42,7 +42,7 @@ void AllocAndCopyStr(char **string, char *val);
 /*** Code ***/
 
 
-int GetID3v2Tag(int panel, char *filename, int index)
+int GetID3v2Tag(int panel, char *filename, int index, int filetype)
 {
 	TagLib_File *taglibfile;
 	TagLib_Tag *tag;
@@ -86,7 +86,7 @@ int GetID3v2Tag(int panel, char *filename, int index)
 	GetTextData(tokens, pmapJSON, "TRACKNUMBER", panel, PANEL_TRACKNUM, PANEL_TRACKNUMLED, index);
 	GetTextData(tokens, pmapJSON, "URL", tab2Handle, TAB2_URL, TAB2_URLLED, index);
 	
-	GetPictureData(taglibfile, "APIC", tab2Handle, TAB2_ARTWORK, TAB2_ARTWORKLED, index);
+	GetPictureData(taglibfile, "APIC", tab2Handle, TAB2_ARTWORK, TAB2_ARTWORKLED, index, filetype);
 	GetUnhandledFields(tokens, pmapJSON, index);
 	free(tokens);
 
@@ -315,7 +315,7 @@ int GetImageTypeExtension(char *type, char ext[4])
 	return found;
 }
 
-int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index)
+int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int control, int conflict, int index, int filetype)
 {
 	int			error;
 	unsigned int pictureType;
@@ -324,11 +324,22 @@ int GetPictureData(TagLib_File *taglibfile, char *frameType, int panel, int cont
 	char		*desc = NULL;
 	char		*data = NULL;
 
-	strcpy(mimeType, taglib_mp3_file_picture_attrs(taglibfile, &pictureType));
+	if (filetype == kFileMP3) {
+		strcpy(mimeType, taglib_mp3_file_picture_attrs(taglibfile, &pictureType));
+	} else if (filetype == kFileFLAC) {
+		strcpy(mimeType, taglib_flac_file_picture_attrs(taglibfile, &pictureType));
+	} else {
+		ErrorPrintf("Unhandled filetype in GetPictureData()\n");
+		strcpy(mimeType, "");
+	}
 	if (strlen(mimeType)) {
 		errChk(GetImageTypeExtension(mimeType, ext));
 		sprintf(imageNameStr, "imageFile%d.%s", index, ext);
-		taglib_mp3_file_picture(taglibfile, imageNameStr);
+		if (filetype == kFileMP3) {
+			taglib_mp3_file_picture(taglibfile, imageNameStr);
+		} else if (filetype == kFileFLAC) {
+			taglib_flac_file_picture(taglibfile, imageNameStr);
+		}
 
 		DisableBreakOnLibraryErrors();
 		if (!DisplayImageFile(panel, control, imageNameStr)) {
@@ -491,7 +502,7 @@ void StoreDataVals(int panel, int control, char *string, int index)
 /*** Functions below here are Set Tag Functions ***/
 /**************************************************/
 
-int SetID3v2Tag(int panel, char *filename, char *newname, int index)
+int SetID3v2Tag(int panel, char *filename, char *newname, int index, int filetype)
 {
 	int 	error=0;
 	TagLib_File *taglibfile;
@@ -528,7 +539,7 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index)
 	SetTextData(taglibfile, "ORIGINALARTIST", tab2Handle, TAB2_ORIGARTIST, TAB2_UPDATEORIGARTIST, index, true);
 	SetTextData(taglibfile, "RELEASETYPE", tab1Handle, TAB1_RELTYPE, TAB1_UPDATERELTYPE, index, false);
 	SetTextData(taglibfile, "URL", tab2Handle, TAB2_URL, TAB2_UPDATEURL, index, true);
-	SetPictureData(taglibfile, tab2Handle, TAB2_ARTWORK, TAB2_UPDATEARTWORK, TAB2_CLEARARTWORK);
+	SetPictureData(taglibfile, tab2Handle, TAB2_ARTWORK, TAB2_UPDATEARTWORK, TAB2_CLEARARTWORK, filetype);
 	SetUnhandledFields(taglibfile, tab3Handle, TAB3_EXTENDEDTAGS, index);
 	
 	error = taglib_file_save(taglibfile);
@@ -592,13 +603,16 @@ int SetTextData(TagLib_File *taglibfile, char *frameType, int panel, int control
 		errChk(GetTreeCellAttribute(panelHandle, PANEL_TREE, index, kTreeColTrackNum, ATTR_LABEL_TEXT, data));
 	} else if (!stricmp(frameType, "ARTISTFILTER")) {			// If we're setting the custom "Artist Filter" check to see if Album Artist is VA/Soundtrack and add that, along with Artist
 		GetCtrlAttribute(tab1Handle, TAB1_ALBUMARTIST, ATTR_STRING_TEXT_LENGTH, &len);
-		if (!len && gUseMetaArtistFilter) {
-			// if no album artist 
+		if (gUseMetaArtistFilter && dataHandle.artistFilterPtr[index]) {
+			nullChk(strVal = calloc(len+1, sizeof(char)));
+			//GetCtrlVal(tab1Handle, TAB1_ALBUMARTIST, strVal)
 			if (len = strlen(dataHandle.artistFilterPtr[index])) {
 				nullChk(data = calloc(len+1, sizeof(char)));
 				strcpy(data, dataHandle.artistFilterPtr[index]);
 			} else {
-				goto Error;	// no artistFilterPtr data either, so abort	
+				nullChk(data = calloc(len+1, sizeof(char)));
+				strcpy(data, "");	// clear field?
+				//goto Error;	// no artistFilterPtr data either, so abort	
 			}
 		} else {
 			if (!len && !gUseMetaArtistFilter) 
@@ -730,7 +744,7 @@ int SetUnhandledFields(TagLib_File *taglibfile, int panel, int control, int inde
 
 // currently just removes frame
 // TODO: Ability to set pictures
-int SetPictureData(TagLib_File *taglibfile, int panel, int control, int updateCtrl, int clearCtrl)
+int SetPictureData(TagLib_File *taglibfile, int panel, int control, int updateCtrl, int clearCtrl, int filetype)
 {
 	int 			error, update, clear;
 
@@ -739,7 +753,13 @@ int SetPictureData(TagLib_File *taglibfile, int panel, int control, int updateCt
 
 	if (update) {
 		if (clear) {
-			taglib_mp3_file_remove_picture(taglibfile);
+			if (filetype == kFileMP3) {
+				taglib_mp3_file_remove_picture(taglibfile);
+			} else if (filetype == kFileFLAC) {
+				taglib_flac_file_remove_picture(taglibfile);
+			} else {
+				ErrorPrintf("Unhandled filetype %d in SetPictureData()", filetype);
+			}
 		}
 	}
 

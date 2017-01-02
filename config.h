@@ -100,6 +100,7 @@ enum {
 	kAlbTreeColLabel,
 	kAlbTreeColType,
 	kAlbTreeColArtistSortOrder,
+	kAlbTreeColVariousArtists,
 	kAlbTreeColArtistID,
 	kAlbTreeColRelGroupID,
 	kAlbTreeNumColumns	// insert above this

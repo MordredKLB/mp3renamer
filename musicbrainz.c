@@ -17,6 +17,7 @@ void FreeAlbumInfo(void);
 int  GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albumIndex);
 void BuildFileNameFromQuery(char *query, char *fileName);
 int GetArtistName(CVIXMLElement *curElem, int index, char *artist, char *artistID, int replaceApostrophe, int sortName, int addJoinPhrase);
+void FixArtistSortName(char *val);
 
 
 int CVICALLBACK AlbumTreeSortCI(int panel, int control, int item1, int item2, int keyCol, void *callbackData);
@@ -508,6 +509,14 @@ void GetMetaData(int panel, int control)
 				SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColArtistID, ATTR_LABEL_TEXT, artistID);
 				SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColArtist, ATTR_LABEL_TEXT, artist);
 				GetArtistName(&curElem, 0, val, NULL, true, true, false); // get sort-name without joinphrase
+				FixArtistSortName(val);
+				GetArtistName(&curElem, 0, artist, NULL, true, false, false);
+				if (numArtists > 1 || !strcmp(val, artist)) {
+					strcpy(val, "");
+				}
+				if (numArtists > 1 || !strcmp(artist, "Various Artists")) {
+					SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColVariousArtists, ATTR_LABEL_TEXT, "Various Artists");
+				}
 				SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColArtistSortOrder, ATTR_LABEL_TEXT, val);
 				GetParentElement(&curElem); 	// artist-credit
 			}
@@ -817,6 +826,8 @@ void GetMetaTrackData(int panel, int albumIndex)
 		SetCtrlVal(tab1Handle, TAB1_PUBLISHER, val);
 		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColType, ATTR_LABEL_TEXT, val);
 		SetTableCellVal(tab1Handle, TAB1_RELTYPE, MakePoint(1,1), val);
+		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColArtistSortOrder, ATTR_LABEL_TEXT, val);
+		SetCtrlVal(tab1Handle, TAB1_PERFORMERSORTORDER, val);
 		
 		GetCtrlAttribute(tab1Handle, TAB1_YEAR, ATTR_STRING_TEXT_LENGTH, &len);
 		if (len) {	// check if the year we got from musicbrainz is less than the year already in the mp3
@@ -892,7 +903,6 @@ void GetMetaTrackData(int panel, int albumIndex)
 						strcpy(gAlbumInfo[albumIndex].tracks[i].artistFilter, "");
 					}	
 					StoreDataVals(tab1Handle, TAB1_ARTISTFILTER, gAlbumInfo[albumIndex].tracks[i].artistFilter, k);
-					gUseMetaArtistFilter = true;
 					SetCtrlVal(tab1Handle, TAB1_ARTISTFILTER, gAlbumInfo[albumIndex].tracks[i].artistFilter);
 					if (strcmp(gAlbumInfo[albumIndex].tracks[0].artistFilter, gAlbumInfo[albumIndex].tracks[i].artistFilter) && 
 					    strlen(gAlbumInfo[albumIndex].tracks[i].artistFilter)) {
@@ -901,6 +911,18 @@ void GetMetaTrackData(int panel, int albumIndex)
 					}
 					break;
 				}
+			}
+		}
+		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColVariousArtists, ATTR_LABEL_TEXT, val);
+		SetCtrlVal(tab1Handle, TAB1_ALBUMARTIST, val);
+		if (!strcmp(val, "Various Artists")) {
+			int set = 0;
+			// for "Various Artists" we need to clear the artist filter so that it will get reset from metaData
+			// SetCtrlVal(tab1Handle, TAB1_ARTISTFILTER, "");
+			GetCtrlVal(panelHandle, PANEL_SHOWTRACKARTISTS, &set);
+			if (set == 0) {
+				SetCtrlVal(panelHandle, PANEL_SHOWTRACKARTISTS, 1);
+				ShowTrackArtistCB(panelHandle, PANEL_SHOWTRACKARTISTS, EVENT_COMMIT, NULL, 0, 0);
 			}
 		}
 		for (i=0; i<99; i++) {
@@ -924,8 +946,8 @@ Error:
 int GetAlbumTrackListing(int panel, int albumTree, int trackTree, int albumIndex)
 {
 	HRESULT error = S_OK;
-	char	val[512];
-	int		i, releaseTracks, len;
+	char	val[512], vaStr[18] = "\0";
+	int		i, releaseTracks, len, vaLen = 0;
 	
 	DeleteListItem(panel, trackTree, 0, -1);
 	if (albumIndex != -1) {
@@ -943,6 +965,11 @@ int GetAlbumTrackListing(int panel, int albumTree, int trackTree, int albumIndex
 		SetCtrlAttribute(panel, ALBUMPANEL_TXTCATALOG, ATTR_CTRL_VAL, val);
 		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColLabel, ATTR_LABEL_TEXT, val);
 		SetCtrlAttribute(panel, ALBUMPANEL_TXTLABEL, ATTR_CTRL_VAL, val);
+		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColVariousArtists, ATTR_LABEL_TEXT_LENGTH, &len);
+		if (len > 0) {
+			vaLen = 18;
+			strcpy(vaStr, "; Various Artists\0");
+		}
 		
 		if (!gAlbumInfo[albumIndex].tracks) {
 			hrChk(GetXMLAndPopulateTrackTree(panel, albumTree, trackTree, albumIndex));
@@ -962,8 +989,9 @@ int GetAlbumTrackListing(int panel, int albumTree, int trackTree, int albumIndex
 					gAlbumInfo[albumIndex].tracks[i].artist = malloc(sizeof(char) * (len + 1));
 					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackArtist, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].artist);
 					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackArtistFilter, ATTR_LABEL_TEXT_LENGTH, &len);
-					gAlbumInfo[albumIndex].tracks[i].artistFilter = malloc(sizeof(char) * (len + 1));
+					gAlbumInfo[albumIndex].tracks[i].artistFilter = malloc(sizeof(char) * (len + vaLen + 1));
 					GetTreeCellAttribute(panel, trackTree, i, kTrackTreeColTrackArtistFilter, ATTR_LABEL_TEXT, gAlbumInfo[albumIndex].tracks[i].artistFilter);
+					strcat(gAlbumInfo[albumIndex].tracks[i].artistFilter, vaStr);  // append "Various Artists" to artist filter if needed
 				}
 			}
 		}
@@ -1016,6 +1044,21 @@ Error:
 	return error;
 }
 
+void FixArtistSortName(char *val)
+{
+	char tempStr[512];
+	int len = strlen(val);
+	// "B, A"
+	if (len > 3 && !strncmp(&val[len-3], ", A", 3)) {
+		strcpy(tempStr, val);
+		tempStr[len-3] = '\0';
+		sprintf(val, "A %s", tempStr);
+	} else if (len > 4 && !strncmp(&val[len-4], ", An", 4)) {
+		strcpy(tempStr, val);
+		tempStr[len-4] = '\0';
+		sprintf(val, "An %s", tempStr);
+	}
+}
 
 /* Requests and parses the XML file and then populates trackTree with the individual track information */
 int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albumIndex)
@@ -1024,7 +1067,7 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 	char	val[512], title[512], reid[40], queryBuf[512], artist[512], discStr[4], time[8], fileName[MAX_PATHNAME_LEN];
 	int		i, j, numTracks, mins, secs, replaceUnicodeApostrophe=0;
 	char	position[5], artistFilter[512];
-	int		numDiscs, count = 0, numArtists = 0, index;
+	int		numDiscs, count = 0, numArtists = 0, index, isVariousArtists = false;
 	CVIXMLDocument	doc = 0;
 	CVIXMLElement 	curElem = 0;
 
@@ -1032,6 +1075,7 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 	GetCtrlVal(configHandle, OPTIONS_REPLACEAPOSTROPHE, &replaceUnicodeApostrophe);
 	GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColNumTracks, ATTR_LABEL_TEXT, val);
 	GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColREID, ATTR_LABEL_TEXT, reid);
+	GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColVariousArtists, ATTR_LABEL_TEXT_LENGTH, &isVariousArtists);	// if len > 0
 	sprintf(queryBuf, kTrackQuery, reid);
 	BuildFileNameFromQuery(queryBuf, fileName);	// create filename to save XML in
 	DownloadFileIfNotExists(queryBuf, fileName);
@@ -1073,11 +1117,13 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 						CVIXMLGetNumChildElements(curElem, &numArtists);
 						GetArtistName(&curElem, 0, artist, NULL, replaceUnicodeApostrophe, false, false);
 						strcpy(artistFilter, "");
-						for (index=0; index<numArtists; index++) {
-							GetArtistName(&curElem, index, val, NULL, replaceUnicodeApostrophe, true, false);
-							strcat(artistFilter, val);
-							if (index+1 < numArtists) {
-								strcat(artistFilter, "; ");
+						if (numArtists > 1 || isVariousArtists) {	// we don't need to set Artist Filter field if only one artist or not a VA release
+							for (index=0; index<numArtists; index++) {
+								GetArtistName(&curElem, index, val, NULL, replaceUnicodeApostrophe, true, false);
+								strcat(artistFilter, val);
+								if (index+1 < numArtists) {
+									strcat(artistFilter, "; ");
+								}
 							}
 						}
 						GetParentElement(&curElem); 	// artist-credit
@@ -1190,6 +1236,7 @@ void FreeAlbumInfo(void)
 			for (int j=0;j<gAlbumInfo[i].numTracks;j++) {
 				free (gAlbumInfo[i].tracks[j].title);
 				free (gAlbumInfo[i].tracks[j].artist);
+				free (gAlbumInfo[i].tracks[j].artistFilter);
 			}
 			free (gAlbumInfo[i].tracks);
 		}

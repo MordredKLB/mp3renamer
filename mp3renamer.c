@@ -288,7 +288,7 @@ int CVICALLBACK BrowseCB (int panel, int control, int event,
 				status = MultiFileSelectPopup (startFolder, "*.mp3", "*.mp3;",
 						   "Select Files to Rename", 0, 0, 1, &numFiles, &fileList);
 #else
-				status = MultiFileSelectPopupEx (startFolder, "*.mp3", "Audio Files (*.mp3;*.ac3;*.dts);*.*",
+				status = MultiFileSelectPopupEx (startFolder, "*.mp3", "Audio Files (*.mp3;*.ac3;*.dts;*.flac);*.*",
 						   "Select Files to Rename", 0, 0, &numFiles, &fileList);
 #endif
 			if (status == VAL_EXISTING_FILE_SELECTED) {
@@ -1314,13 +1314,17 @@ int CVICALLBACK GetID3Tag (int panel, int control, int event,
 				if (IsItemChecked(i)) {
 					switch (GetAudioFileType(fileStruct[i].origName)) {
 						case kFileMP3:
-							GetID3v2Tag(panel, fileStruct[i].origName, i);
+							GetID3v2Tag(panel, fileStruct[i].origName, i, kFileMP3);
 							GetID3v1Tag(panel, fileStruct[i].origName);
 							firstFile = FALSE;	// clear firstFile flag after the first checked file
 							break;
 						case kFileAC3:
 						case kFileDTS:
 							LoadAPEv2Tag(panel, fileStruct[i].origName, i);
+							firstFile = FALSE;	// clear firstFile flag after the first checked file
+							break;
+						case kFileFLAC:
+							GetID3v2Tag(panel, fileStruct[i].origName, i, kFileFLAC);
 							firstFile = FALSE;	// clear firstFile flag after the first checked file
 							break;
 					}
@@ -1435,7 +1439,7 @@ int CVICALLBACK SetID3Tag (int panel, int control, int event,
 				if (IsItemChecked(i) && !readOnly) {
 					switch (GetAudioFileType(fileStruct[i].origName)) {
 						case kFileMP3:
-							SetID3v2Tag(panel, fileStruct[i].origName, fileStruct[i].newName, i);
+							SetID3v2Tag(panel, fileStruct[i].origName, fileStruct[i].newName, i, kFileMP3);
 							if (doID3v1) {																																																										 
 								SetID3v1Tag(panel, fileStruct[i].origName, fileStruct[i].newName, i);
 							}
@@ -1443,6 +1447,9 @@ int CVICALLBACK SetID3Tag (int panel, int control, int event,
 						case kFileAC3:
 						case kFileDTS:
 							SetAPEv2Tag(panel, fileStruct[i].origName, fileStruct[i].newName, i);
+							break;
+						case kFileFLAC:
+							SetID3v2Tag(panel, fileStruct[i].origName, fileStruct[i].newName, i, kFileFLAC);
 							break;
 					}
 				} else if (readOnly) {
