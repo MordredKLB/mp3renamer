@@ -120,7 +120,7 @@ int main (int argc, char *argv[])
 	if (argc == 2) {
 		GetProjectDir(path);
 		SetDir(path);
-		}
+	}
 	
 	ProgressBar_ConvertFromSlide(progressHandle, PROGRESS_PROGRESSBAR);
 	ProgressBar_ConvertFromSlide(albumPanHandle, ALBUMPANEL_PROGRESSBAR);
@@ -144,7 +144,14 @@ int main (int argc, char *argv[])
 	SetupFormatFunctions();
 	AddToFilePopupDirHistory(startFolder);
 	
+#if _CVI_DEBUG_	
+	//argc = 2; argv[1] = malloc(sizeof(char) * MAX_FILENAME_LEN);
+	//strcpy(argv[1], "H:\\Audio\\Albums\\Unsorted\\Local H - 2010 - Local H's Awesome Mix Tape #1\\test");
+#endif
+	
 	if (argc == 2) {
+		// the path's we get from foobar include the file names, lop that off to try and get just the directory
+		// TODO: Check to see if have just a path without a filename
 		strncpy(path, argv[1], strlen(argv[1]) - strlen(strrchr(argv[1],'\\'))+1);
 		path[strlen(argv[1]) - strlen(strrchr(argv[1],'\\'))+1]='\0';
 		BrowseCB(panelHandle, PANEL_BrowseButton, EVENT_COMMIT, &path, 0, 0);
@@ -261,36 +268,32 @@ int CVICALLBACK BrowseCB (int panel, int control, int event,
 			gUseMetaArtistFilter = FALSE;
 			if (callbackData) {
 				char filename[MAX_FILENAME_LEN];
+				const char * types[] = {"mp3", "flac", "ac3", "dts"};
 				
-				strcpy(searchFormat, (char *)callbackData);
-				strcat(searchFormat, "*.mp3");
-				fileList = malloc(sizeof(char *) * kMaxFiles);
-				fileList[i] = malloc(sizeof(char) * MAX_FILENAME_LEN + MAX_PATHNAME_LEN);
-				status = GetFirstFile(searchFormat, 1, 0, 0, 0, 0, 0, filename);
-				if (status>=0) {
-					status = VAL_EXISTING_FILE_SELECTED;
-					strcpy(fileList[i], (char *)callbackData);
-					strcat(fileList[i], filename);
-					numFiles++;
-					while(!GetNextFile(filename)) {
-						i++;
+				for (int j=0; j < (sizeof (types) / sizeof (const char *)); j++) {
+					sprintf(searchFormat, "%s*.%s", (char *)callbackData, types[j]);
+					status = GetFirstFile(searchFormat, 1, 0, 0, 0, 0, 0, filename);
+					if (status>=0) {
+						fileList = malloc(sizeof(char *) * kMaxFiles);
 						fileList[i] = malloc(sizeof(char) * MAX_FILENAME_LEN + MAX_PATHNAME_LEN);
+						status = VAL_EXISTING_FILE_SELECTED;
 						strcpy(fileList[i], (char *)callbackData);
 						strcat(fileList[i], filename);
 						numFiles++;
+						while(!GetNextFile(filename)) {
+							i++;
+							fileList[i] = malloc(sizeof(char) * MAX_FILENAME_LEN + MAX_PATHNAME_LEN);
+							strcpy(fileList[i], (char *)callbackData);
+							strcat(fileList[i], filename);
+							numFiles++;
 						}
+						break;
 					}
-				else
-					free(fileList[i]);
 				}
-			else
-#if _CVI_ <= 1001 
-				status = MultiFileSelectPopup (startFolder, "*.mp3", "*.mp3;",
-						   "Select Files to Rename", 0, 0, 1, &numFiles, &fileList);
-#else
+			} else {
 				status = MultiFileSelectPopupEx (startFolder, "*.mp3", "Audio Files (*.mp3;*.ac3;*.dts;*.flac);*.*",
 						   "Select Files to Rename", 0, 0, &numFiles, &fileList);
-#endif
+			}
 			if (status == VAL_EXISTING_FILE_SELECTED) {
 				subLen = strlen(strrchr(fileList[0],'\\'));
 				strncpy(startFolder,fileList[0],strlen(fileList[0])-subLen);
@@ -534,7 +537,7 @@ void ClearID3DataStruct(int numSongs)
 		free(dataHandle.albumGainPtr[i]);
 		free(dataHandle.albSortOrderPtr[i]);
 		free(dataHandle.perfSortOrderPtr[i]);
-		}
+	}
 	free(dataHandle.artistPtr);
 	free(dataHandle.albumPtr);
 	free(dataHandle.trackNumPtr);
@@ -771,10 +774,11 @@ void ParseRenameString(char *filename, char *formatStr, int index)
 				
 	ptr = strrchr(filename, '.');	// find last . to save extension
 	if (ptr) {
-		if (strlen(ptr+1))	// not last character
+		if (strlen(ptr+1)) {	// not last character
 			ext = malloc(sizeof(char) * strlen(ptr) + 1);
 			strcpy(ext, ptr);
 		}
+	}
 	newstr = malloc(sizeof(char) * (strlen(formatStr) + 1));
 	strcpy(newstr, formatStr);
 	for (i=0;i<kNumMetaDataVals;i++) {
@@ -782,8 +786,8 @@ void ParseRenameString(char *filename, char *formatStr, int index)
 			len = GetMetaDataValue(&dataVal, metaData[i], index);
 			ReplaceFormatStringToken(&newstr, metaData[i].name, dataVal);
 			free(dataVal);
-			}
 		}
+	}
 	ReplaceFormatStringToken(&newstr, ",,", kDoubleCommaReplacement);
 	ReplaceFormatStringToken(&newstr, ",)", kCommaCloseReplacement);
 	
@@ -793,7 +797,7 @@ void ParseRenameString(char *filename, char *formatStr, int index)
 				ffPtr = ptr-strlen(formatFunc[i].name);
 			else
 				continue;
-			if (ffPtr >= newstr)
+			if (ffPtr >= newstr) {
 				if (!strncmp(ffPtr, formatFunc[i].name, strlen(formatFunc[i].name)) && (closeParen=strstr(ffPtr, ")"))) {
 					ffStr = malloc(sizeof(char) * (++closeParen - ffPtr + 1));
 					strncpy(ffStr, ffPtr, closeParen-ffPtr);
@@ -803,19 +807,13 @@ void ParseRenameString(char *filename, char *formatStr, int index)
 					free(dataVal);
 					free(ffStr);
 					break;
-					}
+				}
 			}
+		}
 		if (i==kNumFormatFuncs && !strstr(ptr, ")"))	// no match or closing brace
 			ReplaceFormatStringToken(&newstr, "(", kOpenParenReplacement);
-		}
+	}
 
-/*	ReplaceFormatStringToken(&newstr, kOpenParenReplacement, "(");
-	ReplaceFormatStringToken(&newstr, kCloseParenReplacement, ")");
-	ReplaceFormatStringToken(&newstr, kCommaReplacement, ",");
-	ReplaceFormatStringToken(&newstr, kSingleQuoteReplacement, "'");
-	ReplaceFormatStringToken(&newstr, kDollarSignReplacement, "$");
-	ReplaceFormatStringToken(&newstr, kBlankSpaceReplacement, "");
-*/
 	RestoreSpecialChars(&newstr);
 	
 	strcpy(filename, newstr);
@@ -2155,7 +2153,7 @@ int CVICALLBACK RenameFolderCB (int panel, int control, int event,
 					fileRenameError = RenameFile(fileStruct[i].origName, new);	// move files if the folder didn't get renamed  
 				}
 				if (!fileRenameError) {
-				strcpy(fileStruct[i].origName, new);
+					strcpy(fileStruct[i].origName, new);
 				}
 			}
 			if (error) {

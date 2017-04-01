@@ -176,7 +176,7 @@ TAGLIB_C_EXPORT void taglib_file_set_property(TagLib_File *file, const char *key
 TAGLIB_C_EXPORT const TagLib_AudioProperties *taglib_file_audioproperties(const TagLib_File *file);
 
 /*!
- * Saves the \a file to disk.
+ * Saves the file to disk.
  */
 TAGLIB_C_EXPORT BOOL taglib_file_save(TagLib_File *file);
 

@@ -16,7 +16,6 @@
 
 char PADDING[3] = {0,0,0};
 const Point tagCell = {1,1};
-char gFilename[MAX_FILENAME_LEN];	// needed to get filename from file.c
 
 
 /*** Prototypes ***/
@@ -512,8 +511,6 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index, int filetyp
 	taglibfile = taglib_file_new(filename);
 	tag = taglib_file_tag(taglibfile);
 	
-	
-	strcpy(gFilename, filename);	// needed for file.c
 
 	SetTextData(taglibfile, "TITLE", panel, PANEL_TREE, PANEL_UPDATETITLE, index, false);
 	SetTextData(taglibfile, "TRACKNUMBER", panel, PANEL_TREE, PANEL_UPDATETRACKNUM, index, false);
