@@ -1435,7 +1435,7 @@ int CVICALLBACK SetID3Tag (int panel, int control, int event,
 			}
 			start = Timer();
 			for (i=0;i<numFiles;i++) {
-				GetFileAttrs(fileStruct[i].origName, &readOnly, &system, &hidden, &archive);
+				errChk(GetFileAttrs(fileStruct[i].origName, &readOnly, &system, &hidden, &archive));
 				if (IsItemChecked(i) && !readOnly) {
 					switch (GetAudioFileType(fileStruct[i].origName)) {
 						case kFileMP3:
@@ -1463,10 +1463,11 @@ int CVICALLBACK SetID3Tag (int panel, int control, int event,
 			ProgressBar_End(progressHandle, PROGRESS_PROGRESSBAR, NULL, 0);
 			Delay(0.15);
 			HidePanel(progressHandle);
-			if (error)
-				MessagePopup ("Error Occured", "Some/all of the files were read-only\nand their tags could not be written.");
 			break;
 		}
+Error:
+	if (error)
+		MessagePopup ("Error Occured", "Some/all of the files were read-only\nand their tags could not be written.");
 	
 	if (yearStr)
 		free(yearStr);
@@ -2111,7 +2112,7 @@ int CVICALLBACK RenameFolderCB (int panel, int control, int event,
 {
 	char folder[MAX_PATHNAME_LEN*2], new[MAX_PATHNAME_LEN*2], titleName[MAX_PATHNAME_LEN];
 	char *artist = NULL, *album = NULL, *year = NULL, *oldFolder = NULL, *folderStart;
-	int artistLen=0, albumLen, yearLen, i, usePerfSortOrder, error;
+	int artistLen=0, albumLen, yearLen, i, usePerfSortOrder, error, fileRenameError = 0;
 	
 	switch (event) {
 		case EVENT_COMMIT:
@@ -2144,14 +2145,37 @@ int CVICALLBACK RenameFolderCB (int panel, int control, int event,
 			strcpy(folderStart, folder);	// substring of pathName
 			DisableBreakOnLibraryErrors();
 			error = rename(oldFolder, pathName);	// renames folder
+			if (error) {
+				fileRenameError = MakeDir(pathName);
+			}
 			for (i=0;i<numFiles;i++) {
 				sprintf(new, "%s\\%s", pathName, fileStruct[i].origFileName);
-				if (error)
-					error += rename(fileStruct[i].origName, new);	// move files if the folder didn't get renamed
+				if (error) {
+					// error += rename(fileStruct[i].origName, new);	// move files if the folder didn't get renamed
+					fileRenameError = RenameFile(fileStruct[i].origName, new);	// move files if the folder didn't get renamed  
+				}
+				if (!fileRenameError) {
 				strcpy(fileStruct[i].origName, new);
 				}
-			if (error)
-				remove(oldFolder);
+			}
+			if (error) {
+				// TODO: Finish this shit so that files are copied
+				
+				/*char filename[MAX_FILENAME_LEN];
+				char searchFormat[MAX_PATHNAME_LEN + 10];
+				int status = 0;
+
+				sprintf(searchFormat, "%s\\*.*", oldFolder);
+				status = GetFirstFile(searchFormat, 1, 0, 0, 0, 0, 0, filename);
+				if (status>=0) {
+					while(status || !GetNextFile(filename)) {
+						sprintf(new, "%s\\%s, pathName, filename);
+						RenameFile(
+					}
+				}
+				*/	
+				DeleteDir(oldFolder);
+			}
 			EnableBreakOnLibraryErrors();
 			snprintf(titleName, MAX_PATHNAME_LEN, "MP3Renamer - %s", pathName);
 			SetPanelAttribute (panel, ATTR_TITLE, titleName);
