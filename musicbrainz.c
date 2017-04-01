@@ -144,6 +144,7 @@ static int	gSelectedAlbum = -1;
 static int	lastAlbumSelected = -1;
 static AlbumInfoStruct *gAlbumInfo;
 static int	gAlbumCount = 0;
+char releaseTrackQuery[512];
 
 /*****************************************************************************/
 /* Functions                                                                 */
@@ -161,6 +162,7 @@ int CVICALLBACK GetMetaDataCB (int panel, int control, int event,
 			gExiting = 0;
 			CmtScheduleThreadPoolFunction (DEFAULT_THREAD_POOL_HANDLE, TrackThreadFunc, NULL, &trackThreadFuncId);
 			RefreshReleasesCB(albumPanHandle, ALBUMPANEL_REFRESHRELEASES, EVENT_COMMIT, NULL, 0, 0);
+			SetCtrlAttribute(albumPanHandle, ALBUMPANEL_COPYALBUMQUERY, ATTR_DIMMED, true);
 			break;
 		}
 	return 0;
@@ -1064,7 +1066,7 @@ void FixArtistSortName(char *val)
 int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albumIndex)
 {
 	HRESULT error = S_OK;
-	char	val[512], title[512], reid[40], queryBuf[512], artist[512], discStr[4], time[8], fileName[MAX_PATHNAME_LEN];
+	char	val[512], title[512], reid[40], artist[512], discStr[4], time[8], fileName[MAX_PATHNAME_LEN];
 	int		i, j, numTracks, mins, secs, replaceUnicodeApostrophe=0;
 	char	position[5], artistFilter[512];
 	int		numDiscs, count = 0, numArtists = 0, index, isVariousArtists = false;
@@ -1076,9 +1078,11 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 	GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColNumTracks, ATTR_LABEL_TEXT, val);
 	GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColREID, ATTR_LABEL_TEXT, reid);
 	GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColVariousArtists, ATTR_LABEL_TEXT_LENGTH, &isVariousArtists);	// if len > 0
-	sprintf(queryBuf, kTrackQuery, reid);
-	BuildFileNameFromQuery(queryBuf, fileName);	// create filename to save XML in
-	DownloadFileIfNotExists(queryBuf, fileName);
+	sprintf(releaseTrackQuery, kTrackQuery, reid);
+	BuildFileNameFromQuery(releaseTrackQuery, fileName);	// create filename to save XML in
+	DownloadFileIfNotExists(releaseTrackQuery, fileName);
+	SetCtrlAttribute(panel, ALBUMPANEL_COPYALBUMQUERY, ATTR_DIMMED, false);
+
 
 	error = CVIXMLLoadDocument(fileName, &doc);
 	if (error == S_OK) {
@@ -1415,6 +1419,18 @@ int CVICALLBACK LaunchMBCB (int panel, int control, int event,
 					break;
 			}
 			OpenDocumentInDefaultViewer(url, VAL_NO_ZOOM);
+			break;
+	}
+	return 0;
+}
+
+int CVICALLBACK CopyQueryCB (int panel, int control, int event,
+							 void *callbackData, int eventData1, int eventData2)
+{
+	switch (event)
+	{
+		case EVENT_COMMIT:
+			ClipboardPutText(releaseTrackQuery);
 			break;
 	}
 	return 0;

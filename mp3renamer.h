@@ -40,25 +40,26 @@
 #define  ALBUMPANEL_ALBUMTREE             25      /* control type: tree, callback function: AlbumTreeCB */
 #define  ALBUMPANEL_NEXT                  26      /* control type: command, callback function: OffsetCB */
 #define  ALBUMPANEL_PREV                  27      /* control type: command, callback function: OffsetCB */
-#define  ALBUMPANEL_OKBUTTON              28      /* control type: command, callback function: AlbumPanelOKCB */
-#define  ALBUMPANEL_CANCELBUTTON          29      /* control type: command, callback function: CancelCB */
-#define  ALBUMPANEL_TEXTBOX               30      /* control type: textBox, callback function: (none) */
-#define  ALBUMPANEL_PROGRESSBAR           31      /* control type: scale, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG               32      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TXTMESSAGE            33      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG_2             34      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_DECORATION            35      /* control type: deco, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG_3             36      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG_4             37      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG_5             38      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TXTCATALOG            39      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TXTASIN               40      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG_6             41      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TXTBARCODE            42      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TXTTYPE               43      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TXTLABEL              44      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG_7             45      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_ERROR_ICON            46      /* control type: picture, callback function: (none) */
+#define  ALBUMPANEL_COPYALBUMQUERY        28      /* control type: command, callback function: CopyQueryCB */
+#define  ALBUMPANEL_OKBUTTON              29      /* control type: command, callback function: AlbumPanelOKCB */
+#define  ALBUMPANEL_CANCELBUTTON          30      /* control type: command, callback function: CancelCB */
+#define  ALBUMPANEL_TEXTBOX               31      /* control type: textBox, callback function: (none) */
+#define  ALBUMPANEL_PROGRESSBAR           32      /* control type: scale, callback function: (none) */
+#define  ALBUMPANEL_TEXTMSG               33      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TXTMESSAGE            34      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TEXTMSG_2             35      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_DECORATION            36      /* control type: deco, callback function: (none) */
+#define  ALBUMPANEL_TEXTMSG_3             37      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TEXTMSG_4             38      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TEXTMSG_5             39      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TXTCATALOG            40      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TXTASIN               41      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TEXTMSG_6             42      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TXTBARCODE            43      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TXTTYPE               44      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TXTLABEL              45      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TEXTMSG_7             46      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_ERROR_ICON            47      /* control type: picture, callback function: (none) */
 
 #define  CDART                            2       /* callback function: FanartPanelCB */
 #define  CDART_CDART_5                    2       /* control type: pictButton, callback function: SelectCB */
@@ -322,6 +323,7 @@ int  CVICALLBACK CDPreviewTimerCB(int panel, int control, int event, void *callb
 int  CVICALLBACK CharReplaceCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK ClearArtworkCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK ColorCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
+int  CVICALLBACK CopyQueryCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK CountryErrorCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK DeleteXMLFilesCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK DownloadArtworkCB(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
