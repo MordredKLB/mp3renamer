@@ -71,12 +71,25 @@ void ClearID3Fields(void)
 	SetCtrlVal (tab1Handle, TAB1_ALBUMGAIN, "");
 	SetCtrlVal (tab1Handle, TAB1_ALBUMSORTORDER, "");
 	SetCtrlVal (tab2Handle, TAB2_ORIGARTIST, "");
-	SetCtrlVal (tab2Handle, TAB2_URL, "");
+	SetCtrlVal (tab2Handle, TAB2_CATALOGNUMBER, "");
 	DeleteImage(tab2Handle, TAB2_ARTWORK);
 	SetCtrlVal (tab2Handle, TAB2_COPYRIGHT, "");
 	SetCtrlVal (tab2Handle, TAB2_ENCODED, "");
 	SetCtrlVal (tab3Handle, TAB3_ARTISTMBID, "");
 	SetCtrlVal (tab3Handle, TAB3_REID, "");
+}
+
+void SetTabLEDs()
+{
+	char controlArray[kNumTab2Controls] = {TAB2_COMPOSER, TAB2_COPYRIGHT, TAB2_ENCODED, TAB2_ORIGARTIST, TAB2_CATALOGNUMBER};
+	int len;
+	
+	for (int i=0; i<kNumTab2Controls; i++) {
+		GetCtrlAttribute(tab2Handle, controlArray[i], ATTR_STRING_TEXT_LENGTH, &len);
+		if (len) {
+			SetCtrlVal(panelHandle, PANEL_TABVALS, 1);
+		}
+	}
 }
 
 int CVICALLBACK GuessTitlesCB (int panel, int control, int event,
@@ -688,8 +701,8 @@ int CVICALLBACK TagCB (int panel, int control, int event,
 					case TAB2_ORIGARTIST:
 						led = TAB2_ORIGARTISTLED;
 						break;
-					case TAB2_URL:
-						led = TAB2_URLLED;
+					case TAB2_CATALOGNUMBER:
+						led = TAB2_CATALOGNUMLED;
 						break;
 					}
 			if (led)

@@ -533,9 +533,10 @@ void GetMetaData(int panel, int control)
 				}
 			if (!GetChildElementByTag(&curElem, "date")) {
 				hrChk(CVIXMLGetElementValue(curElem, val));
-				strncpy(dateStr, val, 4);
+				strncpy(dateStr, val, 4);	// show 4 digit date, but save full date when available
 				dateStr[4] = '\0';
 				SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColDate, ATTR_LABEL_TEXT, dateStr);
+				SetTreeCellAttribute(albumPanHandle, ALBUMPANEL_ALBUMTREE, i, kAlbTreeColFullDate, ATTR_LABEL_TEXT, val);
 				GetParentElement(&curElem);	/* date */
 				}
 			if (!GetChildElementByTag(&curElem, "country")) {
@@ -803,7 +804,7 @@ Error:
 /* Copies MetaData from the AlbumPanel to the main panel and populates the TrackTitle Tree */
 void GetMetaTrackData(int panel, int albumIndex)
 {
-	char			val[512], reid[40], discNum[10], offset[10];
+	char			val[512], reid[40], discNum[10], offset[10], date[5];
 	char			*discSubtitles[99] = { NULL };
 	int				len, releaseDiscs, i, k, count, numTracks, disc, trackNum;
 	int 			oldYear, newYear, replaceUnicodeApostrophe;
@@ -834,20 +835,26 @@ void GetMetaTrackData(int panel, int albumIndex)
 		GetCtrlAttribute(tab1Handle, TAB1_YEAR, ATTR_STRING_TEXT_LENGTH, &len);
 		if (len) {	// check if the year we got from musicbrainz is less than the year already in the mp3
 			GetCtrlVal(tab1Handle, TAB1_YEAR, val);
-			oldYear = strtol(val, NULL, 10);
+			strncpy(date, val, 4);
+			date[4]='\0';
+			oldYear = strtol(date, NULL, 10);
 		}
 		else {
 			oldYear = 9999;
 		}
 		GetCtrlVal(tab1Handle, TAB1_DISCNUM, discNum);
-		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColDate, ATTR_LABEL_TEXT, val);
-		newYear = strtol(val, NULL, 10);
-		if (newYear && newYear < oldYear) {
+		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColFullDate, ATTR_LABEL_TEXT, val);
+		strncpy(date, val, 4);
+		date[4]='\0';
+		newYear = strtol(date, NULL, 10);
+		if (newYear && newYear <= oldYear) {
 			SetCtrlVal(tab1Handle, TAB1_YEAR, val);
 		}
 			
 		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColNumDiscs, ATTR_LABEL_TEXT, val);
 		releaseDiscs = strtol(val, NULL, 10);
+		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColCatalog, ATTR_LABEL_TEXT, val);
+		SetCtrlVal(tab2Handle, TAB2_CATALOGNUMBER, val);
 		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColRelGroupID, ATTR_LABEL_TEXT, reid);
 		SetCtrlVal(tab3Handle, TAB3_REID, reid);
 		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColArtistID, ATTR_LABEL_TEXT, reid);
@@ -933,6 +940,7 @@ void GetMetaTrackData(int panel, int albumIndex)
 			}
 		}
 		SetConflictTooltips(panelHandle);	// we just updated so show "conflicts"
+		SetTabLEDs();
 	}
 
 Error:
@@ -1186,8 +1194,7 @@ int CVICALLBACK AlbumTreeSortCI(int panel, int control, int item1, int item2, in
 	char *str1=NULL, *str2=NULL;
 	int len, val=0, i;
 
-	for (i=kAlbTreeColArtist;i<kAlbTreeColDate;i++)
-		{
+	for (i=kAlbTreeColArtist;i<kAlbTreeColDate;i++) {  // compare by artist, album, numTracks, then date
 		GetTreeCellAttribute(panel, control, item1, i, ATTR_LABEL_TEXT_LENGTH, &len);
 		str1 = malloc(sizeof(char) * len+1);
 		GetTreeCellAttribute(panel, control, item1, i, ATTR_LABEL_TEXT, str1);
@@ -1203,7 +1210,7 @@ int CVICALLBACK AlbumTreeSortCI(int panel, int control, int item1, int item2, in
 		
 		if (val)
 			break;
-		}
+	}
 
 	return val;
 }

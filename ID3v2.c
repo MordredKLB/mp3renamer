@@ -64,8 +64,9 @@ int GetID3v2Tag(int panel, char *filename, int index, int filetype)
 	GetTextData(tokens, pmapJSON, "ALBUMSORT", tab1Handle, TAB1_ALBUMSORTORDER, TAB1_ALBUMSORTLED, index);
 	GetTextData(tokens, pmapJSON, "ALBUMARTIST", tab1Handle, TAB1_ALBUMARTIST, TAB1_ALBUMARTISTLED, index);
 	GetTextData(tokens, pmapJSON, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, TAB1_COUNTRYLED, index);
-	GetTextData(tokens, pmapJSON, "ARTISTFILTER", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index); // overloading the TPE3 (Conductor field) to handle my ArtistFilter tag
+	GetTextData(tokens, pmapJSON, "ARTISTFILTER", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index);
 	GetTextData(tokens, pmapJSON, "ARTISTSORT", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_PERFSORTLED, index);
+	GetTextData(tokens, pmapJSON, "CATALOGNUMBER", tab2Handle, TAB2_CATALOGNUMBER, TAB2_CATALOGNUMLED, index);
 	GetTextData(tokens, pmapJSON, "COPYRIGHT", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
 	GetTextData(tokens, pmapJSON, "COMMENT", tab1Handle, TAB1_COMMENT, TAB1_COMMENTLED, index);
 	GetTextData(tokens, pmapJSON, "COMPOSER", tab2Handle, TAB2_COMPOSER, TAB2_COMPOSERLED, index);
@@ -83,7 +84,6 @@ int GetID3v2Tag(int panel, char *filename, int index, int filetype)
 	GetTextData(tokens, pmapJSON, "RELEASETYPE", tab1Handle, TAB1_RELTYPE, TAB1_RELTYPELED, index);
 	GetTextData(tokens, pmapJSON, "REPLAYGAIN_ALBUM_GAIN", tab1Handle, TAB1_ALBUMGAIN, TAB1_ALBUMGAINLED, index);
 	GetTextData(tokens, pmapJSON, "TRACKNUMBER", panel, PANEL_TRACKNUM, PANEL_TRACKNUMLED, index);
-	GetTextData(tokens, pmapJSON, "URL", tab2Handle, TAB2_URL, TAB2_URLLED, index);
 	
 	GetPictureData(taglibfile, "APIC", tab2Handle, TAB2_ARTWORK, TAB2_ARTWORKLED, index, filetype);
 	GetUnhandledFields(tokens, pmapJSON, index);
@@ -221,7 +221,7 @@ int isHandledFrame(char *key)
 		!stricmp("ARTISTCOUNTRY", key) ||
 		!stricmp("ARTISTFILTER", key) ||
 		!stricmp("ARTISTSORT", key) ||
-		!stricmp("ENCODEDBY", key) ||
+		!stricmp("CATALOGNUMBER", key) ||
 		!stricmp("COPYRIGHT", key) ||
 		!stricmp("COMMENT", key) ||
 		!stricmp("COMPOSER", key) ||
@@ -229,6 +229,7 @@ int isHandledFrame(char *key)
 		!stricmp("DISCNUMBER", key) ||
 		!stricmp("DISCSUBTITLE", key) ||
 		!stricmp("EDITION", key) ||
+		!stricmp("ENCODEDBY", key) ||
 		!stricmp("GENRE", key) ||
 		!stricmp("LABEL", key) ||
 		!stricmp("MUSICBRAINZ_RELEASEGROUPID", key) ||
@@ -239,8 +240,7 @@ int isHandledFrame(char *key)
 		!stricmp("REPLAYGAIN_ALBUM_PEAK", key) ||
 		!stricmp("REPLAYGAIN_TRACK_GAIN", key) ||
 		!stricmp("REPLAYGAIN_TRACK_PEAK", key) ||
-		!stricmp("TRACKNUMBER", key) ||
-		!stricmp("URL", key))
+		!stricmp("TRACKNUMBER", key))
 		return 1;
 	else
 		return 0;
@@ -485,7 +485,7 @@ void StoreDataVals(int panel, int control, char *string, int index)
 				dataHandle.origArtistPtr[index] = calloc(size, sizeof(char));
 				strcpy(dataHandle.origArtistPtr[index], string);
 				break;
-			case TAB2_URL:
+			case TAB2_CATALOGNUMBER:
 				dataHandle.urlPtr[index] = calloc(size, sizeof(char));
 				strcpy(dataHandle.urlPtr[index], string);
 				break;
@@ -520,6 +520,7 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index, int filetyp
 	SetTextData(taglibfile, "ARTIST", panel, PANEL_ARTIST, PANEL_UPDATEARTIST, index, true);
 	SetTextData(taglibfile, "ARTISTCOUNTRY", tab1Handle, TAB1_COUNTRY, TAB1_UPDATECOUNTRY, index, true);
 	SetTextData(taglibfile, "ARTISTSORT", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_UPDATEPERFSORT, index, false);
+	SetTextData(taglibfile, "CATALOGNUMBER", tab2Handle, TAB2_CATALOGNUMBER, TAB2_UPDATECATALOGNUM, index, true);
 	SetTextData(taglibfile, "COMMENT", tab1Handle, TAB1_COMMENT, TAB1_UPDATECOMMENT, index, false);
 	SetTextData(taglibfile, "COMPOSER", tab2Handle, TAB2_COMPOSER, TAB2_UPDATECOMPOSER, index, true);
 	SetTextData(taglibfile, "ARTISTFILTER", tab1Handle, TAB1_ARTISTFILTER, TAB1_UPDATEARTISTFILTER, index, true);
@@ -535,7 +536,6 @@ int SetID3v2Tag(int panel, char *filename, char *newname, int index, int filetyp
 	SetTextData(taglibfile, "MUSICBRAINZ_RELEASEGROUPID", tab3Handle, TAB3_REID, TAB3_UPDATEREID, index, false);
 	SetTextData(taglibfile, "ORIGINALARTIST", tab2Handle, TAB2_ORIGARTIST, TAB2_UPDATEORIGARTIST, index, true);
 	SetTextData(taglibfile, "RELEASETYPE", tab1Handle, TAB1_RELTYPE, TAB1_UPDATERELTYPE, index, false);
-	SetTextData(taglibfile, "URL", tab2Handle, TAB2_URL, TAB2_UPDATEURL, index, true);
 	SetPictureData(taglibfile, tab2Handle, TAB2_ARTWORK, TAB2_UPDATEARTWORK, TAB2_CLEARARTWORK, filetype);
 	SetUnhandledFields(taglibfile, tab3Handle, TAB3_EXTENDEDTAGS, index);
 	

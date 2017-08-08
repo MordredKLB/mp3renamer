@@ -197,8 +197,8 @@
 #define  PANEL_TEXTMSG_2                  53      /* control type: textMsg, callback function: (none) */
 #define  PANEL_TEXTMSG_3                  54      /* control type: textMsg, callback function: (none) */
 #define  PANEL_VSPLITTER                  55      /* control type: splitter, callback function: (none) */
-#define  PANEL_LOG                        56      /* control type: textBox, callback function: (none) */
-#define  PANEL_TEXTMSG_4                  57      /* control type: textMsg, callback function: (none) */
+#define  PANEL_TEXTMSG_4                  56      /* control type: textMsg, callback function: (none) */
+#define  PANEL_LOG                        57      /* control type: textBox, callback function: (none) */
 
 #define  PROGRESS                         8
 #define  PROGRESS_PROGRESSBAR             2       /* control type: scale, callback function: (none) */
@@ -255,17 +255,17 @@
 
      /* tab page panel controls */
 #define  TAB2_ORIGARTIST                  2       /* control type: string, callback function: TagCB */
-#define  TAB2_URL                         3       /* control type: string, callback function: TagCB */
+#define  TAB2_CATALOGNUMBER               3       /* control type: string, callback function: TagCB */
 #define  TAB2_COPYRIGHT                   4       /* control type: string, callback function: TagCB */
 #define  TAB2_ENCODED                     5       /* control type: string, callback function: TagCB */
 #define  TAB2_COMPOSER                    6       /* control type: string, callback function: TagCB */
 #define  TAB2_ORIGARTISTLED               7       /* control type: LED, callback function: (none) */
 #define  TAB2_UPDATEORIGARTIST            8       /* control type: radioButton, callback function: (none) */
 #define  TAB2_ARTWORKLED                  9       /* control type: LED, callback function: (none) */
-#define  TAB2_URLLED                      10      /* control type: LED, callback function: (none) */
+#define  TAB2_CATALOGNUMLED               10      /* control type: LED, callback function: (none) */
 #define  TAB2_CLEARARTWORK                11      /* control type: radioButton, callback function: ClearArtworkCB */
 #define  TAB2_UPDATEARTWORK               12      /* control type: radioButton, callback function: (none) */
-#define  TAB2_UPDATEURL                   13      /* control type: radioButton, callback function: (none) */
+#define  TAB2_UPDATECATALOGNUM            13      /* control type: radioButton, callback function: (none) */
 #define  TAB2_ARTWORK                     14      /* control type: picture, callback function: (none) */
 #define  TAB2_IMAGECORRUPTEDMSG           15      /* control type: textMsg, callback function: (none) */
 #define  TAB2_IMAGESIZEMSG                16      /* control type: textMsg, callback function: (none) */

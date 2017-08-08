@@ -64,6 +64,7 @@ int LoadAPEv2Tag (int panel, char *fileName, int index)
 	GetAPETagData(tag, "artistcountry", tab1Handle, TAB1_COUNTRY, TAB1_COUNTRYLED, index);
 	GetAPETagData(tag, "artistfilter", tab1Handle, TAB1_ARTISTFILTER, TAB1_ARTISTFILTERLED, index);
 	GetAPETagData(tag, "artistsortorder", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_PERFSORTLED, index);
+	GetAPETagData(tag, "catalognumber", tab2Handle, TAB2_CATALOGNUMBER, TAB2_CATALOGNUMLED, index);
 	GetAPETagData(tag, "comment", tab1Handle, TAB1_COMMENT, TAB1_COMMENTLED, index);
 	GetAPETagData(tag, "composer", tab2Handle, TAB2_COMPOSER, TAB2_COMPOSERLED, index);
 	GetAPETagData(tag, "copyright", tab2Handle, TAB2_COPYRIGHT, TAB2_COPYRIGHTLED, index);
@@ -78,7 +79,6 @@ int LoadAPEv2Tag (int panel, char *fileName, int index)
 	GetAPETagData(tag, "original artist", tab2Handle, TAB2_ORIGARTIST, TAB2_ORIGARTISTLED, index);
 	GetAPETagData(tag, "releasetype", tab1Handle, TAB1_RELTYPE, TAB1_RELTYPELED, index);
 	GetAPETagData(tag, "replaygain_album_gain", tab1Handle, TAB1_ALBUMGAIN, TAB1_ALBUMGAINLED, index);
-	GetAPETagData(tag, "url", tab2Handle, TAB2_URL, TAB2_URLLED, index);
 
 	//ApeTag_print(tag);	// unhandled fields
 	GetAPETagUnhandledFields(tag, index);	// unhandled fields
@@ -288,6 +288,7 @@ int SetAPEv2Tag(int panel, char *filename, char *newname, int index)
 	UpdateAPETagItem(tag, "artistcountry", tab1Handle, TAB1_COUNTRY, TAB1_UPDATECOUNTRY, dataHandle.countryPtr, index, FALSE);
 	UpdateAPETagItem(tag, "artistfilter", tab1Handle, TAB1_ARTISTFILTER, TAB1_UPDATEARTISTFILTER, dataHandle.artistFilterPtr, index, gUseMetaArtistFilter);
 	UpdateAPETagItem(tag, "artistsortorder", tab1Handle, TAB1_PERFORMERSORTORDER, TAB1_UPDATEPERFSORT, dataHandle.perfSortOrderPtr, index, FALSE);
+	UpdateAPETagItem(tag, "catalognumber", tab2Handle, TAB2_CATALOGNUMBER, TAB2_UPDATECATALOGNUM, dataHandle.urlPtr, index, FALSE);
 	UpdateAPETagItem(tag, "comment", tab1Handle, TAB1_COMMENT, TAB1_UPDATECOMMENT, dataHandle.commentPtr, index, FALSE);
 	UpdateAPETagItem(tag, "composer", tab2Handle, TAB2_COMPOSER, TAB2_UPDATECOMPOSER, dataHandle.composerPtr, index, FALSE);
 	UpdateAPETagItem(tag, "copyright", tab2Handle, TAB2_COPYRIGHT, TAB2_UPDATECOPYRIGHT, dataHandle.copyrightPtr, index, FALSE);
@@ -301,7 +302,6 @@ int SetAPEv2Tag(int panel, char *filename, char *newname, int index)
 	UpdateAPETagItem(tag, "musicbrainz_releasegroupid", tab3Handle, TAB3_REID, TAB3_UPDATEREID, NULL, index, FALSE);
 	UpdateAPETagItem(tag, "original artist", tab2Handle, TAB2_ORIGARTIST, TAB2_UPDATEORIGARTIST, dataHandle.origArtistPtr, index, FALSE);
 	UpdateAPETagItem(tag, "releasetype", tab1Handle, TAB1_RELTYPE, TAB1_UPDATERELTYPE, dataHandle.relTypePtr, index, FALSE);
-	UpdateAPETagItem(tag, "url", tab2Handle, TAB2_URL, TAB2_UPDATEURL, dataHandle.urlPtr, index, FALSE);
 	
 	SetAPETagUnhandledFields(tag, index);
 	

@@ -7,6 +7,7 @@
 /*** Function Prototypes ***/
 /***************************/
 void ClearID3Fields(void);
+void SetTabLEDs(void);
 void GetReplacementChars(void);
 void SetReplacementChars(void);
 void SetToolTipInfo(void);
@@ -103,6 +104,7 @@ enum {
 	kAlbTreeColVariousArtists,
 	kAlbTreeColArtistID,
 	kAlbTreeColRelGroupID,
+	kAlbTreeColFullDate,
 	kAlbTreeNumColumns	// insert above this
 };
 
