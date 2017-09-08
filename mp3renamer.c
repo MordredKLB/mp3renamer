@@ -1,10 +1,11 @@
 #include "pathctrl.h"
 #include "string.h"
-#include <utility.h>
-#include <formatio.h>
 #include <ansi_c.h>
 #include <cvirte.h>		
 #include <userint.h>
+#include "webserver.h"
+#include <utility.h>
+#include <formatio.h>
 #include "mp3renamer.h"
 #include "ID3v2.h"
 #include "apev2.h"
@@ -99,12 +100,13 @@ TreeCellCompareCallbackPtr TreeCellComparePtr;
 int main (int argc, char *argv[])
 {
 	char path[MAX_PATHNAME_LEN];
-	
-	
+	struct MHD_Daemon *daemon = NULL;
+
 	if (InitCVIRTE (0, argv, 0) == 0)
 		return -1;	/* out of memory */
 	if ((panelHandle = LoadPanel (0, "mp3renamer.uir", PANEL)) < 0)
 		return -1;
+
 	SetupSplitters(panelHandle);
 	progressHandle = LoadPanel (0, "mp3renamer.uir", PROGRESS);
 	configHandle = LoadPanel (0, "mp3renamer.uir", OPTIONS);
@@ -156,12 +158,17 @@ int main (int argc, char *argv[])
 		path[strlen(argv[1]) - strlen(strrchr(argv[1],'\\'))+1]='\0';
 		BrowseCB(panelHandle, PANEL_BrowseButton, EVENT_COMMIT, &path, 0, 0);
 	}
-	
+
+	daemon = startServerDaemon();
+	if (NULL == daemon) return 1;
+
 	OpenAppInternetConnection();
 	
 	RunUserInterface();
 
 	CloseAppInternetConnection();
+
+	stopServerDaemon(daemon);
 
 	ProgressBar_Revert(progressHandle, PROGRESS_PROGRESSBAR);
 	ProgressBar_Revert(albumPanHandle, ALBUMPANEL_PROGRESSBAR);
@@ -1330,6 +1337,7 @@ int CVICALLBACK GetID3Tag (int panel, int control, int event,
 				sprintf(indexStr, "%d\0", i);
 				SetTreeCellAttribute (panelHandle, PANEL_TREE, i, kTreeColID, ATTR_LABEL_TEXT, indexStr);
 			}
+			sendJsonResponse();
 			ErrorPrintf("Time to read ID3 tags: %f\n", Timer() - start);
 			PopulateTrackData();
 			SetMetaDataButtonDimming(panel, 0);

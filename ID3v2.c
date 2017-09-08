@@ -1,7 +1,8 @@
 #include "combobox.h"
+#include <ansi_c.h>
+#include "webserver.h"
 #include <utility.h>
 #include <formatio.h>
-#include <ansi_c.h>
 #include <userint.h>
 #include "mp3renamer.h"
 #include "ID3v2.h"
@@ -12,10 +13,12 @@
 #include "tag_c.h"
 #include "json.h"
 
+
 /*** Globals ***/
 
 char PADDING[3] = {0,0,0};
 const Point tagCell = {1,1};
+char *jsonResponse = NULL;
 
 
 /*** Prototypes ***/
@@ -40,6 +43,24 @@ void AllocAndCopyStr(char **string, char *val);
 
 /*** Code ***/
 
+void buildJsonResponse(char *filejson) {
+	if (!jsonResponse) {
+		jsonResponse = malloc(strlen(filejson) + 3);	// '[', ']' and null
+		sprintf(jsonResponse, "[%s]", filejson);
+	} else {
+		int oldLen = strlen(jsonResponse);
+		jsonResponse = realloc(jsonResponse, oldLen + strlen(filejson) + 2); // ',' and null
+		sprintf(jsonResponse + oldLen - 1, ",%s]", filejson);
+	}
+}
+
+void sendJsonResponse() {
+	if (jsonResponse) {
+		resume_connection(jsonResponse);
+		free(jsonResponse);
+		jsonResponse = NULL;
+	}
+}
 
 int GetID3v2Tag(int panel, char *filename, int index, int filetype)
 {
@@ -55,6 +76,7 @@ int GetID3v2Tag(int panel, char *filename, int index, int filetype)
 	len = taglib_file_property_map_to_JSON_length(taglibfile);
 	pmapJSON = malloc(len * sizeof(char) + 1);
 	strcpy(pmapJSON, taglib_file_property_map_to_JSON(taglibfile));
+	buildJsonResponse(pmapJSON);
 	jsmntok_t *tokens = json_tokenise(pmapJSON, len);
 
 	

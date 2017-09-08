@@ -115,6 +115,9 @@ void RemoveSpecifiedString(char *filename, char *string);
 int	 IsItemChecked(int itemNum);
 void StoreDataVals(int panel, int control, char *string, int index);
 
+void buildJsonResponse(char *filejson);
+void sendJsonResponse();
+
 char* stristr(const char *String, const char *Pattern);
 
 /* mp3renamer.c */
