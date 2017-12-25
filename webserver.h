@@ -46,6 +46,7 @@ struct connection_info_struct
 	int isParsing;
 	int isSuspended;
 	char read_post_data[4096];
+	char method[32];
 	struct MHD_PostProcessor *postprocessor;
 };
 

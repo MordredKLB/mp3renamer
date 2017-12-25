@@ -43,15 +43,22 @@ void AllocAndCopyStr(char **string, char *val);
 
 /*** Code ***/
 
-void buildJsonResponse(char *filejson) {
+#define filenameJSON  ", \"FILENAME\": "
+void buildJsonResponse(char *filejson, char* filename) {
+	char *file = strrchr(filename, '\\') + 1;
+	int len = strlen(filejson) + strlen(filenameJSON) + strlen(file) + 3;
+	char *json = calloc(len, sizeof(char));
+	strncat(json, filejson, strlen(filejson)-2);
+	sprintf(json + strlen(filejson)-2, "%s\"%s\"}", filenameJSON, file);
+	
 	if (!jsonResponse) {
-		jsonResponse = malloc(strlen(filejson) + 3);	// '[', ']' and null
-		sprintf(jsonResponse, "[%s]", filejson);
+		jsonResponse = malloc(len + 3);	// '[', ']' and null
+		sprintf(jsonResponse, "[%s]", json);
 	} else {
-		int oldLen = strlen(jsonResponse);
-		jsonResponse = realloc(jsonResponse, oldLen + strlen(filejson) + 2); // ',' and null
-		sprintf(jsonResponse + oldLen - 1, ",%s]", filejson);
+		jsonResponse = realloc(jsonResponse, strlen(jsonResponse) + strlen(json) + 2); // ',' and null
+		sprintf(jsonResponse + len - 1, ",%s]", json);
 	}
+	free(json);
 }
 
 void sendJsonResponse() {
@@ -76,7 +83,7 @@ int GetID3v2Tag(int panel, char *filename, int index, int filetype)
 	len = taglib_file_property_map_to_JSON_length(taglibfile);
 	pmapJSON = malloc(len * sizeof(char) + 1);
 	strcpy(pmapJSON, taglib_file_property_map_to_JSON(taglibfile));
-	buildJsonResponse(pmapJSON);
+	buildJsonResponse(pmapJSON, filename);
 	jsmntok_t *tokens = json_tokenise(pmapJSON, len);
 
 	

@@ -104,6 +104,7 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 		if (NULL == con_info)
 			return MHD_NO;
 		
+		strcpy(con_info->method, method);
 		if (strcmp(method, MHD_HTTP_METHOD_POST) == 0) {
 			con_info->connectiontype = POST;
 		} else if (strcmp(method, MHD_HTTP_METHOD_GET) == 0) {
@@ -121,10 +122,12 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 	
 	con_info = (struct connection_info_struct *)(*con_cls);
 	
+	ErrorPrintf("0x%08p 0x%08p %s",connection, openConnection, con_info->method);
 	switch (con_info->connectiontype) {
 		case GET:
 			if (!strncmp("/rest/open", url, 11)) {
 				if (con_info->isSuspended) {
+					ErrorPrintf("is suspended");
 					if (openConnectionData) {
 						openConnection = 0;
 						ret = send_data(connection, openConnectionData);
@@ -135,6 +138,13 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 					}
 					return ret;
 				} else {
+					if (openConnection) {
+						ErrorPrintf("openConnection = true");
+						// our old openConnection is dead
+						MHD_resume_connection(openConnection);
+					} else {
+						ErrorPrintf("openConnection = false");
+					}
 					openConnection = connection;
 					MHD_suspend_connection (connection);
 					con_info->isSuspended = TRUE;
@@ -149,19 +159,22 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 			}
 		
 		case POST:
-			if (!con_info->isParsing) {
-				con_info->isParsing = TRUE;
-				con_info->read_post_data[0] = 0;
-	            return MHD_YES;
-			} else {
+//			if (!con_info->isParsing) {
+//				con_info->isParsing = TRUE;
+//				con_info->read_post_data[0] = 0;
+//				ErrorPrintf("parsing == true");
+//	            return MHD_YES;
+//			} else {
 				if (*upload_data_size != 0) {
 				    // Receive the post data and write them into the buffer
 				
 				    strncpy(con_info->read_post_data, upload_data, *upload_data_size);
 					con_info->read_post_data[*upload_data_size] = 0;
 				    *upload_data_size = 0;
+					ErrorPrintf("read data");
 				    return MHD_YES;
 				} else {
+					ErrorPrintf("finalizing post and opening filebrowser hopefully");
 				    sprintf(connectionHeadersBuf, "Received data:\n%s", con_info->read_post_data);
 				    appendToConnectionLog("\n\n");
 					SetCtrlVal (panelHandle, PANEL_RECEIVE, connectionHeadersBuf);
@@ -178,7 +191,7 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 				    *con_cls = NULL;
 					return ret;
 				}
-			}
+//			}
 
 		case OPTIONS:
 			response = MHD_create_response_from_buffer (0, "", MHD_RESPMEM_PERSISTENT);

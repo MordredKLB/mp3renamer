@@ -115,7 +115,7 @@ void RemoveSpecifiedString(char *filename, char *string);
 int	 IsItemChecked(int itemNum);
 void StoreDataVals(int panel, int control, char *string, int index);
 
-void buildJsonResponse(char *filejson);
+void buildJsonResponse(char *filejson, char *filename);
 void sendJsonResponse();
 
 char* stristr(const char *String, const char *Pattern);
