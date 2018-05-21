@@ -49,17 +49,17 @@
 #define  ALBUMPANEL_TXTMESSAGE            34      /* control type: textMsg, callback function: (none) */
 #define  ALBUMPANEL_TEXTMSG_2             35      /* control type: textMsg, callback function: (none) */
 #define  ALBUMPANEL_DECORATION            36      /* control type: deco, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG_3             37      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG_4             38      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG_5             39      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TXTCATALOG            40      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TXTASIN               41      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG_6             42      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TXTBARCODE            43      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TXTTYPE               44      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TXTLABEL              45      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_TEXTMSG_7             46      /* control type: textMsg, callback function: (none) */
-#define  ALBUMPANEL_ERROR_ICON            47      /* control type: picture, callback function: (none) */
+#define  ALBUMPANEL_TEXTMSG_4             37      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TEXTMSG_5             38      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TEXTMSG_6             39      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_TEXTMSG_7             40      /* control type: textMsg, callback function: (none) */
+#define  ALBUMPANEL_ERROR_ICON            41      /* control type: picture, callback function: (none) */
+#define  ALBUMPANEL_TXTTYPE               42      /* control type: string, callback function: (none) */
+#define  ALBUMPANEL_TXTCATALOG            43      /* control type: string, callback function: (none) */
+#define  ALBUMPANEL_TXTBARCODE            44      /* control type: string, callback function: (none) */
+#define  ALBUMPANEL_TXTASIN               45      /* control type: string, callback function: (none) */
+#define  ALBUMPANEL_TXTLABEL              46      /* control type: string, callback function: (none) */
+#define  ALBUMPANEL_TXTDATE               47      /* control type: string, callback function: (none) */
 
 #define  CDART                            2       /* callback function: FanartPanelCB */
 #define  CDART_CDART_5                    2       /* control type: pictButton, callback function: SelectCB */

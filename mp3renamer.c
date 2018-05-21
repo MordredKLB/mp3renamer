@@ -1217,11 +1217,12 @@ void DoSmartCaps(char *string)
 	int i=0;
 	int spaces[200] = {0}; // maximum of 200 words
 	int numSpaces=0;
+	int len = strlen(string);
 	char *pos;
 	
 	pos = string;
-	for (i=0;i<strlen(string);i++)
-		if (isspace(string[i]) || string[i]=='.') {
+	for (i=0;i<strlen(string);i++) {
+		if ((isspace(string[i]) || string[i]=='.') && i+1 < len) {
 			while (!isalpha(string[i+1]))	// manually skip non alpha numerics
 				i++;	
 			if (i >= strlen(string))	// just to make sure
@@ -1229,7 +1230,8 @@ void DoSmartCaps(char *string)
 			string[i+1] = toupper(string[i+1]);
 			spaces[numSpaces] = i;	// save location of spaces
 			numSpaces++;
-			}
+		}
+	}
 	if (numSpaces && string[spaces[numSpaces-1]] == '.') // last period is in front of .mp3 so don't count it!
 		numSpaces--;
 		
@@ -1291,7 +1293,7 @@ int CVICALLBACK GetID3Tag (int panel, int control, int event,
 	double start;
 	int i;
 	char buf[100];
-	char indexStr[3];
+	char indexStr[4];
 	
 	switch (event) {
 		case EVENT_COMMIT:
@@ -1426,9 +1428,8 @@ int CVICALLBACK SetID3Tag (int panel, int control, int event,
 				GuessSortOrderCB(tab1Handle, TAB1_GUESSBUTTON, EVENT_COMMIT, NULL, 0, 0);
 			GetCtrlAttribute(tab1Handle, TAB1_ALBUMSORTORDER, ATTR_STRING_TEXT_LENGTH, &len);
 			GetCtrlAttribute(tab1Handle, TAB1_YEAR, ATTR_STRING_TEXT_LENGTH, &yearLen);
-			if (populateAlbumOrder && len<5 && yearLen) {
+			if (populateAlbumOrder && len < 10 && yearLen) {
 				yearStr = GetCtrlStrVal(tab1Handle, TAB1_YEAR);
-				yearStr[4] = '\0';	// only use the first four #s of the year string incase it's something dumb like "1976-08-21"
 				SetCtrlVal(tab1Handle, TAB1_ALBUMSORTORDER, yearStr);
 			}
 			start = Timer();

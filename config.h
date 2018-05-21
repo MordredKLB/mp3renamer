@@ -117,7 +117,7 @@ enum {
 #define	kIniReplaceCharSection	"Replacement Chars"
 #define kIniExternalPrograms	"External Programs"
 
-#define kMaxFiles		99
+#define kMaxFiles		199
 
 #define kNumDiacritics			18
 

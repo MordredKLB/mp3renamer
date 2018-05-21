@@ -191,6 +191,7 @@ void PopulateMetaData(int panel)
 	PopulateRingCtrls(albumPanHandle);
 	SetCtrlVal(albumPanHandle, ALBUMPANEL_TXTTYPE, "");
 	SetCtrlVal(albumPanHandle, ALBUMPANEL_TXTLABEL, "");
+	SetCtrlVal(albumPanHandle, ALBUMPANEL_TXTDATE, "");
 	SetCtrlVal(albumPanHandle, ALBUMPANEL_TXTCATALOG, "");
 	SetCtrlVal(albumPanHandle, ALBUMPANEL_TXTBARCODE, "");
 	SetCtrlVal(albumPanHandle, ALBUMPANEL_TXTASIN, "");
@@ -890,7 +891,8 @@ void GetMetaTrackData(int panel, int albumIndex)
 				} else {
 					ptr = "1";
 				}
-				if (trackNum == count && !strncmp(ptr, gAlbumInfo[albumIndex].tracks[i].discNum, strlen(gAlbumInfo[albumIndex].tracks[i].discNum))) {
+				// if (trackNum == count && !strncmp(ptr, gAlbumInfo[albumIndex].tracks[i].discNum, strlen(gAlbumInfo[albumIndex].tracks[i].discNum))) {
+				if (trackNum == count && strtol(ptr, NULL, 10) == strtol(gAlbumInfo[albumIndex].tracks[i].discNum, NULL, 10)) {
 					// We found the correct track, now save the values for it
 					if (dataHandle.discSubtitlePtr[k])
 						free(dataHandle.discSubtitlePtr[k]);
@@ -975,6 +977,8 @@ int GetAlbumTrackListing(int panel, int albumTree, int trackTree, int albumIndex
 		SetCtrlAttribute(panel, ALBUMPANEL_TXTCATALOG, ATTR_CTRL_VAL, val);
 		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColLabel, ATTR_LABEL_TEXT, val);
 		SetCtrlAttribute(panel, ALBUMPANEL_TXTLABEL, ATTR_CTRL_VAL, val);
+		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColFullDate, ATTR_LABEL_TEXT, val);
+		SetCtrlAttribute(panel, ALBUMPANEL_TXTDATE, ATTR_CTRL_VAL, val);
 		GetTreeCellAttribute(panel, ALBUMPANEL_ALBUMTREE, albumIndex, kAlbTreeColVariousArtists, ATTR_LABEL_TEXT_LENGTH, &len);
 		if (len > 0) {
 			vaLen = 18;
@@ -1140,6 +1144,14 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 						}
 						GetParentElement(&curElem); 	// artist-credit
 					}
+					
+					if (!GetChildElementByTag(&curElem, "title")) {
+						hrChk(CVIXMLGetElementValue(curElem, title));
+						if (replaceUnicodeApostrophe)
+							ReplaceUnicodeApostrophe(title);
+						GetParentElement(&curElem); /* title */
+					}
+					
 					mins = secs = 0; 
 					if (!GetChildElementByTag(&curElem, "length")) {
 						hrChk(CVIXMLGetElementValue(curElem, val));
@@ -1147,12 +1159,6 @@ int GetXMLAndPopulateTrackTree(int panel, int albumTree, int trackTree, int albu
 						secs = (strtol(val, NULL, 10) + 500) / 1000;
 						mins = secs/60;
 						secs = secs%60;
-					}
-					if (!GetChildElementByTag(&curElem, "title")) {
-						hrChk(CVIXMLGetElementValue(curElem, title));
-						if (replaceUnicodeApostrophe)
-							ReplaceUnicodeApostrophe(title);
-						GetParentElement(&curElem); /* title */
 					}
 					GetParentElement(&curElem); // recording
 					GetParentElement(&curElem);
